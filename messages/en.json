@@ -401,5 +401,18 @@
   "paste_open": "Open as {type}",
   "file_change_type": "Change type",
   "file_type_placeholder": "Choose a file type…",
-  "file_type_heading": "Type of {name}"
+  "file_type_heading": "Type of {name}",
+  "showcase_label": "Features",
+  "showcase_sync_title": "Edit the text or the tree.",
+  "showcase_sync_body": "Every change shows up in both, as you type.",
+  "showcase_local_lead": "Sent to a server",
+  "showcase_local_value": "0 bytes",
+  "showcase_local_body": "Files, profiles and settings stay in this browser.",
+  "showcase_compare_title": "Compare two files.",
+  "showcase_compare_body": "See what changed, line by line.",
+  "showcase_highlights_title": "Color the tags that matter.",
+  "showcase_highlights_body": "Highlights travel with your profile.",
+  "showcase_share_title": "Share with a link.",
+  "showcase_share_body": "The file travels inside the link, not on a server.",
+  "showcase_share_copied": "Copied"
 }

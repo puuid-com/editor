@@ -6,6 +6,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
+## [0.159.2] - 2026-11-01
+
+### Added
+
+- A feature showcase grid for the editor (tree and text sync, local storage, compare, tag highlights, share links), ready to place on a page.
+
 ## [0.159.1] - 2026-10-31
 
 ### Changed

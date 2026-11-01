@@ -23,6 +23,8 @@ export default [
       'worker-configuration.d.ts',
       'public/**',
       '.agents/**',
+      // Vendored from the stageshow skill (.agents/skills/stageshow/kit)
+      'src/components/showcase/kit/**',
     ],
   },
 ]

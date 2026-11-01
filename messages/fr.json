@@ -401,5 +401,18 @@
   "paste_open": "Ouvrir en {type}",
   "file_change_type": "Changer le type",
   "file_type_placeholder": "Choisir un type de fichier…",
-  "file_type_heading": "Type de {name}"
+  "file_type_heading": "Type de {name}",
+  "showcase_label": "Fonctionnalités",
+  "showcase_sync_title": "Modifiez le texte ou l’arbre.",
+  "showcase_sync_body": "Chaque changement apparaît des deux côtés, pendant la saisie.",
+  "showcase_local_lead": "Envoyé à un serveur",
+  "showcase_local_value": "0 octet",
+  "showcase_local_body": "Fichiers, profils et réglages restent dans ce navigateur.",
+  "showcase_compare_title": "Comparez deux fichiers.",
+  "showcase_compare_body": "Voyez ce qui a changé, ligne par ligne.",
+  "showcase_highlights_title": "Colorez les balises importantes.",
+  "showcase_highlights_body": "Les surlignages suivent votre profil.",
+  "showcase_share_title": "Partagez avec un lien.",
+  "showcase_share_body": "Le fichier voyage dans le lien, pas sur un serveur.",
+  "showcase_share_copied": "Copié"
 }
