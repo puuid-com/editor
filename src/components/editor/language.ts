@@ -5,6 +5,7 @@ import { Language, LanguageSupport } from '@codemirror/language'
 import { Compartment, Facet } from '@codemirror/state'
 import { Parser } from '@lezer/common'
 
+import { sqlHighlight } from './sql-highlight'
 import { VAR_MAX_LENGTH, maskVars, maskVarsAsNumbers } from '#/lib/xml/vars'
 import type { Extension } from '@codemirror/state'
 import type { Input, PartialParse, TreeFragment } from '@lezer/common'
@@ -82,8 +83,9 @@ const jsonSupport = new LanguageSupport(
   ),
 )
 
-// SQL is only formatted, so it keeps the stock grammar and no variables.
-const sqlSupport = sql()
+// SQL is only formatted, so it keeps the stock grammar and no variables, with
+// colours for tables, aliases and columns on top.
+const sqlSupport = [sql(), sqlHighlight]
 
 const SUPPORT: Record<DocLanguage, Extension> = {
   xml: xmlSupport,

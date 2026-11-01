@@ -6,6 +6,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
+## [0.162.0] - 2026-11-01
+
+### Added
+
+- SQL colours that follow the usual SQL editor convention: blue keywords, red strings, green comments, magenta functions and grey operators.
+- Tables, aliases and columns in SQL each get their own colour, read from where they stand in the query.
+
 ## [0.161.0] - 2026-11-01
 
 ### Added

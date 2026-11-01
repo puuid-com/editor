@@ -74,6 +74,20 @@
   --hl-gray: oklch(0.6 0 0);
   /* Lightness of highlight-coloured text, from the colour's own `l`. */
   --hl-ink-l: min(l - 0.1, 0.56);
+
+  /* SQL roles, after the usual SQL editor colours: blue keywords, red
+     strings, green comments, magenta functions, grey operators. Inked from
+     the highlight presets so they read in both themes. */
+  --sql-keyword: oklch(from var(--hl-blue) var(--hl-ink-l) c h);
+  --sql-function: oklch(from var(--hl-pink) var(--hl-ink-l) c h);
+  --sql-string: oklch(from var(--hl-red) var(--hl-ink-l) c h);
+  --sql-number: oklch(from var(--hl-amber) var(--hl-ink-l) c h);
+  --sql-comment: oklch(from var(--hl-green) var(--hl-ink-l) c h);
+  --sql-table: oklch(from var(--hl-teal) var(--hl-ink-l) c h);
+  --sql-alias: oklch(from var(--hl-purple) var(--hl-ink-l) c h);
+  --sql-column: var(--foreground);
+  --sql-literal: var(--muted-foreground);
+  --sql-operator: var(--muted-foreground);
 }
 
 .dark {

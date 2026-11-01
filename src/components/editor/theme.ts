@@ -218,6 +218,17 @@ const theme = EditorView.theme({
   '.cm-zpl-link:hover': { color: 'var(--foreground)' },
   '.cm-zpl-link:focus-visible': { outline: '1px solid var(--ring)' },
   '.cm-zpl-link svg': { width: '12px', height: '12px' },
+  // SQL roles, after the usual SQL editor colours.
+  '.cm-sql-keyword': { color: 'var(--sql-keyword)' },
+  '.cm-sql-function': { color: 'var(--sql-function)' },
+  '.cm-sql-string': { color: 'var(--sql-string)' },
+  '.cm-sql-number': { color: 'var(--sql-number)' },
+  '.cm-sql-literal': { color: 'var(--sql-literal)' },
+  '.cm-sql-comment': { color: 'var(--sql-comment)', fontStyle: 'italic' },
+  '.cm-sql-operator': { color: 'var(--sql-operator)' },
+  '.cm-sql-table': { color: 'var(--sql-table)', fontWeight: '500' },
+  '.cm-sql-alias': { color: 'var(--sql-alias)' },
+  '.cm-sql-column': { color: 'var(--sql-column)' },
 })
 
 const highlightStyle = HighlightStyle.define([
