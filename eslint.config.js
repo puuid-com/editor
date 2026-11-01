@@ -22,6 +22,7 @@ export default [
       'src/routeTree.gen.ts',
       'worker-configuration.d.ts',
       'public/**',
+      '.agents/**',
     ],
   },
 ]
