@@ -9,6 +9,7 @@ export const FILE_TYPES: Array<{ value: DocLanguage; label: () => string }> = [
   { value: 'xml', label: m.paste_type_xml },
   { value: 'json', label: m.paste_type_json },
   { value: 'flat', label: m.paste_type_flat },
+  { value: 'sql', label: m.paste_type_sql },
 ]
 
 /**

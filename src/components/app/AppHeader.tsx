@@ -8,6 +8,7 @@ import { ArchiveButton } from './ArchiveDialog'
 import { ShareButton } from './ShareDialog'
 import { StatusNotice } from './StatusNotice'
 import { ToolbarButton } from './ToolbarButton'
+import { editorStore } from '#/components/editor/editor-store'
 import { shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setPanelOpen } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
@@ -16,6 +17,8 @@ import { m } from '#/paraglide/messages'
 export function AppHeader({ children }: { children?: React.ReactNode }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const hasActive = useSelector(sessionStore, (s) => s.activeId !== null)
+  // SQL files have no side panel.
+  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
     <header className="flex h-12 shrink-0 items-center bg-foreground/5 shadow-[inset_0_-1px_var(--border)] md:h-10">
@@ -25,7 +28,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
 
       {hasActive && <ShareButton />}
       <ArchiveButton />
-      {hasActive && (
+      {hasActive && !sql && (
         <ToolbarButton
           label={m.action_toggle_panel()}
           shortcut={shortcuts.togglePanel}

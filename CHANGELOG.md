@@ -6,6 +6,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
+## [0.161.0] - 2026-11-01
+
+### Added
+
+- SQL files (`.sql`): syntax highlighting and a Format action that puts each clause on its own line, with leading commas, AND/OR conditions indented under WHERE and ON, and subqueries indented one level.
+- SQL files open in the editor alone: no side panel, highlights, defaults or variables.
+
 ## [0.160.0] - 2026-11-01
 
 ### Changed

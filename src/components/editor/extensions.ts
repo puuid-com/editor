@@ -97,18 +97,29 @@ const varDecorator = new MatchDecorator({
   },
 })
 
+// SQL is only formatted, so `<<` there is just an operator.
+function varMarks(view: EditorView) {
+  return view.state.facet(docLanguage) === 'sql'
+    ? Decoration.none
+    : varDecorator.createDeco(view)
+}
+
 const varHighlighter = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
     constructor(view: EditorView) {
-      this.decorations = varDecorator.createDeco(view)
+      this.decorations = varMarks(view)
     }
     update(update: ViewUpdate) {
+      const language = update.state.facet(docLanguage)
       this.decorations =
-        update.startState.facet(varValuesFacet) ===
-        update.state.facet(varValuesFacet)
-          ? varDecorator.updateDeco(update, this.decorations)
-          : varDecorator.createDeco(update.view)
+        language === 'sql'
+          ? Decoration.none
+          : update.startState.facet(varValuesFacet) ===
+                update.state.facet(varValuesFacet) &&
+              update.startState.facet(docLanguage) === language
+            ? varDecorator.updateDeco(update, this.decorations)
+            : varDecorator.createDeco(update.view)
     }
   },
   { decorations: (v) => v.decorations },

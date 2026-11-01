@@ -1,7 +1,7 @@
 {
   "name": "xml",
   "private": true,
-  "version": "0.160.0",
+  "version": "0.161.0",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "imports": {
@@ -30,6 +30,7 @@
     "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-sql": "^6.10.0",
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/language": "^6.13.1",
     "@codemirror/lint": "^6.9.7",

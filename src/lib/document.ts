@@ -11,6 +11,7 @@ import { formatXml } from './xml/format'
 import { elementByPath } from './xml/locate'
 import { isElement } from './xml/model'
 import { parseXml } from './xml/parse'
+import { formatSql } from './sql/format'
 import type { DefaultRule } from './xml/defaults'
 import type { TextChange } from './xml/edit'
 import type { FormatOptions, FormatResult } from './xml/format'
@@ -21,6 +22,10 @@ export type { DocLanguage }
 const JSON_EXT = /\.(json|geojson|jsonld|webmanifest|har|ipynb)$/i
 const XML_EXT =
   /\.(xml|xsd|xsl|xslt|wsdl|svg|plist|config|csproj|xaml|rss|atom|kml|gpx)$/i
+const SQL_EXT = /\.(sql|ddl|dml)$/i
+// A statement keyword first, after any leading comments.
+const SQL_START =
+  /^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*(select|with|insert|update|delete|merge|create|alter|drop|truncate)\b/i
 
 /** By extension, else by the first character of the content. */
 export function languageOf(name: string, content: string): DocLanguage {
@@ -28,6 +33,8 @@ export function languageOf(name: string, content: string): DocLanguage {
   if (isFlatFile(content)) return 'flat'
   if (JSON_EXT.test(name)) return 'json'
   if (XML_EXT.test(name)) return 'xml'
+  if (SQL_EXT.test(name)) return 'sql'
+  if (SQL_START.test(content)) return 'sql'
   return /^\s*[[{]/.test(content) ? 'json' : 'xml'
 }
 
@@ -36,6 +43,7 @@ export function detectLanguage(content: string): DocLanguage | null {
   if (isFlatFile(content)) return 'flat'
   if (/^\s*[[{]/.test(content)) return 'json'
   if (/^\s*</.test(content)) return 'xml'
+  if (SQL_START.test(content)) return 'sql'
   return null
 }
 
@@ -43,7 +51,7 @@ const FLAT_EXT = /\.(txt|dat)$/i
 
 /** A file name without the extension that gives its type. */
 export function untypedName(name: string) {
-  for (const ext of [JSON_EXT, XML_EXT, FLAT_EXT]) {
+  for (const ext of [JSON_EXT, XML_EXT, SQL_EXT, FLAT_EXT]) {
     const stem = name.replace(ext, '')
     if (stem !== name) return stem || name
   }
@@ -54,6 +62,7 @@ const EXTENSIONS: Record<DocLanguage, string> = {
   xml: '.xml',
   json: '.json',
   flat: '.txt',
+  sql: '.sql',
 }
 
 /** `name` with the extension of `language`, unless it already reads as one. */
@@ -61,7 +70,8 @@ export function typedName(name: string, language: DocLanguage) {
   const keep =
     (language === 'json' && JSON_EXT.test(name)) ||
     (language === 'xml' && XML_EXT.test(name)) ||
-    (language === 'flat' && FLAT_EXT.test(name))
+    (language === 'flat' && FLAT_EXT.test(name)) ||
+    (language === 'sql' && SQL_EXT.test(name))
   return keep ? name : untypedName(name) + EXTENSIONS[language]
 }
 
@@ -69,13 +79,13 @@ export function parseDocument(
   text: string,
   language: DocLanguage,
 ): XmlDocument {
-  if (language === 'flat') {
+  if (language === 'flat' || language === 'sql') {
     return {
       language,
       nodes: [],
       root: null,
       errors: [],
-      flat: parseFlat(text),
+      ...(language === 'flat' && { flat: parseFlat(text) }),
     }
   }
   return language === 'json' ? parseJson(text) : parseXml(text)
@@ -88,6 +98,7 @@ export function formatDocument(
 ): FormatResult {
   // Fixed-width fields are already aligned.
   if (language === 'flat') return { ok: true, text }
+  if (language === 'sql') return { ok: true, text: formatSql(text) }
   return language === 'json'
     ? formatJson(text, options)
     : formatXml(text, options)
@@ -134,4 +145,5 @@ export const MIME_TYPES: Record<DocLanguage, string> = {
   xml: 'application/xml',
   json: 'application/json',
   flat: 'text/plain',
+  sql: 'application/sql',
 }

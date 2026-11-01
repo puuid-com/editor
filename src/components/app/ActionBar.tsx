@@ -55,7 +55,6 @@ export function ActionBar() {
   const doc = useSelector(editorStore, (s) => s.doc)
   const vars = useSelector(editorStore, (s) => varsAt(s.revision))
   const rules = useEnabledDefaults()
-  const formatError = doc.errors.at(0)
   const defaults = useMemo(
     () =>
       defaultSummary(doc.nodes, rules).reduce((n, rule) => n + rule.count, 0),
@@ -74,16 +73,7 @@ export function ActionBar() {
       )}
       <Divider />
       <div className="flex items-center text-foreground">
-        <ActionButton
-          label={m.action_format()}
-          detail={formatError ? formatError.message : null}
-          shortcut={shortcuts.format}
-          disabled={formatError !== undefined}
-          onClick={formatActive}
-        >
-          <IconWand />
-          {m.action_format()}
-        </ActionButton>
+        <FormatButton />
         <ActionButton
           label={m.defaults_apply()}
           detail={
@@ -118,6 +108,23 @@ export function ActionBar() {
         </ActionButton>
       </div>
     </div>
+  )
+}
+
+/** Formats the active file; disabled while it has errors. */
+export function FormatButton() {
+  const formatError = useSelector(editorStore, (s) => s.doc.errors.at(0))
+  return (
+    <ActionButton
+      label={m.action_format()}
+      detail={formatError ? formatError.message : null}
+      shortcut={shortcuts.format}
+      disabled={formatError !== undefined}
+      onClick={formatActive}
+    >
+      <IconWand />
+      {m.action_format()}
+    </ActionButton>
   )
 }
 

@@ -37,6 +37,7 @@ import { TabStrip } from './TabStrip'
 import { useAppShortcuts } from './use-app-shortcuts'
 import { setCompareId, setMobileView, uiStore } from './ui-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
+import { editorStore } from '#/components/editor/editor-store'
 import { QuickHighlight } from '#/components/highlights/QuickHighlight'
 import {
   DeleteProfileDialog,
@@ -243,9 +244,11 @@ function EditorOrCompare({
 }
 
 function DesktopWorkspace({ fileId, compareId }: WorkspaceProps) {
-  // An empty file has no structure to show.
+  // An empty file has no structure to show, and SQL is only formatted.
   const empty = useFileEmpty(fileId)
-  const panelOpen = useSelector(sessionStore, (s) => s.panelOpen) && !empty
+  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
+  const panelOpen =
+    useSelector(sessionStore, (s) => s.panelOpen) && !empty && !sql
   const layout = useDefaultLayout({
     id: 'xml-main-h',
     panelIds: panelOpen ? ['editor', 'side'] : ['editor'],
@@ -278,8 +281,12 @@ function DesktopWorkspace({ fileId, compareId }: WorkspaceProps) {
 }
 
 export function MobileWorkspace({ fileId, compareId }: WorkspaceProps) {
-  const empty = useFileEmpty(fileId)
-  const view = useSelector(uiStore, (s) => (empty ? 'editor' : s.mobileView))
+  // Nothing to show beside an empty file or a SQL one.
+  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
+  const editorOnly = useFileEmpty(fileId) || sql
+  const view = useSelector(uiStore, (s) =>
+    editorOnly ? 'editor' : s.mobileView,
+  )
   useEffect(() => setMobileView('editor'), [fileId])
 
   return (
@@ -293,7 +300,10 @@ export function MobileWorkspace({ fileId, compareId }: WorkspaceProps) {
       <TabsList
         variant="line"
         aria-label={m.workspace_views()}
-        className={cn('h-11! w-full shrink-0 border-b p-0', empty && 'hidden')}
+        className={cn(
+          'h-11! w-full shrink-0 border-b p-0',
+          editorOnly && 'hidden',
+        )}
       >
         <TabsTrigger value="editor" className="h-full! text-sm after:bottom-0!">
           {m.nav_editor()}

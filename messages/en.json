@@ -398,6 +398,7 @@
   "paste_type_xml": "XML",
   "paste_type_json": "JSON",
   "paste_type_flat": "Fixed-width",
+  "paste_type_sql": "SQL",
   "paste_open": "Open as {type}",
   "file_change_type": "Change type",
   "file_type_placeholder": "Choose a file type…",

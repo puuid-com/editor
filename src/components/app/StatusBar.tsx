@@ -2,7 +2,7 @@ import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 
-import { ActionBar } from './ActionBar'
+import { ActionBar, FormatButton } from './ActionBar'
 import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
 import { ThemeToggle } from './ThemeToggle'
@@ -31,12 +31,25 @@ export function StatusBar() {
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
+  // SQL is only formatted: no highlights, profiles, defaults or variables.
+  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
-      {typed && <HighlightsBar />}
+      {typed && !sql && <HighlightsBar />}
       <div className="flex-1" />
-      {typed && (
+      {typed && sql && (
+        <>
+          <div className="flex items-center text-foreground">
+            <FormatButton />
+          </div>
+          <Separator
+            orientation="vertical"
+            className="mx-1 data-vertical:h-4 data-vertical:self-center"
+          />
+        </>
+      )}
+      {typed && !sql && (
         <>
           <ActionBar />
           <SettingsPopover />

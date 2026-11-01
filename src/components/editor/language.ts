@@ -1,10 +1,12 @@
 import { jsonLanguage } from '@codemirror/lang-json'
+import { sql } from '@codemirror/lang-sql'
 import { autoCloseTags, xmlLanguage } from '@codemirror/lang-xml'
 import { Language, LanguageSupport } from '@codemirror/language'
 import { Compartment, Facet } from '@codemirror/state'
 import { Parser } from '@lezer/common'
 
 import { VAR_MAX_LENGTH, maskVars, maskVarsAsNumbers } from '#/lib/xml/vars'
+import type { Extension } from '@codemirror/state'
 import type { Input, PartialParse, TreeFragment } from '@lezer/common'
 import type { DocLanguage } from '#/lib/document'
 
@@ -80,6 +82,16 @@ const jsonSupport = new LanguageSupport(
   ),
 )
 
+// SQL is only formatted, so it keeps the stock grammar and no variables.
+const sqlSupport = sql()
+
+const SUPPORT: Record<DocLanguage, Extension> = {
+  xml: xmlSupport,
+  json: jsonSupport,
+  flat: [],
+  sql: sqlSupport,
+}
+
 /** The language of the file in this editor state. */
 export const docLanguage = Facet.define<DocLanguage, DocLanguage>({
   combine: (values) => values.at(-1) ?? 'xml',
@@ -88,8 +100,5 @@ export const docLanguage = Facet.define<DocLanguage, DocLanguage>({
 export const languageCompartment = new Compartment()
 
 export function languageExtension(language: DocLanguage) {
-  return [
-    docLanguage.of(language),
-    language === 'json' ? jsonSupport : language === 'xml' ? xmlSupport : [],
-  ]
+  return [docLanguage.of(language), SUPPORT[language]]
 }

@@ -53,6 +53,7 @@ import {
   undoActive,
 } from '#/components/editor/actions'
 import { saveAs } from '#/components/editor/disk'
+import { editorStore } from '#/components/editor/editor-store'
 import {
   switchProfile,
   switchToNextProfile,
@@ -331,6 +332,8 @@ function RootCommands({
   // Read as the menu opens; nothing edits the file while it is open.
   const [depth] = useState(historyDepth)
   const activeFile = files.find((f) => f.id === activeId)
+  // SQL files are only formatted.
+  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
     <>
@@ -433,27 +436,35 @@ function RootCommands({
               {m.edit_redo()}
               <CommandShortcut>{shortcutLabel(shortcuts.redo)}</CommandShortcut>
             </CommandItem>
-            <CommandItem onSelect={() => run(() => void highlightAtCursor())}>
-              <IconHighlight />
-              {m.highlight_at_cursor()}
-              <CommandShortcut>
-                {shortcutLabel(shortcuts.highlight)}
-              </CommandShortcut>
-            </CommandItem>
-            <CommandItem onSelect={() => run(() => void applyDefaultsActive())}>
-              <IconReplace />
-              {m.defaults_apply()}
-              <CommandShortcut>
-                {shortcutLabel(shortcuts.applyDefaults)}
-              </CommandShortcut>
-            </CommandItem>
-            <CommandItem onSelect={() => run(resolveVarsActive)}>
-              <IconVariable />
-              {m.vars_resolve()}
-              <CommandShortcut>
-                {shortcutLabel(shortcuts.resolveVars)}
-              </CommandShortcut>
-            </CommandItem>
+            {!sql && (
+              <>
+                <CommandItem
+                  onSelect={() => run(() => void highlightAtCursor())}
+                >
+                  <IconHighlight />
+                  {m.highlight_at_cursor()}
+                  <CommandShortcut>
+                    {shortcutLabel(shortcuts.highlight)}
+                  </CommandShortcut>
+                </CommandItem>
+                <CommandItem
+                  onSelect={() => run(() => void applyDefaultsActive())}
+                >
+                  <IconReplace />
+                  {m.defaults_apply()}
+                  <CommandShortcut>
+                    {shortcutLabel(shortcuts.applyDefaults)}
+                  </CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => run(resolveVarsActive)}>
+                  <IconVariable />
+                  {m.vars_resolve()}
+                  <CommandShortcut>
+                    {shortcutLabel(shortcuts.resolveVars)}
+                  </CommandShortcut>
+                </CommandItem>
+              </>
+            )}
           </CommandGroup>
         </>
       )}

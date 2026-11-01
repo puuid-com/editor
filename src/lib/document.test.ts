@@ -9,6 +9,14 @@ describe('detectLanguage', () => {
     expect(detectLanguage('[1, 2]')).toBe('json')
   })
 
+  it('reads SQL from a leading statement keyword', () => {
+    expect(detectLanguage('select 1')).toBe('sql')
+    expect(detectLanguage('-- report\nWITH a AS (SELECT 1) SELECT *')).toBe(
+      'sql',
+    )
+    expect(detectLanguage('selection')).toBeNull()
+  })
+
   it('gives up on content with nothing to go by', () => {
     expect(detectLanguage('hello')).toBeNull()
     expect(detectLanguage('')).toBeNull()
