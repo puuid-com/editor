@@ -6,6 +6,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
+## [0.163.0] - 2026-11-01
+
+### Added
+
+- Changelog entries now show a small picture of what changed, with a before and after where it helps: SQL colours, the paste dialog, welcome screens, tabs, the bottom bar and more.
+
 ## [0.162.0] - 2026-11-01
 
 ### Added

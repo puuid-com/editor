@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import changelog from '../../../CHANGELOG.md?raw'
+import { previews } from '#/components/changelog/previews'
 import { Badge } from '#/components/ui/badge'
 import { parseChangelog } from '#/lib/changelog'
 import { seo } from '#/lib/seo'
@@ -36,40 +37,47 @@ function Changelog() {
           {m.changelog_description()}
         </p>
       </header>
-      {entries.map((entry) => (
-        <article
-          key={entry.id}
-          id={entry.id}
-          aria-labelledby={`title-${entry.id}`}
-          className="grid scroll-mt-8 gap-4 border-t py-8 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8"
-        >
-          <div className="md:sticky md:top-6 md:self-start">
-            <h2
-              id={`title-${entry.id}`}
-              className="font-mono text-sm font-semibold"
-            >
-              <a href={`#${entry.id}`} className="hover:underline">
-                v{entry.id}
-              </a>
-            </h2>
-            <time
-              dateTime={entry.date}
-              className="mt-1 block text-xs text-muted-foreground"
-            >
-              {dateFormat.format(new Date(`${entry.date}T00:00:00Z`))}
-            </time>
-            {entry.id === appVersion && (
-              <Badge variant="outline" className="mt-2">
-                {m.changelog_latest()}
-              </Badge>
-            )}
-          </div>
-          <div
-            className={`min-w-0 ${bodyClass}`}
-            dangerouslySetInnerHTML={{ __html: entry.html }}
-          />
-        </article>
-      ))}
+      {entries.map((entry) => {
+        const Preview = previews[entry.id] as
+          (typeof previews)[string] | undefined
+        return (
+          <article
+            key={entry.id}
+            id={entry.id}
+            aria-labelledby={`title-${entry.id}`}
+            className="grid scroll-mt-8 gap-4 border-t py-8 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8"
+          >
+            <div className="md:sticky md:top-6 md:self-start">
+              <h2
+                id={`title-${entry.id}`}
+                className="font-mono text-sm font-semibold"
+              >
+                <a href={`#${entry.id}`} className="hover:underline">
+                  v{entry.id}
+                </a>
+              </h2>
+              <time
+                dateTime={entry.date}
+                className="mt-1 block text-xs text-muted-foreground"
+              >
+                {dateFormat.format(new Date(`${entry.date}T00:00:00Z`))}
+              </time>
+              {entry.id === appVersion && (
+                <Badge variant="outline" className="mt-2">
+                  {m.changelog_latest()}
+                </Badge>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div
+                className={bodyClass}
+                dangerouslySetInnerHTML={{ __html: entry.html }}
+              />
+              {Preview && <Preview />}
+            </div>
+          </article>
+        )
+      })}
     </section>
   )
 }

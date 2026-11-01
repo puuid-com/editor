@@ -383,6 +383,8 @@
   "status_defaults_count": "Valeurs qui changeraient : {count}",
   "status_profile_edit_hint": "Double-cliquer pour modifier",
   "changelog_description": "Nouvelles fonctionnalités, améliorations et corrections, les plus récentes en premier. Les entrées sont rédigées en anglais.",
+  "changelog_before": "Avant",
+  "changelog_after": "Après",
   "changelog_latest": "Dernière version",
   "nav_changelog": "Journal",
   "about_version": "Version",

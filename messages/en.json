@@ -383,6 +383,8 @@
   "status_defaults_count": "Values that would change: {count}",
   "status_profile_edit_hint": "Double-click to edit",
   "changelog_description": "New features, improvements and fixes, newest first. Entries are written in English.",
+  "changelog_before": "Before",
+  "changelog_after": "After",
   "changelog_latest": "Latest",
   "nav_changelog": "Changelog",
   "about_version": "Version",
