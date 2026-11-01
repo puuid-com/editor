@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 
+import { FeatureBento } from '#/components/showcase/FeatureBento'
 import { seo } from '#/lib/seo'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
@@ -35,14 +36,15 @@ function About() {
   ]
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+    <section className="mx-auto max-w-5xl px-4 py-12 md:py-16">
       <h1 className="text-3xl font-semibold tracking-tight">
         {m.about_title()}
       </h1>
       <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">
         {m.about_body()}
       </p>
-      <dl className="mt-10 border-t text-sm">
+      <FeatureBento className="mt-10" />
+      <dl className="mt-12 max-w-3xl border-t text-sm">
         {facts.map((fact) => (
           <div
             key={fact.label}
