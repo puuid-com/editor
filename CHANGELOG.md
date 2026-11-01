@@ -6,6 +6,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
+Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
+
+## [0.163.1] - 2026-11-01
+
+### Changed
+
+- Agent and contributor docs now ask for a changelog picture with every visible change.
+
 ## [0.163.0] - 2026-11-01
 
 ### Added

@@ -46,6 +46,7 @@ const PURPLE = 'var(--hl-purple)'
 const TEAL = 'var(--hl-teal)'
 const AMBER = 'var(--hl-amber)'
 const GREEN = 'var(--hl-green)'
+const ink = (color: string) => `oklch(from ${color} var(--hl-ink-l) c h)`
 
 const QUERY = `-- open orders
 SELECT o.id
@@ -682,6 +683,33 @@ function ChangelogRows() {
   )
 }
 
+function ReleasePictures() {
+  const thumb = (tone: string) => (
+    <div className="grid gap-1 border p-1.5">
+      <Bar className="w-3/4" />
+      <span
+        className="block h-1.5 w-1/2"
+        style={{ backgroundColor: ink(tone) }}
+      />
+      <Bar className="w-2/3" />
+    </div>
+  )
+  return (
+    <BeforeAfter
+      before={<Release version="0.162.0" date="Nov 1" />}
+      after={
+        <>
+          <Release version="0.162.0" date="Nov 1" />
+          <div className="grid grid-cols-2 gap-2 pr-3 pb-3 pl-[6.5rem]">
+            {thumb('var(--hl-gray)')}
+            {thumb(BLUE)}
+          </div>
+        </>
+      }
+    />
+  )
+}
+
 function AutoProfile() {
   const strip = (color?: string) => (
     <Tabs>
@@ -830,8 +858,6 @@ function BrowserTabs() {
     />
   )
 }
-
-const ink = (color: string) => `oklch(from ${color} var(--hl-ink-l) c h)`
 
 // The syntax tokens are CSS variables, so the old colour palette is the
 // same lines with those variables pointed at the highlight colours.
@@ -982,6 +1008,7 @@ function figure(...parts: Array<ComponentType>): ComponentType {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.163.0': figure(ReleasePictures),
   '0.162.0': figure(SqlColours),
   '0.161.0': figure(SqlFormat),
   '0.160.0': figure(AboutGrid),

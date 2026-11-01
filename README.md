@@ -38,6 +38,7 @@ src/
     inspector/            Tree search/navigation and separate row rendering
     profiles/             Profile controls and dialogs
     compare/              Document comparisons
+    changelog/            Before/after pictures shown on the changelog page
     ui/                   shadcn/ui components
   hooks/                  TanStack live queries and shared React hooks
   lib/
@@ -78,6 +79,8 @@ CI runs formatting, lint, type checking, tests, and the production build. Tests 
 Use the appropriate TanStack libraries, shadcn/ui, and Tailwind CSS. Follow [Vercel's design guidelines](https://vercel.com/design.md). Check for an existing shadcn component before adding UI; install new primitives with `bunx shadcn@latest add <component>`.
 
 Import application code through `#/`. Add user-facing strings to both `messages/en.json` and `messages/fr.json`. Do not edit generated files in `src/paraglide/`, `src/routeTree.gen.ts`, or `worker-configuration.d.ts`.
+
+Every commit bumps `package.json` and adds a `CHANGELOG.md` entry. Releases with a visible change also get a small static preview in `src/components/changelog/previews.tsx`, keyed by version: a before/after pair for changes, a single shot for new features. See [AGENTS.md](AGENTS.md) for the full release steps.
 
 Public routes set their SEO metadata through `seo()` and belong in `site.sitemapPaths`. To add a locale, update `project.inlang/settings.json`, add its messages, and update `localeNames` in `LocaleSwitcher.tsx`.
 
