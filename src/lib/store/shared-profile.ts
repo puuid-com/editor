@@ -3,23 +3,14 @@ import { withDefaults } from './format-settings'
 import { highlightsCollection } from './highlights'
 import { DEFAULT_PROFILE_ID, newId } from './persist'
 import { pinsCollection } from './pins'
-import { profilesCollection, profilesList } from './profiles'
+import { deleteOwnedRows, ownedRows } from './profile-rules'
+import { nextCreatedAt, profilesCollection, profilesList } from './profiles'
 import { isVariableName, variablesCollection } from './variables'
 import type { Profile } from './profiles'
 import { m } from '#/paraglide/messages'
 import type { SharedProfile } from '#/lib/share'
 
 // A profile packed into a share link, and what opening the link does with it.
-
-const byCreation = <T extends { createdAt: number; id: string }>(a: T, b: T) =>
-  a.createdAt - b.createdAt || a.id.localeCompare(b.id)
-
-function owned<T extends { profileId: string; createdAt: number; id: string }>(
-  rows: Iterable<T>,
-  profileId: string,
-) {
-  return [...rows].filter((r) => r.profileId === profileId).sort(byCreation)
-}
 
 /** A profile's settings and rules, ready to travel in a share link. */
 export function snapshotProfile(
@@ -33,19 +24,21 @@ export function snapshotProfile(
     name: profile.name,
     color: profile.color,
     format: withDefaults(profile.format),
-    highlights: owned(highlightsCollection.values(), profileId).map((r) => ({
-      tag: r.tag,
-      color: r.color,
-      enabled: r.enabled,
-    })),
-    pins: owned(pinsCollection.values(), profileId).map((p) => p.tag),
-    defaults: owned(defaultsCollection.values(), profileId).map((r) => ({
+    highlights: ownedRows(highlightsCollection.values(), profileId).map(
+      (r) => ({
+        tag: r.tag,
+        color: r.color,
+        enabled: r.enabled,
+      }),
+    ),
+    pins: ownedRows(pinsCollection.values(), profileId).map((p) => p.tag),
+    defaults: ownedRows(defaultsCollection.values(), profileId).map((r) => ({
       key: r.key,
       value: r.value,
       enabled: r.enabled,
     })),
     variables: variables
-      ? owned(variablesCollection.values(), profileId).map((v) => ({
+      ? ownedRows(variablesCollection.values(), profileId).map((v) => ({
           name: v.name,
           value: v.value,
         }))
@@ -138,10 +131,7 @@ export function importSharedProfile(shared: SharedProfile): Profile {
       ? m.profile_shared_name({ name: shared.name })
       : shared.name,
     color: shared.color,
-    createdAt: Math.max(
-      Date.now(),
-      (profilesList().at(-1)?.createdAt ?? 0) + 1,
-    ),
+    createdAt: nextCreatedAt(),
     format: withDefaults(shared.format),
     samples: [],
   }
@@ -161,19 +151,9 @@ export function updateFromShared(profileId: string, shared: SharedProfile) {
     draft.color = shared.color
     draft.format = withDefaults(shared.format)
   })
-  const replaced = shared.variables
-    ? [
-        highlightsCollection,
-        pinsCollection,
-        defaultsCollection,
-        variablesCollection,
-      ]
-    : [highlightsCollection, pinsCollection, defaultsCollection]
-  for (const collection of replaced) {
-    const ids = [...collection.values()]
-      .filter((rule) => rule.profileId === profileId)
-      .map((rule) => rule.id)
-    if (ids.length) collection.delete(ids)
-  }
+  // The workspace reports a refused write.
+  deleteOwnedRows(profileId, { variables: !!shared.variables }).catch(
+    () => undefined,
+  )
   insertRules(shared, profileId)
 }

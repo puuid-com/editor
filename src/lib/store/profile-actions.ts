@@ -3,6 +3,7 @@ import { reassignProfile } from './files'
 import { highlightsCollection } from './highlights'
 import { newId } from './persist'
 import { pinsCollection } from './pins'
+import { deleteOwnedRows, ownedRows } from './profile-rules'
 import {
   createProfile,
   profilesCollection,
@@ -22,39 +23,43 @@ export async function cloneProfile(
   const source = profilesCollection.get(sourceId)
   if (!source) return
   const copy = await createProfile({ ...details, format: source.format })
-  const owned = <T extends { profileId: string }>(rules: Iterable<T>) =>
-    [...rules].filter((rule) => rule.profileId === sourceId)
   // Fields are listed so the rows' virtual `$` props aren't copied.
-  const highlights = owned(highlightsCollection.values()).map((r) => ({
-    id: newId(),
-    tag: r.tag,
-    color: r.color,
-    enabled: r.enabled,
-    createdAt: r.createdAt,
-    profileId: copy.id,
-  }))
-  const pins = owned(pinsCollection.values()).map((p) => ({
+  const highlights = ownedRows(highlightsCollection.values(), sourceId).map(
+    (r) => ({
+      id: newId(),
+      tag: r.tag,
+      color: r.color,
+      enabled: r.enabled,
+      createdAt: r.createdAt,
+      profileId: copy.id,
+    }),
+  )
+  const pins = ownedRows(pinsCollection.values(), sourceId).map((p) => ({
     id: newId(),
     tag: p.tag,
     createdAt: p.createdAt,
     order: p.order,
     profileId: copy.id,
   }))
-  const defaults = owned(defaultsCollection.values()).map((r) => ({
-    id: newId(),
-    key: r.key,
-    value: r.value,
-    enabled: r.enabled,
-    createdAt: r.createdAt,
-    profileId: copy.id,
-  }))
-  const variables = owned(variablesCollection.values()).map((v) => ({
-    id: newId(),
-    name: v.name,
-    value: v.value,
-    createdAt: v.createdAt,
-    profileId: copy.id,
-  }))
+  const defaults = ownedRows(defaultsCollection.values(), sourceId).map(
+    (r) => ({
+      id: newId(),
+      key: r.key,
+      value: r.value,
+      enabled: r.enabled,
+      createdAt: r.createdAt,
+      profileId: copy.id,
+    }),
+  )
+  const variables = ownedRows(variablesCollection.values(), sourceId).map(
+    (v) => ({
+      id: newId(),
+      name: v.name,
+      value: v.value,
+      createdAt: v.createdAt,
+      profileId: copy.id,
+    }),
+  )
   await Promise.all([
     highlights.length &&
       highlightsCollection.insert(highlights).isPersisted.promise,
@@ -76,20 +81,7 @@ export async function deleteProfile(id: string) {
   const fallback = resolveProfile(rest, null)
   if (!fallback) return
   await reassignProfile(id, fallback.id)
-  const collections = [
-    highlightsCollection,
-    pinsCollection,
-    defaultsCollection,
-    variablesCollection,
-  ]
-  await Promise.all(
-    collections.map((collection) => {
-      const ids = [...collection.values()]
-        .filter((rule) => rule.profileId === id)
-        .map((rule) => rule.id)
-      return ids.length ? collection.delete(ids).isPersisted.promise : undefined
-    }),
-  )
+  await deleteOwnedRows(id)
   await profilesCollection.delete(id).isPersisted.promise
   return fallback
 }

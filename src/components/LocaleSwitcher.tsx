@@ -13,7 +13,7 @@ import {
 
 import type { Locale } from '#/paraglide/runtime'
 
-export const localeNames: Record<Locale, string> = {
+const localeNames: Record<Locale, string> = {
   en: 'English',
   fr: 'Français',
 }

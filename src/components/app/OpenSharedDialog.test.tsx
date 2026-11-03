@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { OpenSharedDialog } from './ShareDialog'
+import { OpenSharedDialog } from './OpenSharedDialog'
 import { encodeShare } from '#/lib/share'
 import { filesCollection } from '#/lib/store/files'
 import { DEFAULT_FORMAT } from '#/lib/store/format-settings'

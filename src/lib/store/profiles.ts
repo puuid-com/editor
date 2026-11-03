@@ -73,6 +73,11 @@ export const profilesCollection = localCollection('profiles', profileSchema, {
   initial: () => [defaultProfile()],
 })
 
+/** A creation time that never sorts a new profile before an older one. */
+export function nextCreatedAt() {
+  return Math.max(Date.now(), (profilesList().at(-1)?.createdAt ?? 0) + 1)
+}
+
 export function compareProfiles(a: Profile, b: Profile) {
   return a.createdAt - b.createdAt || a.id.localeCompare(b.id)
 }
@@ -176,11 +181,7 @@ export async function createProfile({
     id: newId(),
     name: name.trim() || m.profile_untitled(),
     color,
-    // Never sorts before an older profile, even within one millisecond.
-    createdAt: Math.max(
-      Date.now(),
-      (profilesList().at(-1)?.createdAt ?? 0) + 1,
-    ),
+    createdAt: nextCreatedAt(),
     format: withDefaults(format),
     samples: [],
   }

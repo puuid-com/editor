@@ -1,9 +1,10 @@
 import { notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
-import { LANGUAGE_EXTENSIONS } from '#/lib/document'
-import { createFile } from '#/lib/store/files'
+import { LANGUAGE_EXTENSIONS, untypedName } from '#/lib/document'
+import { dropEditorState } from '#/components/editor/editor-session'
+import { closeFile, createFile, filesCollection } from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
-import { setActive } from '#/lib/store/session'
+import { sessionStore, setActive } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 
 const NEW_JSON_CONTENT = '{\n  \n}\n'
@@ -42,6 +43,20 @@ const PICKER_TYPES: Array<FilePickerAcceptType> = [
   },
 ]
 
+/** An open tab, as the tab strip and the menus that list tabs show it. */
+export interface TabFile {
+  id: string
+  name: string
+  profileId: string
+  /** No content, so no type or profile to show yet. */
+  empty: boolean
+}
+
+/** A tab's name, without the extension while the file is empty and untyped. */
+export function tabName(file: Pick<TabFile, 'name' | 'empty'>) {
+  return file.empty ? untypedName(file.name) : file.name
+}
+
 /** The tab to show once `closing` are gone: the nearest one to the right, else the left. */
 export function survivor(
   openIds: ReadonlyArray<string>,
@@ -55,6 +70,32 @@ export function survivor(
     .reverse()
     .find((id) => !closing.has(id))
   return after ?? before
+}
+
+/**
+ * Archives the tabs `ids`, and if the active one goes, moves to the nearest
+ * one left open. On failure the active tab comes back, if it is still open.
+ */
+export async function closeTabs(
+  ids: ReadonlyArray<string>,
+  openIds: ReadonlyArray<string>,
+) {
+  const activeId = sessionStore.state.activeId
+  const closing = new Set(ids)
+  const wasActive = activeId !== null && closing.has(activeId)
+  if (wasActive) setActive(survivor(openIds, closing, activeId) ?? null)
+  try {
+    // One at a time, so the archive keeps them in the order they were open.
+    for (const id of ids) {
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop
+      await closeFile(id)
+      dropEditorState(id)
+    }
+  } catch (error) {
+    if (wasActive && filesCollection.get(activeId)?.deletedAt === null)
+      setActive(activeId)
+    throw error
+  }
 }
 
 // New files take the profile of the file in the editor. Opened files take

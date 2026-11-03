@@ -12,7 +12,6 @@ import {
   createFile,
   filesCollection,
   isStorageFull,
-  onSaveFailed,
   reorderFile,
   renameFile,
   reassignProfile,
@@ -21,6 +20,7 @@ import {
   setFileProfile,
   uniqueName,
 } from './files'
+import { onSaveFailed } from './persist'
 import {
   defaultsCollection,
   enabledDefaults,

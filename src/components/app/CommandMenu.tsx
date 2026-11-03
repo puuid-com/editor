@@ -29,8 +29,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { newFile, newJsonFile } from './files'
-import { FileIcon, tabName } from './TabStrip'
+import { FileIcon } from './FileIcon'
+import { newFile, newJsonFile, tabName } from './files'
 import { readLastCommand, saveLastCommand } from './last-command'
 import {
   askDeleteProfile,

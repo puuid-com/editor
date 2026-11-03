@@ -220,9 +220,6 @@ export function isStorageFull(error: unknown): boolean {
   )
 }
 
-/** Calls `listener` when a save fails, such as on a full storage quota. */
-export { onSaveFailed } from './persist'
-
 function saveFile(mutate: () => void) {
   const transaction = pacedSaveFile(mutate)
   const pending = transaction.isPersisted.promise

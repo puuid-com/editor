@@ -1,7 +1,7 @@
 import { IconCheck, IconPlus } from '@tabler/icons-react'
 import { useRef } from 'react'
 
-import { colorLabel } from './ColorSwatches'
+import { colorLabel } from './color-label'
 import { ContextMenuItem } from '#/components/ui/context-menu'
 import { highlightCss } from '#/lib/store/colors'
 import { cn } from '#/lib/utils'

@@ -1,11 +1,8 @@
 import {
-  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconFileCode,
   IconFileDots,
-  IconJson,
-  IconSql,
   IconPlus,
   IconX,
 } from '@tabler/icons-react'
@@ -13,19 +10,12 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { newFile } from './files'
+import { newFile, tabName } from './files'
+import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
-import { askClose, askRename, setTabListOpen, uiStore } from './ui-store'
+import { askClose, askRename, uiStore } from './ui-store'
+import { UnsavedMark } from './UnsavedMark'
 import { hlStyle } from '#/components/highlights/hl-style'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '#/components/ui/command'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -38,31 +28,17 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '#/components/ui/context-menu'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '#/components/ui/popover'
 import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
-import { useFileContent } from '#/hooks/use-files'
 import { useProfiles } from '#/hooks/use-profiles'
-import { languageOf, untypedName } from '#/lib/document'
+import { useScrollEdges } from '#/hooks/use-scroll-edges'
 import { shortcuts } from '#/lib/shortcuts'
-import { diskStore } from '#/lib/store/disk'
 import { reorderFile } from '#/lib/store/files'
 import { profileCss, resolveProfile } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
+import type { TabFile } from './files'
 import type { DocLanguage } from '#/lib/document'
-
-interface TabFile {
-  id: string
-  name: string
-  profileId: string
-  /** No content, so no type or profile to show yet. */
-  empty: boolean
-}
 
 // Tabs fit their name, within bounds, however many are open. When they don't
 // fit, the strip scrolls and the full list sits behind a menu at its end.
@@ -253,45 +229,6 @@ export function TabStrip({
   )
 }
 
-/** Whether `ref` can scroll further left or right. Tracks size and tab changes. */
-function useScrollEdges(ref: React.RefObject<HTMLElement | null>) {
-  const [edges, setEdges] = useState({ start: false, end: false })
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const update = () => {
-      const start = el.scrollLeft > 1
-      const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
-      setEdges((prev) =>
-        prev.start === start && prev.end === end ? prev : { start, end },
-      )
-    }
-    // Wheels without a horizontal axis scroll the strip sideways.
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
-      if (el.scrollWidth <= el.clientWidth) return
-      e.preventDefault()
-      el.scrollLeft += e.deltaY
-    }
-    update()
-    const resize = new ResizeObserver(update)
-    resize.observe(el)
-    const tabs = new MutationObserver(update)
-    tabs.observe(el, { childList: true })
-    el.addEventListener('scroll', update, { passive: true })
-    el.addEventListener('wheel', onWheel, { passive: false })
-    return () => {
-      resize.disconnect()
-      tabs.disconnect()
-      el.removeEventListener('scroll', update)
-      el.removeEventListener('wheel', onWheel)
-    }
-  }, [ref])
-
-  return edges
-}
-
 function TabContextMenu({
   files,
   index,
@@ -360,126 +297,4 @@ function TypeSubMenu({ file }: { file: TabFile }) {
       </ContextMenuSubContent>
     </ContextMenuSub>
   )
-}
-
-/** Every open tab in a searchable list, for when the strip can't show them all. */
-function TabList({
-  files,
-  activeId,
-  open,
-}: {
-  files: Array<TabFile>
-  activeId: string | null
-  open: boolean
-}) {
-  return (
-    <Popover open={open} onOpenChange={setTabListOpen}>
-      <PopoverTrigger asChild>
-        <ToolbarButton
-          label={m.tabs_list()}
-          shortcut={shortcuts.tabList}
-          size="xs"
-          className="font-mono tabular-nums"
-        >
-          <IconChevronDown />
-          {files.length}
-        </ToolbarButton>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 gap-0 p-0">
-        <Command loop filter={matchKeywords}>
-          <CommandInput placeholder={m.tabs_search()} />
-          <CommandList>
-            <CommandEmpty>{m.tabs_search_empty()}</CommandEmpty>
-            <CommandGroup heading={m.palette_files()}>
-              {files.map((file) => (
-                <CommandItem
-                  key={file.id}
-                  value={file.id}
-                  keywords={[file.name]}
-                  data-checked={file.id === activeId}
-                  onSelect={() => {
-                    setActive(file.id)
-                    setTabListOpen(false)
-                  }}
-                >
-                  <FileIcon file={file} />
-                  <span className="min-w-0 flex-1 truncate font-mono">
-                    {tabName(file)}
-                  </span>
-                  <UnsavedMark fileId={file.id} />
-                  <button
-                    type="button"
-                    aria-label={m.tab_close({ name: file.name })}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      askClose(file.id)
-                    }}
-                    className="grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground opacity-0 group-hover/command-item:opacity-100 group-data-selected/command-item:opacity-100 hover:bg-background hover:text-foreground"
-                  >
-                    <IconX className="size-3" />
-                  </button>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup>
-              <CommandItem
-                value="close-all"
-                keywords={[m.tabs_close_all()]}
-                onSelect={() => {
-                  setTabListOpen(false)
-                  askClose(files.map((f) => f.id))
-                }}
-              >
-                {m.tabs_close_all()}
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// Items are keyed by id, so search only what people can read.
-function matchKeywords(
-  _value: string,
-  search: string,
-  keywords?: Array<string>,
-) {
-  const query = search.toLowerCase()
-  return keywords?.some((word) => word.toLowerCase().includes(query)) ? 1 : 0
-}
-
-/** A dot on a tab linked to a file on disk whose changes aren't written yet. */
-function UnsavedMark({ fileId }: { fileId: string }) {
-  const saved = useSelector(diskStore, (links) => links[fileId]?.saved)
-  if (saved === undefined) return null
-  return <UnsavedDot fileId={fileId} saved={saved} />
-}
-
-// Apart from UnsavedMark so only linked tabs follow the content as it's typed.
-function UnsavedDot({ fileId, saved }: { fileId: string; saved: string }) {
-  const file = useFileContent(fileId)
-  if (!file || file.content === saved) return null
-  return (
-    <span
-      role="img"
-      aria-label={m.tab_unsaved_disk()}
-      className="size-1.5 shrink-0 rounded-full bg-foreground"
-    />
-  )
-}
-
-/** A tab's name, without the extension while the file is empty and untyped. */
-export function tabName(file: Pick<TabFile, 'name' | 'empty'>) {
-  return file.empty ? untypedName(file.name) : file.name
-}
-
-export function FileIcon({ file }: { file: Pick<TabFile, 'name' | 'empty'> }) {
-  if (file.empty) return <IconFileDots />
-  const language = languageOf(file.name, '')
-  if (language === 'json') return <IconJson />
-  if (language === 'sql') return <IconSql />
-  return <IconFileCode />
 }
