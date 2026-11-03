@@ -2,6 +2,7 @@ import {
   IconAdjustmentsHorizontal,
   IconBraces,
   IconCheck,
+  IconChevronDown,
   IconChevronRight,
   IconFileDots,
   IconFilePlus,
@@ -635,7 +636,7 @@ function Release({
 }) {
   return (
     <div className="grid grid-cols-[5rem_1fr] gap-3 border-t px-3 py-2.5 first:border-t-0">
-      <div className="grid gap-0.5">
+      <div className="grid content-start gap-0.5">
         <span className="font-mono font-semibold">v{version}</span>
         <span className="text-[10px] text-muted-foreground">{date}</span>
       </div>
@@ -703,6 +704,25 @@ function ReleasePictures() {
           <div className="grid grid-cols-2 gap-2 pr-3 pb-3 pl-[6.5rem]">
             {thumb('var(--hl-gray)')}
             {thumb(BLUE)}
+          </div>
+        </>
+      }
+    />
+  )
+}
+
+function FoldedNotes() {
+  return (
+    <BeforeAfter
+      before={<Release version="0.84.0" date="Oct 25" bullets={9} />}
+      after={
+        <>
+          <Release version="0.84.0" date="Oct 25" bullets={3} />
+          <div className="pb-3 pl-[6.5rem]">
+            <Button size="xs" variant="outline">
+              {m.changelog_show_all({ count: 43 })}
+              <IconChevronDown />
+            </Button>
           </div>
         </>
       }
@@ -1008,6 +1028,7 @@ function figure(...parts: Array<ComponentType>): ComponentType {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.164.0': figure(FoldedNotes),
   '0.163.0': figure(ReleasePictures),
   '0.162.0': figure(SqlColours),
   '0.161.0': figure(SqlFormat),

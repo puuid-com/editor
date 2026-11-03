@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { parseChangelog } from './changelog'
+import { FOLD_KEEP, FOLD_OVER, parseChangelog } from './changelog'
 import { appVersion } from './version'
 
 describe('parseChangelog', () => {
@@ -24,5 +24,25 @@ describe('parseChangelog', () => {
     for (const entry of entries) expect(entry.id).toMatch(/^\d+\.\d+\.\d+$/)
     expect(new Set(entries.map((entry) => entry.id)).size).toBe(entries.length)
     expect(entries.at(-1)?.date).toBe('2026-10-24')
+  })
+
+  it('folds long releases after their first bullets, splitting a list', () => {
+    const bullets = (from: number, count: number) =>
+      Array.from({ length: count }, (_, i) => `- Change ${from + i}.`).join(
+        '\n',
+      )
+    const entries = parseChangelog(
+      `## [2.0.0] - 2026-11-02\n\n### Added\n\n${bullets(1, FOLD_KEEP + 2)}\n\n### Fixed\n\n${bullets(FOLD_KEEP + 3, FOLD_OVER)}\n\n## [1.0.0] - 2026-11-01\n\n${bullets(1, FOLD_OVER)}\n`,
+    )
+    const [long, short] = entries
+    expect(long.more?.count).toBe(FOLD_OVER + FOLD_KEEP + 2)
+    expect(long.html).toContain(`Change ${FOLD_KEEP}.`)
+    expect(long.html).not.toContain(`Change ${FOLD_KEEP + 1}.`)
+    expect(long.html).not.toContain('Fixed')
+    expect(long.more?.html).toContain(`Change ${FOLD_KEEP + 1}.`)
+    expect(long.more?.html).toContain('Fixed')
+    expect(long.more?.html).not.toContain(`Change ${FOLD_KEEP}.<`)
+    expect(short.more).toBeUndefined()
+    expect(short.html).toContain(`Change ${FOLD_OVER}.`)
   })
 })

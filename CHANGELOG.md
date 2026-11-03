@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.164.0] - 2026-11-02
+
+### Changed
+
+- Long releases on the changelog page show their first six changes, with a button to show the rest, so the page is quicker to scan.
+
+### Fixed
+
+- Code in changelog entries, such as `.sql` or `<<name>>`, shows as a small grey chip instead of being wrapped in literal backticks.
+
 ## [0.163.1] - 2026-11-01
 
 ### Changed

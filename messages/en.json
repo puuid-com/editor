@@ -386,6 +386,8 @@
   "changelog_before": "Before",
   "changelog_after": "After",
   "changelog_latest": "Latest",
+  "changelog_show_all": "Show all {count} changes",
+  "changelog_show_fewer": "Show fewer",
   "nav_changelog": "Changelog",
   "about_version": "Version",
   "about_storage": "Storage",
