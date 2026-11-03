@@ -1148,6 +1148,46 @@ function ZplWorkspace() {
   )
 }
 
+function ZplSideBySide() {
+  const code = (
+    <Code
+      lines={['^XA', '^FO20,20^FD4821^FS', '^XZ']}
+      format={(line) => line}
+    />
+  )
+  const label = (
+    <div className="bg-muted p-3">
+      <div className="mx-auto w-20 border border-black/20 bg-white p-2 font-mono text-xs text-black">
+        4821
+      </div>
+    </div>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Tabs>
+            <Tab name="label.zpl" active />
+          </Tabs>
+          {code}
+          <div className="border-t">{label}</div>
+        </>
+      }
+      after={
+        <>
+          <Tabs>
+            <Tab name="label.zpl" active />
+          </Tabs>
+          <div className="grid grid-cols-2 divide-x">
+            {code}
+            {label}
+          </div>
+        </>
+      }
+    />
+  )
+}
+
 function PaneTabs() {
   const names = ['order.xml', 'response.xml']
   const lines = [
@@ -1197,6 +1237,7 @@ function PaneTabs() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.167.1': figure(ZplSideBySide),
   '0.167.0': figure(PaneTabs),
   '0.166.0': figure(ZplWorkspace),
   '0.165.1': figure(ChangeTypeEmpty),

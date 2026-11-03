@@ -121,7 +121,7 @@ function FilePane({
             <Suspense>
               <div className={compareId ? 'hidden h-full' : 'h-full'}>
                 {language === 'zpl' ? (
-                  <ZplPane fileId={fileId} />
+                  <ZplPane fileId={fileId} sideBySide={wide && count === 1} />
                 ) : (
                   <CodeEditor fileId={fileId} />
                 )}

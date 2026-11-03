@@ -29,7 +29,13 @@ import { editorStore, selectFile, setExplain, setSyncZoom } from './store'
 import { useLabelRender } from './use-label-render'
 import { zplHelp } from './zpl-language'
 
-export function ZplPane({ fileId }: { fileId: string }) {
+export function ZplPane({
+  fileId,
+  sideBySide = false,
+}: {
+  fileId: string
+  sideBySide?: boolean
+}) {
   const { render, isRendering, error, retry } = useLabelRender(fileId)
   const file = useSelector(editorStore, (s) => selectFile(s, fileId))
   const files = useSelector(editorStore, (s) => s.files)
@@ -121,8 +127,15 @@ export function ZplPane({ fileId }: { fileId: string }) {
         {m.zpl_privacy()}
       </p>
       <div className="min-h-0 flex-1">
-        <ResizablePanelGroup orientation="vertical">
-          <ResizablePanel id="zpl-code" defaultSize="45%" minSize="20%">
+        <ResizablePanelGroup
+          key={sideBySide ? 'horizontal' : 'vertical'}
+          orientation={sideBySide ? 'horizontal' : 'vertical'}
+        >
+          <ResizablePanel
+            id="zpl-code"
+            defaultSize={sideBySide ? '50%' : '45%'}
+            minSize="20%"
+          >
             <CodeEditor fileId={fileId} />
           </ResizablePanel>
           <ResizableHandle />

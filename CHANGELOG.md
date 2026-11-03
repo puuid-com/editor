@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.167.1] - 2026-11-02
+
+### Fixed
+
+- A ZPL file alone in a wide window now shows its code and label preview side by side instead of stacked.
+
 ## [0.167.0] - 2026-11-02
 
 ### Changed
