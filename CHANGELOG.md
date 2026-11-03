@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.167.0] - 2026-11-02
+
+### Changed
+
+- Each editor pane now owns its tabs and controls in a single row, replacing the global file strip and duplicate filename headers.
+- Move tabs between panes by dragging or using the tab menu. Closing a pane keeps its files open in a neighboring pane.
+- Keep tab switching and new files in the focused pane, restore pane groups on reload, and show all files in one strip on narrow screens.
+
 ## [0.166.0] - 2026-11-02
 
 ### Added

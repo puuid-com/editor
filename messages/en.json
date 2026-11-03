@@ -866,5 +866,8 @@
   "zpl_help_unknown_detail": "The preview doesn’t know this command. Check its spelling, or whether your printer model has it.",
   "zpl_help_default": "Left out, so the printer’s default",
   "zpl_help_item": "Item",
-  "zpl_help_bar_height": ", {height} dots tall"
+  "zpl_help_bar_height": ", {height} dots tall",
+  "pane_actions": "Pane actions",
+  "pane_split": "Split",
+  "pane_move_to": "Move to pane {number}"
 }

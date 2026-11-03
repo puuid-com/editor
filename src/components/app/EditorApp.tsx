@@ -2,7 +2,6 @@ import { IconFileUpload } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
-import { AppHeader } from './AppHeader'
 import { ArchiveDialog } from './ArchiveDialog'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
 import { CommandMenu } from './CommandMenu'
@@ -21,7 +20,6 @@ import { RestoreDialog } from './RestoreDialog'
 import { OpenSharedDialog } from './OpenSharedDialog'
 import { ShareLinkDialog } from './ShareDialog'
 import { StatusBar } from './StatusBar'
-import { TabStrip } from './TabStrip'
 import { useAppShortcuts } from './use-app-shortcuts'
 import { VariableValueDialog } from './VariableValueDialog'
 import { setCompareId, uiStore } from './ui-store'
@@ -41,6 +39,7 @@ import { m } from '#/paraglide/messages'
 
 export function EditorApp() {
   const files = useOpenFiles()
+  const panes = useSelector(sessionStore, (s) => s.panes)
   const storedActive = useSelector(sessionStore, (s) => s.activeId)
   const wide = useMediaQuery('(min-width: 768px)')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -84,7 +83,10 @@ export function EditorApp() {
 
   useAppShortcuts({
     activeId,
-    fileIds: files.map((f) => f.id),
+    fileIds:
+      (wide &&
+        panes?.find((p) => p.fileIds.includes(activeId ?? ''))?.fileIds) ||
+      files.map((f) => f.id),
     onOpenFromDisk: openFromDisk,
     onTogglePanel: () => {
       setPanelOpen(!sessionStore.state.panelOpen)
@@ -124,13 +126,6 @@ export function EditorApp() {
           e.target.value = ''
         }}
       />
-      <AppHeader>
-        {files.length > 0 ? (
-          <TabStrip files={files} activeId={activeId} />
-        ) : (
-          <div className="flex-1" />
-        )}
-      </AppHeader>
       <main id="main" className="min-h-0 flex-1">
         {activeId ? (
           <MixedWorkspace fileId={activeId} compareId={compareId} wide={wide} />

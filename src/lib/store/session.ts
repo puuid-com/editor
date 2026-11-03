@@ -1,5 +1,6 @@
 import { persistedStore } from './persist'
 import { singleton } from './singleton'
+import type { FilePaneGroup } from './pane-layout'
 
 // Identifies this page load. Not persisted: a duplicated browser tab copies
 // sessionStorage, and two tabs must never share an id.
@@ -28,7 +29,9 @@ interface SessionState {
   activeId: string | null
   /** Collapsed tree paths, by file id. */
   collapsed: Record<string, Array<string>>
+  /** Legacy visible files, retained for compatible session restoration. */
   paneIds?: Array<string>
+  panes?: Array<FilePaneGroup>
   panelOpen: boolean
 }
 
@@ -39,7 +42,25 @@ export const sessionStore = persistedStore<SessionState>(
 )
 
 export function setActive(activeId: string | null) {
-  sessionStore.setState((s) => ({ ...s, activeId }))
+  sessionStore.setState((s) => {
+    if (s.activeId === activeId) return s
+    if (!activeId || !s.panes?.length) return { ...s, activeId }
+    const owner = s.panes.find((p) => p.fileIds.includes(activeId))
+    const target =
+      owner ??
+      s.panes.find((p) => p.fileIds.includes(s.activeId ?? '')) ??
+      s.panes[0]
+    const panes = s.panes.map((p) =>
+      p.id === target.id
+        ? {
+            ...p,
+            activeId,
+            fileIds: owner ? p.fileIds : [...p.fileIds, activeId],
+          }
+        : p,
+    )
+    return { ...s, activeId, panes, paneIds: panes.map((p) => p.activeId) }
+  })
 }
 
 export function toggleCollapsed(fileId: string, path: string) {

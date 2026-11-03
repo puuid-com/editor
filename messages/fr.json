@@ -866,5 +866,8 @@
   "zpl_help_unknown_detail": "L’aperçu ne reconnaît pas cette commande. Vérifiez son orthographe ou sa disponibilité sur votre imprimante.",
   "zpl_help_default": "Omis, donc valeur par défaut de l’imprimante",
   "zpl_help_item": "Élément",
-  "zpl_help_bar_height": ", {height} points de haut"
+  "zpl_help_bar_height": ", {height} points de haut",
+  "pane_actions": "Actions du volet",
+  "pane_split": "Diviser",
+  "pane_move_to": "Déplacer vers le volet {number}"
 }

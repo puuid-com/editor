@@ -1,14 +1,6 @@
 import { Fragment, Suspense, lazy, useEffect } from 'react'
 import { useSelector } from '@tanstack/react-store'
-import { IconLayoutColumns, IconX } from '@tabler/icons-react'
 import { CodeEditor } from '#/components/editor/CodeEditor'
-import { Button } from '#/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -17,10 +9,10 @@ import {
 import { useOpenFiles, useFileContent } from '#/hooks/use-files'
 import { languageOf } from '#/lib/document'
 import { sessionStore, setActive } from '#/lib/store/session'
-import { m } from '#/paraglide/messages'
 import { SidePanel } from './SidePanel'
-import { MAX_PANES, hidePane, openBeside, visiblePanes } from './panes'
-import { newZplFile } from './files'
+import { normalizePanes, savePanes } from './panes'
+import { AppHeader } from './AppHeader'
+import type { FilePaneGroup } from '#/lib/store/pane-layout'
 
 const ZplPane = lazy(() =>
   import('#/components/zpl/ZplPane').then((mod) => ({ default: mod.ZplPane })),
@@ -41,30 +33,33 @@ export function MixedWorkspace({
   wide: boolean
 }) {
   const files = useOpenFiles()
-  const stored = useSelector(sessionStore, (s) => s.paneIds)
-  const ids = visiblePanes(
-    stored ?? [],
+  const stored = useSelector(sessionStore, (s) => s.panes)
+  const legacy = useSelector(sessionStore, (s) => s.paneIds)
+  const panes = normalizePanes(
+    stored,
+    legacy ?? [],
     files.map((f) => f.id),
     fileId,
   )
-  const key = ids.join(',')
+  const key = JSON.stringify(panes)
   useEffect(() => {
-    if (key !== (sessionStore.state.paneIds ?? []).join(','))
-      sessionStore.setState((s) => ({ ...s, paneIds: ids }))
+    if (key !== JSON.stringify(sessionStore.state.panes)) savePanes(panes)
   }, [key])
-  const rendered = wide ? ids : [fileId]
+  const rendered = wide
+    ? panes
+    : panes.filter((p) => p.fileIds.includes(fileId))
   return (
     <ResizablePanelGroup orientation="horizontal">
-      {rendered.map((id, index) => (
-        <Fragment key={id}>
+      {rendered.map((pane, index) => (
+        <Fragment key={pane.id}>
           {index > 0 && <ResizableHandle />}
-          <ResizablePanel id={id} minSize="15%">
+          <ResizablePanel id={pane.id} minSize="20%">
             <FilePane
-              fileId={id}
-              active={id === fileId}
-              compareId={id === fileId ? compareId : null}
+              pane={pane}
+              active={pane.activeId === fileId}
+              compareId={pane.activeId === fileId ? compareId : null}
               wide={wide}
-              count={ids.length}
+              count={panes.length}
             />
           </ResizablePanel>
         </Fragment>
@@ -74,23 +69,23 @@ export function MixedWorkspace({
 }
 
 function FilePane({
-  fileId,
+  pane,
   active,
   compareId,
   wide,
   count,
 }: {
-  fileId: string
+  pane: FilePaneGroup
   active: boolean
   compareId: string | null
   wide: boolean
   count: number
 }) {
+  const fileId = pane.activeId
   const file = useFileContent(fileId)
   const language = languageOf(file?.name ?? '', file?.content ?? '')
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const files = useOpenFiles()
-  const visible = useSelector(sessionStore, (s) => s.paneIds ?? [])
   const showStructure =
     active &&
     panelOpen &&
@@ -104,58 +99,20 @@ function FilePane({
       onPointerDownCapture={() => setActive(fileId)}
       onFocusCapture={() => setActive(fileId)}
     >
-      <div
-        className="flex h-9 shrink-0 items-center gap-1 border-b px-2"
-        data-active={active || undefined}
-      >
-        <Button
-          variant="ghost"
-          size="xs"
-          className="min-w-0 flex-1 justify-start truncate"
-          aria-pressed={active}
-          onClick={() => setActive(fileId)}
-        >
-          {file?.name}
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-xs" aria-label={m.pane_add()}>
-              <IconLayoutColumns />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {files
-              .filter((f) => !visible.includes(f.id))
-              .map((f) => (
-                <DropdownMenuItem
-                  key={f.id}
-                  disabled={count >= MAX_PANES}
-                  onSelect={() => openBeside(f.id)}
-                >
-                  {f.name}
-                </DropdownMenuItem>
-              ))}
-            <DropdownMenuItem
-              onSelect={() => {
-                const id = newZplFile()
-                openBeside(id)
-              }}
-            >
-              {m.file_new_zpl()}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {count > 1 && (
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            aria-label={m.pane_close()}
-            onClick={() => hidePane(fileId)}
-          >
-            <IconX />
-          </Button>
-        )}
-      </div>
+      <AppHeader
+        paneId={pane.id}
+        fileId={fileId}
+        files={
+          wide
+            ? pane.fileIds.flatMap((id) => files.find((f) => f.id === id) ?? [])
+            : files
+        }
+        allFiles={files}
+        active={active}
+        count={count}
+        wide={wide}
+        structured={language !== 'zpl' && language !== 'sql'}
+      />
       <div className="min-h-0 flex-1">
         <ResizablePanelGroup
           orientation={wide && count === 1 ? 'horizontal' : 'vertical'}

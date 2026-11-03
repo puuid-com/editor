@@ -8,7 +8,7 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
 /**
- * Latest notice, at the right of the top bar. It floats over the end of the
+ * Latest notice, at the right of the status bar. It floats over the end of the
  * tabs instead of holding space, and stays mounted as a live region, so
  * notices never move the bar.
  */

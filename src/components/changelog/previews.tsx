@@ -1148,7 +1148,56 @@ function ZplWorkspace() {
   )
 }
 
+function PaneTabs() {
+  const names = ['order.xml', 'response.xml']
+  const lines = [
+    ['<order>', '  <id>1042</id>', '</order>'],
+    ['<response>', '  <id>1042</id>', '</response>'],
+  ]
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Tabs>
+            {names.map((name, i) => (
+              <Tab key={name} name={name} active={i === 0} />
+            ))}
+          </Tabs>
+          <div className="grid grid-cols-2 divide-x">
+            {names.map((name, i) => (
+              <div key={name}>
+                <StatusBar className="border-t-0 border-b">
+                  <span className="truncate">{name}</span>
+                </StatusBar>
+                <Code lines={lines[i]} />
+              </div>
+            ))}
+          </div>
+        </>
+      }
+      after={
+        <div className="grid grid-cols-2 divide-x">
+          {names.map((name, i) => (
+            <div key={name} className="min-w-0">
+              <StatusBar className="border-t-0 border-b">
+                <span className="truncate border-b-2 border-foreground py-2 font-medium">
+                  {name}
+                </span>
+                <span className="ml-auto text-muted-foreground">
+                  {m.pane_split()}
+                </span>
+              </StatusBar>
+              <Code lines={lines[i]} />
+            </div>
+          ))}
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.167.0': figure(PaneTabs),
   '0.166.0': figure(ZplWorkspace),
   '0.165.1': figure(ChangeTypeEmpty),
   '0.164.1': figure(PrefixedPins),

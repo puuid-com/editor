@@ -5,6 +5,8 @@ import { useSelector } from '@tanstack/react-store'
 import { ActionBar, FormatButton } from './ActionBar'
 import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
+import { ArchiveButton } from './ArchiveDialog'
+import { StatusNotice } from './StatusNotice'
 import { ThemeToggle } from './ThemeToggle'
 import { editorStore } from '#/components/editor/editor-store'
 import { DefaultsRules } from '#/components/defaults/DefaultsControls'
@@ -60,6 +62,8 @@ export function StatusBar() {
           />
         </>
       )}
+      <StatusNotice />
+      <ArchiveButton />
       <CommandMenuButton />
       <ThemeToggle />
       <Button

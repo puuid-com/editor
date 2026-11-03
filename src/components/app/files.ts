@@ -82,7 +82,16 @@ export async function closeTabs(
   const activeId = sessionStore.state.activeId
   const closing = new Set(ids)
   const wasActive = activeId !== null && closing.has(activeId)
-  if (wasActive) setActive(survivor(openIds, closing, activeId) ?? null)
+  if (wasActive) {
+    const pane = sessionStore.state.panes?.find((p) =>
+      p.fileIds.includes(activeId),
+    )
+    setActive(
+      (pane && survivor(pane.fileIds, closing, activeId)) ??
+        survivor(openIds, closing, activeId) ??
+        null,
+    )
+  }
   try {
     // One at a time, so the archive keeps them in the order they were open.
     for (const id of ids) {

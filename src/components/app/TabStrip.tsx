@@ -10,7 +10,7 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { openBeside } from './panes'
+import { MAX_PANES, moveTab, openBeside } from './panes'
 import { newFile } from './files'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
@@ -33,9 +33,8 @@ import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { useProfiles } from '#/hooks/use-profiles'
 import { useScrollEdges } from '#/hooks/use-scroll-edges'
 import { shortcuts } from '#/lib/shortcuts'
-import { reorderFile } from '#/lib/store/files'
 import { profileCss, resolveProfile } from '#/lib/store/profiles'
-import { setActive } from '#/lib/store/session'
+import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
@@ -47,16 +46,19 @@ import type { DocLanguage } from '#/lib/document'
 export function TabStrip({
   files,
   activeId,
+  paneId,
+  focused = true,
 }: {
   files: Array<TabFile>
   activeId: string | null
+  paneId: string
+  focused?: boolean
 }) {
   const profiles = useProfiles()
-  const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
   const stripRef = useRef<HTMLDivElement>(null)
   const edges = useScrollEdges(stripRef)
-  const listOpen = useSelector(uiStore, (s) => s.tabListOpen)
+  const listOpen = useSelector(uiStore, (s) => s.tabListOpen) && focused
   const overflowing = edges.start || edges.end
 
   // Bring the active tab into view, with a sliver of its neighbours.
@@ -80,7 +82,20 @@ export function TabStrip({
   }
 
   return (
-    <div className="flex h-full min-w-0 flex-1 items-stretch pt-1.5">
+    <div
+      className="flex h-full min-w-0 flex-1 items-stretch"
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes('text/x-xml-tab')) e.preventDefault()
+      }}
+      onDrop={(e) => {
+        const id = e.dataTransfer.getData('text/x-xml-tab')
+        if (!id) return
+        e.preventDefault()
+        e.stopPropagation()
+        moveTab(id, paneId)
+        setOverId(null)
+      }}
+    >
       {overflowing && (
         <ToolbarButton
           label={m.tabs_scroll_left()}
@@ -111,50 +126,45 @@ export function TabStrip({
                     draggable
                     data-tab-id={file.id}
                     onDragStart={(e) => {
-                      setDragId(file.id)
                       e.dataTransfer.effectAllowed = 'move'
                       e.dataTransfer.setData('text/x-xml-tab', file.id)
                     }}
                     onDragOver={(e) => {
-                      if (!dragId) return
+                      if (!e.dataTransfer.types.includes('text/x-xml-tab'))
+                        return
                       e.preventDefault()
                       setOverId(file.id)
                     }}
                     onDragLeave={() => setOverId(null)}
                     onDrop={(e) => {
-                      if (!dragId) return
+                      if (!e.dataTransfer.types.includes('text/x-xml-tab'))
+                        return
                       e.preventDefault()
                       e.stopPropagation()
-                      if (dragId !== file.id) reorderFile(dragId, file.id)
-                      setDragId(null)
+                      const id = e.dataTransfer.getData('text/x-xml-tab')
+                      if (id) moveTab(id, paneId, file.id)
                       setOverId(null)
                     }}
                     onDragEnd={() => {
-                      setDragId(null)
                       setOverId(null)
                     }}
                     data-active={file.id === activeId || undefined}
                     className={cn(
-                      'chrome-tab group/tab relative flex h-full max-w-60 min-w-28 shrink-0 items-stretch rounded-t-lg',
+                      'group/tab relative flex h-full max-w-60 min-w-24 shrink-0 items-stretch',
                       file.id === activeId
-                        ? 'z-10 bg-background'
+                        ? 'z-10 bg-background shadow-[inset_0_-2px_var(--foreground)]'
                         : 'hover:bg-foreground/5',
                       overId === file.id &&
-                        dragId !== file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',
                     )}
                   >
-                    <span
-                      aria-hidden
-                      className="chrome-tab-divider pointer-events-none absolute top-1/2 left-0 h-4 w-px -translate-y-1/2 bg-border"
-                    />
                     <TabsTrigger
                       value={file.id}
                       onDoubleClick={() => askRename(file.id)}
                       onAuxClick={(e) => {
                         if (e.button === 1) askClose(file.id)
                       }}
-                      className="h-full! min-w-0 flex-1 justify-start gap-2 rounded-t-lg pr-11 pl-3 font-normal after:hidden md:pr-8"
+                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-11 pl-3 font-normal after:hidden md:pr-8"
                     >
                       {file.empty ? (
                         <IconFileDots className="size-3.5! text-muted-foreground" />
@@ -191,7 +201,7 @@ export function TabStrip({
                     </button>
                   </div>
                 </ContextMenuTrigger>
-                <TabContextMenu files={files} index={index} />
+                <TabContextMenu files={files} index={index} paneId={paneId} />
               </ContextMenu>
             )
           })}
@@ -233,10 +243,13 @@ export function TabStrip({
 function TabContextMenu({
   files,
   index,
+  paneId,
 }: {
   files: Array<TabFile>
   index: number
+  paneId: string
 }) {
+  const panes = useSelector(sessionStore, (s) => s.panes ?? [])
   const file = files[index]
   const others = files.filter((f) => f.id !== file.id).map((f) => f.id)
   const right = files.slice(index + 1).map((f) => f.id)
@@ -246,9 +259,27 @@ function TabContextMenu({
       <ContextMenuItem onSelect={() => askRename(file.id)}>
         {m.file_rename()}
       </ContextMenuItem>
-      <ContextMenuItem onSelect={() => openBeside(file.id)}>
+      <ContextMenuItem
+        disabled={
+          panes.length >= MAX_PANES ||
+          (panes.find((p) => p.fileIds.includes(file.id))?.fileIds.length ??
+            0) < 2
+        }
+        onSelect={() => openBeside(file.id)}
+      >
         {m.pane_open()}
       </ContextMenuItem>
+      {panes.map(
+        (pane, paneIndex) =>
+          pane.id !== paneId && (
+            <ContextMenuItem
+              key={pane.id}
+              onSelect={() => moveTab(file.id, pane.id)}
+            >
+              {m.pane_move_to({ number: paneIndex + 1 })}
+            </ContextMenuItem>
+          ),
+      )}
       <TypeSubMenu file={file} />
       <ContextMenuSeparator />
       <ContextMenuItem onSelect={() => askClose(file.id)}>
