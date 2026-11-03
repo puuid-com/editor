@@ -11,6 +11,7 @@ import {
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import { parseChangelog } from '#/lib/changelog'
+import { formatDay } from '#/lib/dates'
 import type { ChangelogEntry } from '#/lib/changelog'
 import { seo } from '#/lib/seo'
 import { cn } from '#/lib/utils'
@@ -71,10 +72,7 @@ function Notes({ html, more }: Pick<ChangelogEntry, 'html' | 'more'>) {
 }
 
 function Changelog() {
-  const dateFormat = new Intl.DateTimeFormat(getLocale(), {
-    dateStyle: 'medium',
-    timeZone: 'UTC',
-  })
+  const locale = getLocale()
 
   return (
     <section className="mx-auto max-w-3xl px-4 py-12 md:py-16">
@@ -109,7 +107,7 @@ function Changelog() {
                 dateTime={entry.date}
                 className="mt-1 block text-xs text-muted-foreground"
               >
-                {dateFormat.format(new Date(`${entry.date}T00:00:00Z`))}
+                {formatDay(entry.date, locale)}
               </time>
               {entry.id === appVersion && (
                 <Badge variant="outline" className="mt-2">

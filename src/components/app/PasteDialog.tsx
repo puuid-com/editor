@@ -44,8 +44,13 @@ export function PasteDialog() {
   const confirm = async () => {
     if (!choice || saving) return
     setSaving(true)
-    await applyPasteChoice(choice).finally(() => setSaving(false))
-    setPasteChoice(null)
+    await applyPasteChoice(choice).then(
+      () => setPasteChoice(null),
+      () => {
+        // The workspace reports the failed write; keep the choice open.
+      },
+    )
+    setSaving(false)
   }
 
   return (

@@ -450,8 +450,14 @@ const CHIPS: { name: string; hl?: string }[][] = [
   [{ name: 'region' }, { name: 'contact' }, { name: 'orderRef' }],
 ]
 
+/** Coloured chips light up one after another, in reading order. */
+const CHIP_DELAYS = new Map(
+  CHIPS.flat()
+    .filter((chip) => chip.hl)
+    .map((chip, i) => [chip, `${i * 90}ms`]),
+)
+
 function Highlights() {
-  let colored = 0
   return (
     <Cell
       title={m.showcase_highlights_title()}
@@ -471,7 +477,7 @@ function Highlights() {
                       chip.hl
                         ? {
                             ['--hl' as string]: `var(--hl-${chip.hl})`,
-                            transitionDelay: `${colored++ * 90}ms`,
+                            transitionDelay: CHIP_DELAYS.get(chip),
                           }
                         : undefined
                     }

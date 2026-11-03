@@ -338,33 +338,33 @@ export function MobileWorkspace({ fileId, compareId }: WorkspaceProps) {
   )
 }
 
-const welcomeLines: React.ReactNode[][] = [
-  [
-    <T k="tag">{'<invoice'}</T>,
-    ' ',
-    <T k="attr">id</T>,
-    <T k="punct">=</T>,
-    <T k="value">"2041"</T>,
-    <T k="tag">{'>'}</T>,
-  ],
-  [
-    '  ',
-    <T k="leaf">{'<customer>'}</T>,
-    <span className="var-chip">{'<<name>>'}</span>,
-    <T k="leaf">{'</customer>'}</T>,
-  ],
-  [
-    '  ',
-    <T k="leaf">{'<total'}</T>,
-    ' ',
-    <T k="attr">currency</T>,
-    <T k="punct">=</T>,
-    <T k="value">"CAD"</T>,
-    <T k="leaf">{'>'}</T>,
-    <T k="value">128.00</T>,
-    <T k="leaf">{'</total>'}</T>,
-  ],
-  [<T k="tag">{'</invoice>'}</T>, <span className="welcome-caret" />],
+// One fragment per line, so the elements in a line need no keys.
+const welcomeLines: Array<React.ReactNode> = [
+  <>
+    <T k="tag">{'<invoice'}</T> <T k="attr">id</T>
+    <T k="punct">=</T>
+    <T k="value">"2041"</T>
+    <T k="tag">{'>'}</T>
+  </>,
+  <>
+    {'  '}
+    <T k="leaf">{'<customer>'}</T>
+    <span className="var-chip">{'<<name>>'}</span>
+    <T k="leaf">{'</customer>'}</T>
+  </>,
+  <>
+    {'  '}
+    <T k="leaf">{'<total'}</T> <T k="attr">currency</T>
+    <T k="punct">=</T>
+    <T k="value">"CAD"</T>
+    <T k="leaf">{'>'}</T>
+    <T k="value">128.00</T>
+    <T k="leaf">{'</total>'}</T>
+  </>,
+  <>
+    <T k="tag">{'</invoice>'}</T>
+    <span className="welcome-caret" />
+  </>,
 ]
 
 function T({

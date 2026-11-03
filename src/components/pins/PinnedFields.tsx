@@ -10,7 +10,7 @@ import {
 import { useSelector } from '@tanstack/react-store'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
-import { notify } from '#/components/app/notice-store'
+import { copyText } from '#/components/app/clipboard'
 import { copyVar, cycleTag } from '#/components/editor/actions'
 import { editAtPath, editorStore } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
@@ -379,10 +379,7 @@ function PinnedField({
             aria-label={m.pin_copy({ name: tag })}
             disabled={!el}
             className="text-muted-foreground max-md:size-11"
-            onClick={() => {
-              void navigator.clipboard.writeText(draft.value)
-              notify.success(m.copied(), { detail: draft.value })
-            }}
+            onClick={() => void copyText(draft.value, draft.value)}
           >
             <IconCopy className="size-3" />
           </InputGroupButton>

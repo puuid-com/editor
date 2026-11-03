@@ -19,10 +19,36 @@ import type { DocLanguage, XmlDocument, XmlElement } from './xml/model'
 
 export type { DocLanguage }
 
-const JSON_EXT = /\.(json|geojson|jsonld|webmanifest|har|ipynb)$/i
-const XML_EXT =
-  /\.(xml|xsd|xsl|xslt|wsdl|svg|plist|config|csproj|xaml|rss|atom|kml|gpx)$/i
-const SQL_EXT = /\.(sql|ddl|dml)$/i
+/** Extensions read as each language, the file pickers' list included. */
+export const LANGUAGE_EXTENSIONS = {
+  xml: [
+    '.xml',
+    '.xsd',
+    '.xsl',
+    '.xslt',
+    '.wsdl',
+    '.svg',
+    '.plist',
+    '.config',
+    '.csproj',
+    '.xaml',
+    '.rss',
+    '.atom',
+    '.kml',
+    '.gpx',
+  ],
+  json: ['.json', '.geojson', '.jsonld', '.webmanifest', '.har', '.ipynb'],
+  flat: ['.txt', '.dat'],
+  sql: ['.sql', '.ddl', '.dml'],
+} as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
+
+const extensionPattern = (extensions: ReadonlyArray<string>) =>
+  new RegExp(`(${extensions.map((ext) => `\\${ext}`).join('|')})$`, 'i')
+
+const JSON_EXT = extensionPattern(LANGUAGE_EXTENSIONS.json)
+const XML_EXT = extensionPattern(LANGUAGE_EXTENSIONS.xml)
+const SQL_EXT = extensionPattern(LANGUAGE_EXTENSIONS.sql)
+const FLAT_EXT = extensionPattern(LANGUAGE_EXTENSIONS.flat)
 // A statement keyword first, after any leading comments.
 const SQL_START =
   /^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*(select|with|insert|update|delete|merge|create|alter|drop|truncate)\b/i
@@ -46,8 +72,6 @@ export function detectLanguage(content: string): DocLanguage | null {
   if (SQL_START.test(content)) return 'sql'
   return null
 }
-
-const FLAT_EXT = /\.(txt|dat)$/i
 
 /** A file name without the extension that gives its type. */
 export function untypedName(name: string) {

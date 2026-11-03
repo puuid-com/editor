@@ -45,7 +45,8 @@ export function XmlTree() {
   )
   const highlights = useHighlightMap()
   const pins = usePins()
-  const pinned = new Set(pins.map((p) => p.tag))
+  // Pins name tags without their prefix, like highlights.
+  const pinned = new Set(pins.map((p) => localName(p.tag)))
   const { zplTags } = useFormatSettings()
   const enabledDefaults = useEnabledDefaults()
   const defaults = useMemo(
@@ -271,6 +272,7 @@ export function XmlTree() {
               {virtualizer.getVirtualItems().map((item) => {
                 const row = rows[item.index]
                 const named = hasName(row.el)
+                const name = named ? localName(row.el.name) : ''
                 return (
                   <TreeRowView
                     key={row.el.path}
@@ -284,10 +286,8 @@ export function XmlTree() {
                     top={item.start}
                     defaults={defaults}
                     selected={row.el.path === selectedPath}
-                    color={
-                      named ? highlights.get(localName(row.el.name)) : undefined
-                    }
-                    pinned={named && pinned.has(row.el.name)}
+                    color={named ? highlights.get(name) : undefined}
+                    pinned={named && pinned.has(name)}
                     zpl={
                       named &&
                       isTextLeaf(row.el) &&

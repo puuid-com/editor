@@ -9,6 +9,7 @@ import {
   IconFolderOpen,
   IconJson,
   IconLayoutSidebarRight,
+  IconPin,
   IconReplace,
   IconShare,
   IconUserCircle,
@@ -1015,6 +1016,42 @@ function FirstEditor() {
   )
 }
 
+const PREFIXED: Array<[number, string, string?]> = [
+  [0, 'inv:Invoice'],
+  [1, 'inv:ID', '2041'],
+  [1, 'inv:Status', 'paid'],
+  [1, 'inv:Total', '128.00'],
+]
+
+function PrefixedTree({ pinned }: { pinned?: boolean }) {
+  return (
+    <div className="bg-muted/20 py-2 font-mono text-[11px] leading-5">
+      <span className="block px-3 pb-1 font-sans text-[10px] text-muted-foreground uppercase">
+        {m.panel_structure()}
+      </span>
+      {PREFIXED.map(([depth, name, value]) => (
+        <div
+          key={name}
+          style={{ paddingLeft: `${0.75 + depth}rem` }}
+          className="flex items-center gap-2 pr-3"
+        >
+          <span className="font-medium text-syntax-tag">{name}</span>
+          {value && <span className="text-foreground/80">{value}</span>}
+          {pinned && name === 'inv:ID' && (
+            <IconPin className="ml-auto size-3 text-muted-foreground" />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PrefixedPins() {
+  return (
+    <BeforeAfter before={<PrefixedTree />} after={<PrefixedTree pinned />} />
+  )
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -1028,6 +1065,7 @@ function figure(...parts: Array<ComponentType>): ComponentType {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.164.1': figure(PrefixedPins),
   '0.164.0': figure(FoldedNotes),
   '0.163.0': figure(ReleasePictures),
   '0.162.0': figure(SqlColours),

@@ -17,7 +17,12 @@ export async function switchProfile(profileId: string, announce = false) {
   const fileId = sessionStore.state.activeId
   const profile = profilesCollection.get(profileId)
   if (!fileId || !profile) return
-  await setFileProfile(fileId, profileId)
+  // The workspace reports a refused write, and the file keeps its profile.
+  const moved = await setFileProfile(fileId, profileId).then(
+    () => true,
+    () => false,
+  )
+  if (!moved) return
   const file = filesCollection.get(fileId)
   if (file) learnSample(profileId, file.name, file.content)
   // Keyboard switches have no menu to show the result.

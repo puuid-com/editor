@@ -16,7 +16,7 @@ export const site: Site = {
   description:
     'A fast XML editor with a synced tree view, tag highlighting and <<variable>> support.',
   /** Production origin, no trailing slash. Used for canonical and sitemap URLs. */
-  url: 'http://localhost:3000',
+  url: 'https://xml.puuid.com',
   /** Default social preview image (1200x630), e.g. '/og.png'. Empty to omit. */
   ogImage: '',
   /** Twitter/X handle including the @, or empty. */

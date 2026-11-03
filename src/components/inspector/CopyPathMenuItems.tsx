@@ -1,6 +1,6 @@
 import { IconCopy } from '@tabler/icons-react'
 
-import { notify } from '#/components/app/notice-store'
+import { copyText } from '#/components/app/clipboard'
 import { editorStore } from '#/components/editor/editor-store'
 import { ContextMenuItem } from '#/components/ui/context-menu'
 import { formatPath, pathFormats } from '#/lib/paths'
@@ -21,8 +21,7 @@ export function CopyPathMenuItems({ el }: { el: XmlElement }) {
       key={format}
       onSelect={() => {
         const path = formatPath(editorStore.state.doc.nodes, el, format)
-        void navigator.clipboard.writeText(path)
-        notify.success(m.copied(), { detail: path })
+        void copyText(path, path)
       }}
     >
       <IconCopy />

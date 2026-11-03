@@ -2,7 +2,7 @@ import { syntaxTree } from '@codemirror/language'
 import { Compartment, Facet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, EditorView, WidgetType } from '@codemirror/view'
 
-import { notify } from '#/components/app/notice-store'
+import { copyText } from '#/components/app/clipboard'
 import { decodeString } from '#/lib/json/parse'
 import { m } from '#/paraglide/messages'
 import type { EditorState, Extension, Range } from '@codemirror/state'
@@ -87,8 +87,7 @@ const COLLAPSE_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6"/></svg>'
 
 function copyValue(text: string) {
-  void navigator.clipboard.writeText(text)
-  notify.success(m.copied(), { detail: formatSize(text) })
+  void copyText(text, formatSize(text))
 }
 
 function button(className: string, title: string, onClick: () => void) {

@@ -5,9 +5,16 @@ const storageKey = 'theme'
 // preference and keeps following it while the page is open.
 export const themeScript = `(() => {
   const media = window.matchMedia('(prefers-color-scheme: dark)')
+  const stored = () => {
+    try {
+      return localStorage.getItem('${storageKey}')
+    } catch {
+      return null
+    }
+  }
   const apply = () => {
-    const stored = localStorage.getItem('${storageKey}')
-    const dark = stored ? stored === 'dark' : media.matches
+    const choice = stored()
+    const dark = choice ? choice === 'dark' : media.matches
     document.documentElement.classList.toggle('dark', dark)
   }
   apply()
@@ -17,5 +24,9 @@ export const themeScript = `(() => {
 /** Flips between light and dark and remembers the choice. */
 export function toggleTheme() {
   const dark = document.documentElement.classList.toggle('dark')
-  localStorage.setItem(storageKey, dark ? 'dark' : 'light')
+  try {
+    localStorage.setItem(storageKey, dark ? 'dark' : 'light')
+  } catch {
+    // Storage is off; the choice lasts until the page reloads.
+  }
 }

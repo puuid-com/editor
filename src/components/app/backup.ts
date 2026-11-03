@@ -2,6 +2,7 @@ import { notify } from './notice-store'
 import { setRestorePreview } from './ui-store'
 import { editorStore, getText } from '#/components/editor/editor-store'
 import { formatDateTime } from '#/lib/dates'
+import { downloadBlob, pickFile } from '#/lib/file-io'
 import { createBackup, parseBackup, restoreBackup } from '#/lib/store/backup'
 import { isStorageFull } from '#/lib/store/files'
 import { markBackedUp, workspaceInUse } from '#/lib/store/safekeeping'
@@ -16,15 +17,10 @@ export function downloadBackup() {
   const content = new Map<string, string>()
   if (fileId) content.set(fileId, getText())
   const backup = createBackup(content)
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {
-    type: 'application/json',
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = m.backup_file_name({ date: backup.exportedAt.slice(0, 10) })
-  link.click()
-  URL.revokeObjectURL(url)
+  downloadBlob(
+    new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }),
+    m.backup_file_name({ date: backup.exportedAt.slice(0, 10) }),
+  )
   markBackedUp()
   notify.success(m.backup_downloaded(), { detail: m.backup_contents() })
 }
@@ -46,14 +42,7 @@ export function keepWorkspaceSafe() {
 
 /** Asks for a backup file, then shows what it holds before replacing anything. */
 export function pickBackup() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.json,application/json'
-  input.addEventListener('change', () => {
-    const file = input.files?.[0]
-    if (file) void readBackup(file)
-  })
-  input.click()
+  pickFile('.json,application/json', (file) => void readBackup(file))
 }
 
 export async function readBackup(file: File) {

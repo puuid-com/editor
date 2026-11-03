@@ -10,6 +10,7 @@ import {
   revealRange,
 } from './editor-store'
 import { tagNameNear } from './syntax'
+import { copyText } from '#/components/app/clipboard'
 import { notify } from '#/components/app/notice-store'
 import {
   setDefaultsPreview,
@@ -34,7 +35,9 @@ import {
   documentDefaults,
   formatDocument,
   languageOf,
+  typedName,
 } from '#/lib/document'
+import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
 import { diffChange } from '#/lib/xml/edit'
@@ -231,8 +234,7 @@ export function convertVarsActive(style: VarStyle) {
 export function copyVar(name: string) {
   const text = getView()?.state.doc.toString() ?? ''
   const value = writeVar(name, varStyleOf(text) ?? 'curly')
-  void navigator.clipboard.writeText(value)
-  notify.success(m.copied(), { detail: value })
+  void copyText(value, value)
 }
 
 /** Leaf element at `pos` with its current text, if any. */
@@ -250,21 +252,14 @@ export function downloadFile(id: string) {
   const active = editorStore.state.fileId === id && getView() !== null
   const content = active ? getText() : file.content
   const language = active ? activeLanguage() : languageOf(file.name, content)
-  const blob = new Blob([content], { type: MIME_TYPES[language] })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = /\.\w+$/.test(file.name)
-    ? file.name
-    : `${file.name}.${language}`
-  link.click()
-  URL.revokeObjectURL(url)
+  downloadBlob(
+    new Blob([content], { type: MIME_TYPES[language] }),
+    /\.\w+$/.test(file.name) ? file.name : typedName(file.name, language),
+  )
 }
 
 export async function copyActive() {
-  if (!getView()) return
-  await navigator.clipboard.writeText(getText())
-  notify.success(m.copied())
+  if (getView()) await copyText(getText())
 }
 
 /** Tag name or JSON key under the cursor, else the element the cursor is in. */

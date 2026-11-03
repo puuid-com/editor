@@ -1,19 +1,13 @@
-import { ACCEPTED_TYPES } from './files'
+import { TEMPLATE_TYPES } from './files'
 import { notify } from './notice-store'
+import { pickFile } from '#/lib/file-io'
 import { templateOrder } from '#/lib/sort-order'
 import { setCustomOrder } from '#/lib/store/profiles'
 import { m } from '#/paraglide/messages'
 
 /** Asks for a file, then sets the custom order to the names in it. */
 export function pickTemplate() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = ACCEPTED_TYPES
-  input.addEventListener('change', () => {
-    const file = input.files?.[0]
-    if (file) void applyTemplate(file)
-  })
-  input.click()
+  pickFile(TEMPLATE_TYPES, (file) => void applyTemplate(file))
 }
 
 export async function applyTemplate(file: File) {

@@ -23,14 +23,13 @@ export function useOpenFiles() {
 
 /** Whether a file has no content, and so no type or structure yet. */
 export function useFileEmpty(id: string | null) {
-  const { data } = useLiveQuery(
-    (q) =>
+  const { data } = useLiveQuery({
+    query: (q) =>
       q
         .from({ file: filesCollection })
         .where(({ file }) => eq(file.id, id ?? ''))
         .select(({ file }) => ({ empty: eq(length(file.content), 0) })),
-    [id],
-  )
+  })
   return data.at(0)?.empty ?? false
 }
 

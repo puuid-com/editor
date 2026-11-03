@@ -32,7 +32,7 @@ const emptyDoc: XmlDocument = {
   errors: [],
 }
 
-export const editorStore = new Store<EditorSnapshot>({
+const noFile: EditorSnapshot = {
   fileId: null,
   doc: emptyDoc,
   revision: 0,
@@ -40,12 +40,21 @@ export const editorStore = new Store<EditorSnapshot>({
   line: 1,
   col: 1,
   selectedPath: null,
-})
+}
+
+export const editorStore = new Store<EditorSnapshot>(noFile)
 
 let currentView: EditorView | null = null
 
+/**
+ * Attaches the editor's view, or detaches it when the editor goes away. Its
+ * document goes too, so the status bar doesn't act on a closed file.
+ */
 export function setView(view: EditorView | null) {
   currentView = view
+  if (view) return
+  // The revision keeps counting, so caches keyed by it never match old text.
+  editorStore.setState((s) => ({ ...noFile, revision: s.revision + 1 }))
 }
 
 export function getView() {

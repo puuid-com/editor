@@ -1,5 +1,6 @@
 import { notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
+import { LANGUAGE_EXTENSIONS } from '#/lib/document'
 import { createFile } from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
@@ -7,49 +8,36 @@ import { m } from '#/paraglide/messages'
 
 const NEW_JSON_CONTENT = '{\n  \n}\n'
 
-const XML_EXTENSIONS = [
-  '.xml',
-  '.xsd',
-  '.xsl',
-  '.xslt',
-  '.wsdl',
-  '.svg',
-  '.plist',
-  '.config',
-  '.csproj',
-  '.xaml',
-  '.rss',
-  '.atom',
-  '.kml',
-  '.gpx',
-] as const
-const JSON_EXTENSIONS = [
-  '.json',
-  '.geojson',
-  '.jsonld',
-  '.webmanifest',
-  '.har',
-] as const
-const FLAT_EXTENSIONS = ['.txt', '.dat'] as const
+const { xml, json, flat, sql } = LANGUAGE_EXTENSIONS
 
-export const ACCEPTED_TYPES = [
-  ...XML_EXTENSIONS,
+const STRUCTURED_TYPES = [
+  ...xml,
   'text/xml',
   'application/xml',
-  ...JSON_EXTENSIONS,
+  ...json,
   'application/json',
-  ...FLAT_EXTENSIONS,
+]
+
+/** Files a custom sort order can be read from: XML and JSON only. */
+export const TEMPLATE_TYPES = STRUCTURED_TYPES.join(',')
+
+export const ACCEPTED_TYPES = [
+  ...STRUCTURED_TYPES,
+  ...flat,
   'text/plain',
+  ...sql,
+  'application/sql',
 ].join(',')
 
 /** File types for the open picker, as the File System Access API wants them. */
 const PICKER_TYPES: Array<FilePickerAcceptType> = [
   {
-    description: 'XML, JSON, TXT',
+    description: 'XML, JSON, TXT, SQL',
     accept: {
-      'application/xml': [...XML_EXTENSIONS],
-      'application/json': [...JSON_EXTENSIONS],
-      'text/plain': [...FLAT_EXTENSIONS],
+      'application/xml': [...xml],
+      'application/json': [...json],
+      'text/plain': [...flat],
+      'application/sql': [...sql],
     },
   },
 ]

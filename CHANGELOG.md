@@ -8,6 +8,20 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.164.1] - 2026-11-02
+
+### Fixed
+
+- The open dialog lists SQL files (`.sql`, `.ddl`, `.dml`) and notebooks (`.ipynb`) with the other types it reads.
+- Closing the last tab clears the bottom bar instead of leaving the closed file's highlights, actions and settings there.
+- Pinned tags with a namespace prefix, such as `inv:ID`, show their pin in the structure tree.
+- Copying says so when the browser refuses the clipboard, instead of reporting it copied.
+- File and backup downloads no longer risk being cancelled in Firefox and Safari, and a fixed-width file without an extension downloads as `.txt`.
+- Search results and link previews point to xml.puuid.com instead of localhost, in the sitemap, robots.txt and page links.
+- When a profile change can't be saved, a new profile's dialog closes instead of offering to create it a second time.
+- The command menu and the theme toggle keep working when the browser blocks site storage.
+- The feature grid lights up its highlight chips one after another every time, instead of slower on each replay.
+
 ## [0.164.0] - 2026-11-02
 
 ### Changed

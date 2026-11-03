@@ -73,6 +73,7 @@
   "action_toggle_panel": "Toggle side panel",
   "format_failed": "Fix the errors before formatting",
   "copied": "Copied to clipboard",
+  "copy_failed": "Could not copy to the clipboard",
   "notice_go_to": "Go to",
   "notice_dismiss": "Dismiss",
   "saved_locally": "Saved in this browser",
