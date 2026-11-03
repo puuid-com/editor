@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.168.0] - 2026-11-02
+
+### Changed
+
+- When a ZPL pane is stacked, the label preview now sits above the code instead of below it.
+
 ## [0.167.2] - 2026-11-02
 
 ### Fixed

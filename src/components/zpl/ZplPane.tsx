@@ -77,6 +77,29 @@ export function ZplPane({
     )
   }, [active, fileId, render, dpi, explain, file?.source])
 
+  const code = (
+    <ResizablePanel
+      id="zpl-code"
+      defaultSize={sideBySide ? '50%' : '45%'}
+      minSize="20%"
+    >
+      <CodeEditor fileId={fileId} />
+    </ResizablePanel>
+  )
+  // Stacked, the label sits on top and the code below it.
+  const preview = (
+    <ResizablePanel id="zpl-preview" minSize="20%">
+      <LabelPreview
+        panelId={fileId}
+        render={render}
+        isRendering={isRendering}
+        error={error}
+        onRetry={retry}
+        compareTarget={compareTarget}
+      />
+    </ResizablePanel>
+  )
+
   return (
     <div className="flex h-full min-w-0 flex-col">
       <div className="flex flex-wrap items-center gap-1 border-b px-2 py-1">
@@ -138,24 +161,19 @@ export function ZplPane({
           key={sideBySide ? 'horizontal' : 'vertical'}
           orientation={sideBySide ? 'horizontal' : 'vertical'}
         >
-          <ResizablePanel
-            id="zpl-code"
-            defaultSize={sideBySide ? '50%' : '45%'}
-            minSize="20%"
-          >
-            <CodeEditor fileId={fileId} />
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel id="zpl-preview" minSize="20%">
-            <LabelPreview
-              panelId={fileId}
-              render={render}
-              isRendering={isRendering}
-              error={error}
-              onRetry={retry}
-              compareTarget={compareTarget}
-            />
-          </ResizablePanel>
+          {sideBySide ? (
+            <>
+              {code}
+              <ResizableHandle />
+              {preview}
+            </>
+          ) : (
+            <>
+              {preview}
+              <ResizableHandle />
+              {code}
+            </>
+          )}
         </ResizablePanelGroup>
       </div>
     </div>
