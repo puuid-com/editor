@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.165.0] - 2026-11-02
+
+### Changed
+
+- "Change type" in the command menu now lists every extension for each type, such as `.xsd`, `.config` or `.geojson`, so you can change a file's type and extension in one step. Search for an extension to jump to it.
+
 ## [0.164.2] - 2026-11-02
 
 ### Changed

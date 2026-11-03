@@ -89,6 +89,18 @@ const EXTENSIONS: Record<DocLanguage, string> = {
   sql: '.sql',
 }
 
+/** The known extension `name` ends with, lowercased, or null. */
+export function extensionOf(name: string) {
+  const lower = name.toLowerCase()
+  const all: ReadonlyArray<string> = Object.values(LANGUAGE_EXTENSIONS).flat()
+  return all.find((ext) => lower.endsWith(ext) && lower !== ext) ?? null
+}
+
+/** `name` with its type extension swapped for `extension`. */
+export function withExtension(name: string, extension: string) {
+  return untypedName(name) + extension
+}
+
 /** `name` with the extension of `language`, unless it already reads as one. */
 export function typedName(name: string, language: DocLanguage) {
   const keep =

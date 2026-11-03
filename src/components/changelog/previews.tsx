@@ -215,6 +215,38 @@ function ChangeType() {
   )
 }
 
+function ChangeExtension() {
+  const groups = [
+    {
+      label: m.paste_type_xml(),
+      names: ['schema.xml', 'schema.xsd'],
+      checked: 'schema.xsd',
+    },
+    { label: m.paste_type_json(), names: ['schema.json', 'schema.geojson'] },
+  ]
+  return (
+    <Shot className="font-sans">
+      <div className="border-b px-3 py-2 text-muted-foreground">
+        {m.file_type_placeholder()}
+      </div>
+      <div className="py-1">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <div className="px-3 pt-1.5 pb-0.5 text-[11px] text-muted-foreground">
+              {group.label}
+            </div>
+            {group.names.map((name) => (
+              <MenuItem key={name} checked={name === group.checked}>
+                <span className="font-mono">{name}</span>
+              </MenuItem>
+            ))}
+          </div>
+        ))}
+      </div>
+    </Shot>
+  )
+}
+
 const TEMPLATE = ['<?xml version="1.0" encoding="UTF-8"?>', '<root>', '</root>']
 
 function PasteTemplate() {
@@ -1065,6 +1097,7 @@ function figure(...parts: Array<ComponentType>): ComponentType {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.165.0': figure(ChangeExtension),
   '0.164.1': figure(PrefixedPins),
   '0.164.0': figure(FoldedNotes),
   '0.163.0': figure(ReleasePictures),

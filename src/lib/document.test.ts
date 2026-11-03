@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { detectLanguage, typedName, untypedName } from './document'
+import {
+  detectLanguage,
+  extensionOf,
+  typedName,
+  untypedName,
+  withExtension,
+} from './document'
 
 describe('detectLanguage', () => {
   it('reads XML, JSON and flat files from their content', () => {
@@ -48,5 +54,25 @@ describe('typedName', () => {
     expect(typedName('icon.svg', 'xml')).toBe('icon.svg')
     expect(typedName('site.webmanifest', 'json')).toBe('site.webmanifest')
     expect(typedName('batch.dat', 'flat')).toBe('batch.dat')
+  })
+})
+
+describe('extensionOf', () => {
+  it('finds the type extension, lowercased', () => {
+    expect(extensionOf('icon.SVG')).toBe('.svg')
+    expect(extensionOf('app.config')).toBe('.config')
+  })
+
+  it('is null without a type extension', () => {
+    expect(extensionOf('notes.md')).toBeNull()
+    expect(extensionOf('.xml')).toBeNull()
+  })
+})
+
+describe('withExtension', () => {
+  it('swaps the type extension', () => {
+    expect(withExtension('schema.xml', '.xsd')).toBe('schema.xsd')
+    expect(withExtension('map.json', '.geojson')).toBe('map.geojson')
+    expect(withExtension('untitled', '.sql')).toBe('untitled.sql')
   })
 })

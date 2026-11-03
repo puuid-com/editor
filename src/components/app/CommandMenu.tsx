@@ -28,7 +28,12 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { downloadBackup, pickBackup } from './backup'
-import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
+import {
+  FILE_EXTENSIONS,
+  canReadAs,
+  setFileExtension,
+  useFileType,
+} from './file-type'
 import { FileIcon } from './FileIcon'
 import { newFile, newJsonFile, tabName } from './files'
 import { readLastCommand, saveLastCommand } from './last-command'
@@ -82,10 +87,10 @@ import { useCanWriteDisk } from '#/hooks/use-can-write-disk'
 import { useOpenFiles } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
 import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import { withExtension } from '#/lib/document'
 import { setActive } from '#/lib/store/session'
 import { toggleTheme } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
-import type { DocLanguage } from '#/lib/document'
 
 /** Centered palette of files and actions, opened with ⌘K or the logo. */
 export function CommandMenu({
@@ -235,8 +240,8 @@ function FileCommands({
         {page === 'type' && activeFile && (
           <TypeCommands
             file={activeFile}
-            onSelect={(language) =>
-              run(() => void setFileType(activeFile.id, language))
+            onSelect={(extension) =>
+              run(() => void setFileExtension(activeFile.id, extension))
             }
           />
         )}
@@ -279,34 +284,40 @@ function FileCommands({
 
 type Page = 'root' | 'compare' | 'type'
 
-/** The types the active file can be read as, its current one checked. */
+/**
+ * The extensions the active file can take, grouped by the type each one reads
+ * as, its current one checked.
+ */
 function TypeCommands({
   file,
   onSelect,
 }: {
   file: { id: string; name: string }
-  onSelect: (language: DocLanguage) => void
+  onSelect: (extension: string) => void
 }) {
   const type = useFileType(file.id)
   if (!type) return null
-  return (
-    <CommandGroup heading={m.file_type_heading({ name: file.name })}>
-      {FILE_TYPES.map((option) => (
+  return FILE_EXTENSIONS.map((option) => (
+    <CommandGroup key={option.value} heading={option.label()}>
+      {option.extensions.map((extension) => (
         <CommandItem
-          key={option.value}
-          value={`type ${option.value} ${option.label()}`}
+          key={extension}
+          value={`type ${option.value} ${extension} ${option.label()}`}
           disabled={!canReadAs(type.content, option.value)}
-          onSelect={() => onSelect(option.value)}
+          onSelect={() => onSelect(extension)}
         >
           <IconFileSettings />
-          {option.label()}
-          {option.value === type.language && (
-            <IconCheck className="size-3 text-muted-foreground" />
-          )}
+          <span className="font-mono">
+            {withExtension(file.name, extension)}
+          </span>
+          {option.value === type.language &&
+            (type.extension ?? '') === extension && (
+              <IconCheck className="size-3 text-muted-foreground" />
+            )}
         </CommandItem>
       ))}
     </CommandGroup>
-  )
+  ))
 }
 
 function RootCommands({
@@ -366,7 +377,10 @@ function RootCommands({
               </CommandShortcut>
             </CommandItem>
             {activeFile && !activeFile.empty && (
-              <CommandItem onSelect={onChangeType}>
+              <CommandItem
+                keywords={[m.file_change_type_keywords()]}
+                onSelect={onChangeType}
+              >
                 <IconFileSettings />
                 {m.file_change_type()}
               </CommandItem>
