@@ -28,6 +28,8 @@ export function AppHeader({
   count,
   wide,
   structured,
+  actions,
+  menuItems,
 }: {
   paneId: string
   files: Array<TabFile>
@@ -37,6 +39,10 @@ export function AppHeader({
   count: number
   wide: boolean
   structured: boolean
+  /** The file type's own actions, before the split and ⋯ buttons. */
+  actions?: React.ReactNode
+  /** The file type's own entries at the end of the ⋯ menu. */
+  menuItems?: React.ReactNode
 }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const panes = useSelector(sessionStore, (s) => s.panes ?? [])
@@ -51,6 +57,7 @@ export function AppHeader({
         paneId={paneId}
         focused={active}
       />
+      {actions}
       {wide && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -127,6 +134,7 @@ export function AppHeader({
               {m.action_toggle_panel()}
             </DropdownMenuCheckboxItem>
           )}
+          {menuItems}
           {wide && count > 1 && (
             <>
               <DropdownMenuSeparator />

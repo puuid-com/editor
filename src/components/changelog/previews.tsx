@@ -4,6 +4,7 @@ import {
   IconCheck,
   IconChevronDown,
   IconChevronRight,
+  IconDots,
   IconFileDots,
   IconFilePlus,
   IconFolderOpen,
@@ -1148,6 +1149,75 @@ function ZplWorkspace() {
   )
 }
 
+function ZplOneBar() {
+  const label = (
+    <div className="mx-auto w-20 border border-black/20 bg-white p-2 font-mono text-xs text-black">
+      4821
+    </div>
+  )
+  const code = (
+    <Code
+      lines={['^XA', '^FO20,20^FD4821^FS', '^XZ']}
+      format={(line) => line}
+    />
+  )
+  const row = 'flex items-center gap-3 border-b px-2 py-1.5 text-xs'
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Tabs>
+            <Tab name="label.zpl" active />
+          </Tabs>
+          <div className={row}>
+            <span>{m.zpl_settings()}</span>
+            <span className="ml-auto border px-1.5">PDF PNG ZPL</span>
+          </div>
+          <div className={row}>
+            <span>{m.zpl_explain()}</span>
+            <span>{m.zpl_sync_zoom()}</span>
+          </div>
+          <div className="border-b bg-muted p-3">{label}</div>
+          <div className={row}>
+            <span>{m.zpl_status_one_label()}</span>
+            <span className="ml-auto">{m.zpl_zoom_fit_short()}</span>
+          </div>
+          {code}
+        </>
+      }
+      after={
+        <>
+          <div className="flex items-center border-b">
+            <div className="min-w-0 flex-1">
+              <Tabs>
+                <Tab name="label.zpl" active />
+              </Tabs>
+            </div>
+            <div className="flex h-8 items-center gap-1.5 border-b bg-muted/60 px-2 text-xs text-muted-foreground">
+              <IconAdjustmentsHorizontal className="size-3.5" />
+              <span className="flex items-center gap-0.5 border px-1.5 text-foreground">
+                {m.zpl_download()}
+                <IconChevronDown className="size-3" />
+              </span>
+              <IconDots className="size-3.5" />
+            </div>
+          </div>
+          <div className="relative bg-muted p-3 pb-9">
+            {label}
+            <span className="absolute bottom-1.5 left-1.5 border bg-background px-1.5 text-[11px] text-muted-foreground">
+              {m.zpl_status_one_label()}
+            </span>
+            <span className="absolute right-1.5 bottom-1.5 border bg-background px-1.5 text-[11px] text-muted-foreground">
+              {m.zpl_zoom_fit_short()}
+            </span>
+          </div>
+          {code}
+        </>
+      }
+    />
+  )
+}
+
 function ZplPreviewOnTop() {
   const code = (
     <Code
@@ -1291,6 +1361,7 @@ function PaneTabs() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.169.0': figure(ZplOneBar),
   '0.168.0': figure(ZplPreviewOnTop),
   '0.167.2': figure(ZplLoneToolbar),
   '0.167.1': figure(ZplSideBySide),

@@ -17,6 +17,16 @@ import type { FilePaneGroup } from '#/lib/store/pane-layout'
 const ZplPane = lazy(() =>
   import('#/components/zpl/ZplPane').then((mod) => ({ default: mod.ZplPane })),
 )
+const ZplHeaderActions = lazy(() =>
+  import('#/components/zpl/header-actions').then((mod) => ({
+    default: mod.ZplHeaderActions,
+  })),
+)
+const ZplMenuItems = lazy(() =>
+  import('#/components/zpl/header-actions').then((mod) => ({
+    default: mod.ZplMenuItems,
+  })),
+)
 const CompareView = lazy(() =>
   import('#/components/compare/CompareView').then((mod) => ({
     default: mod.CompareView,
@@ -112,6 +122,20 @@ function FilePane({
         count={count}
         wide={wide}
         structured={language !== 'zpl' && language !== 'sql'}
+        actions={
+          language === 'zpl' && (
+            <Suspense>
+              <ZplHeaderActions fileId={fileId} />
+            </Suspense>
+          )
+        }
+        menuItems={
+          language === 'zpl' && (
+            <Suspense>
+              <ZplMenuItems fileId={fileId} />
+            </Suspense>
+          )
+        }
       />
       <div className="min-h-0 flex-1">
         <ResizablePanelGroup

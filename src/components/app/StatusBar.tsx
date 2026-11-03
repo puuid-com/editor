@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
@@ -27,7 +28,13 @@ import { useActiveProfile } from '#/hooks/use-profiles'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
 
-/** Bottom bar: highlight chips on the left; the file's setup and actions, search, the theme toggle and the app version on the right. */
+const ZplStatusControls = lazy(() =>
+  import('#/components/zpl/status-controls').then((mod) => ({
+    default: mod.ZplStatusControls,
+  })),
+)
+
+/** Bottom bar: highlight chips on the left; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
 export function StatusBar() {
   const activeId = useSelector(editorStore, (s) => s.fileId)
   // An empty file has no type yet, so nothing to highlight, format or set up.
@@ -56,6 +63,17 @@ export function StatusBar() {
         <>
           <ActionBar />
           <SettingsPopover />
+          <Separator
+            orientation="vertical"
+            className="mx-1 data-vertical:h-4 data-vertical:self-center"
+          />
+        </>
+      )}
+      {typed && zpl && (
+        <>
+          <Suspense>
+            <ZplStatusControls fileId={activeId} />
+          </Suspense>
           <Separator
             orientation="vertical"
             className="mx-1 data-vertical:h-4 data-vertical:self-center"

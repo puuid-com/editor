@@ -8,6 +8,15 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.169.0] - 2026-11-02
+
+### Changed
+
+- ZPL panes have one toolbar instead of six. Label settings, a Download menu (PDF, PNG, ZPL and the copy actions) and the pane's ⋯ menu now sit in the tab row.
+- Compare labels and command explanations moved to the pane's ⋯ menu. While you compare, a close button on the comparison bar turns it off.
+- The label count, problems and zoom controls float over the preview instead of taking a row of their own.
+- "Rendered by Labelary" and Sync preview zoom moved to the bottom bar. Sync shows only when more than one ZPL file is open.
+
 ## [0.168.0] - 2026-11-02
 
 ### Changed

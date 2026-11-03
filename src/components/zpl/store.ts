@@ -1,4 +1,5 @@
 import { Store } from '@tanstack/store'
+import { languageOf } from '#/lib/document'
 import { filesCollection, saveZplSettings } from '#/lib/store/files'
 import { persistedStore } from '#/lib/store/persist'
 import { DEFAULT_SETTINGS } from '#/lib/zpl/settings'
@@ -57,4 +58,20 @@ export function setPreviewZoom(id: string, zoom: PreviewZoom) {
     ...s,
     ...Object.fromEntries(ids.map((key) => [key, zoom])),
   }))
+}
+
+/** The ZPL file each pane compares its label with, keyed by the pane's file. */
+export const compareStore = new Store<Record<string, string | undefined>>({})
+export function setCompareTarget(id: string, target: string | null) {
+  compareStore.setState((s) => ({ ...s, [id]: target ?? undefined }))
+}
+
+/** The other open ZPL files a file can compare with or sync zoom with. */
+export function zplCandidates(state: { files: Array<XmlFile> }, id: string) {
+  return state.files.filter(
+    (f) =>
+      f.id !== id &&
+      f.deletedAt === null &&
+      languageOf(f.name, f.content) === 'zpl',
+  )
 }

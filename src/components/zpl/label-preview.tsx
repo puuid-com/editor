@@ -7,7 +7,12 @@ import {
   useRef,
   useState,
 } from 'react'
-import { IconAlertTriangle, IconMinus, IconPlus } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconMinus,
+  IconPlus,
+  IconX,
+} from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { cn } from 'cn'
 
@@ -41,6 +46,7 @@ import { getLocale } from '#/paraglide/runtime'
 import {
   editorStore,
   selectFile,
+  setCompareTarget,
   setPreviewZoom,
   setSettings,
   zoomStore,
@@ -59,6 +65,8 @@ const MAX_ZOOM_STEP = 0.3
 /** Marks what stays under the pointer while zooming. */
 const ZOOM_ANCHOR = '[data-zoom-anchor]'
 const VIEWPORT_PADDING = 24
+/** Room under the labels for the status and zoom controls floating over the preview. */
+const OVERLAY_HEIGHT = 32
 /** Between the two labels when comparing side by side. */
 const PAIR_GAP = 16
 /** A figure's caption line and the gap above it. */
@@ -174,7 +182,11 @@ export function LabelPreview({
                 VIEWPORT_PADDING * 2 -
                 PAIR_GAP * (columns - 1)) /
                 (widest * columns),
-              (viewport.height - VIEWPORT_PADDING * 2 - chromeHeight) / tallest,
+              (viewport.height -
+                VIEWPORT_PADDING * 2 -
+                OVERLAY_HEIGHT -
+                chromeHeight) /
+                tallest,
             ) * 1000,
           ) / 1000,
         )
@@ -364,80 +376,86 @@ export function LabelPreview({
           mode={compareMode}
           onModeChange={setCompareMode}
           compared={compared}
+          onClose={() => setCompareTarget(panelId, null)}
         />
       )}
 
-      <div
-        ref={viewportRef}
-        className="min-h-0 flex-1 overflow-auto overscroll-none bg-muted"
-      >
-        {labels.length === 0 ? (
-          <div className="preview-empty-state flex min-h-full flex-col">
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle className="text-base font-medium">
-                  {m.zpl_empty_preview_title()}
-                </EmptyTitle>
-                <EmptyDescription className="max-w-64 text-inherit">
-                  {m.zpl_empty_preview()}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-            <p className="px-6 pb-6 text-center text-xs">
-              <a
-                href="https://labelary.com"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-current/40 underline-offset-4 hover:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-              >
-                {m.zpl_empty_preview_credit()}
-              </a>
-            </p>
-          </div>
-        ) : (
-          <div
-            className="flex w-max min-w-full flex-col items-center gap-6"
-            style={{ padding: VIEWPORT_PADDING }}
-          >
-            {labels.map((label, index) => (
-              <LabelFigure
-                key={index}
-                view={view}
-                caption={m.zpl_label_caption({
-                  index: index + 1,
-                  count: render?.total ?? labels.length,
-                })}
-                label={label}
-                remote={compared?.labels.at(index)}
-                compared={compared}
-                scale={scale}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div
+          ref={viewportRef}
+          className="min-h-0 flex-1 overflow-auto overscroll-none bg-muted"
+        >
+          {labels.length === 0 ? (
+            <div className="preview-empty-state flex min-h-full flex-col">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle className="text-base font-medium">
+                    {m.zpl_empty_preview_title()}
+                  </EmptyTitle>
+                  <EmptyDescription className="max-w-64 text-inherit">
+                    {m.zpl_empty_preview()}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+              <p className="px-6 pb-6 text-center text-xs">
+                <a
+                  href="https://labelary.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-current/40 underline-offset-4 hover:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                >
+                  {m.zpl_empty_preview_credit()}
+                </a>
+              </p>
+            </div>
+          ) : (
+            <div
+              className="flex w-max min-w-full flex-col items-center gap-6"
+              style={{
+                padding: VIEWPORT_PADDING,
+                paddingBottom: VIEWPORT_PADDING + OVERLAY_HEIGHT,
+              }}
+            >
+              {labels.map((label, index) => (
+                <LabelFigure
+                  key={index}
+                  view={view}
+                  caption={m.zpl_label_caption({
+                    index: index + 1,
+                    count: render?.total ?? labels.length,
+                  })}
+                  label={label}
+                  remote={compared?.labels.at(index)}
+                  compared={compared}
+                  scale={scale}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-      <StatusLine
-        panelId={panelId}
-        render={render}
-        isRendering={isRendering}
-        error={error}
-        onRetry={onRetry}
-        otherPanel={
-          target && other.render
-            ? {
-                name: remoteName,
-                labelCount: other.render.labels.length,
-              }
-            : undefined
-        }
-      >
-        <ZoomControls
-          zoom={zoom}
-          scale={scale}
-          onZoomChange={(next) => setPreviewZoom(panelId, next)}
-        />
-      </StatusLine>
+        <StatusLine
+          panelId={panelId}
+          render={render}
+          isRendering={isRendering}
+          error={error}
+          onRetry={onRetry}
+          otherPanel={
+            target && other.render
+              ? {
+                  name: remoteName,
+                  labelCount: other.render.labels.length,
+                }
+              : undefined
+          }
+        >
+          <ZoomControls
+            zoom={zoom}
+            scale={scale}
+            onZoomChange={(next) => setPreviewZoom(panelId, next)}
+          />
+        </StatusLine>
+      </div>
     </section>
   )
 }
@@ -501,10 +519,12 @@ function CompareBar({
   mode,
   onModeChange,
   compared,
+  onClose,
 }: {
   mode: CompareMode
   onModeChange: (mode: CompareMode) => void
   compared: Compared
+  onClose: () => void
 }) {
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 py-2">
@@ -533,6 +553,15 @@ function CompareBar({
           onlyRemote={compared.onlyRemote}
         />
       )}
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        aria-label={m.compare_close()}
+        className="ml-auto text-muted-foreground"
+        onClick={onClose}
+      >
+        <IconX />
+      </Button>
     </div>
   )
 }
@@ -807,79 +836,81 @@ function StatusLine({
   const zplSize = render ? zplSizeSettings(render.zplSize, settings) : null
 
   return (
-    <div className="flex min-h-8 shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t py-1 pr-1.5 pl-3 text-xs text-muted-foreground tabular-nums">
-      {zplSize && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => setSettings(panelId, zplSize)}
-            >
-              <IconAlertTriangle data-icon="inline-start" />
-              {m.zpl_zpl_size_differs({
-                width: zplSize.widthIn,
-                height: zplSize.heightIn,
-              })}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{m.zpl_use_zpl_size()}</TooltipContent>
-        </Tooltip>
-      )}
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1"
-      >
-        {error ? (
-          <span className="flex items-center gap-2">
-            <span className="text-destructive">
-              {error instanceof LabelaryError && error.status === 429
-                ? m.zpl_render_rate_limited()
-                : m.zpl_render_failed({ message: error.message })}
-            </span>
-            <Button variant="outline" size="xs" onClick={onRetry}>
-              {m.zpl_retry()}
-            </Button>
-          </span>
-        ) : null}
-        {render && (
-          <>
-            <span>
-              {render.total > labels.length
-                ? m.zpl_status_first_labels({
-                    shown: labels.length,
-                    count: render.total,
-                  })
-                : labels.length === 1
-                  ? m.zpl_status_one_label()
-                  : m.zpl_status_many_labels({ count: labels.length })}
-            </span>
-            <span className={problems > 0 ? 'text-foreground' : undefined}>
-              {problems === 0
-                ? m.zpl_status_no_problems()
-                : problems === 1
-                  ? m.zpl_status_one_problem()
-                  : m.zpl_status_many_problems({ count: problems })}
-            </span>
-          </>
-        )}
-        {otherPanel && otherPanel.labelCount !== labels.length && (
-          <span className="text-foreground">
-            {otherPanel.labelCount === 1
-              ? m.zpl_compare_panel_one_label({ name: otherPanel.name })
-              : m.zpl_compare_panel_many_labels({
-                  name: otherPanel.name,
-                  count: otherPanel.labelCount,
+    <div className="pointer-events-none absolute inset-x-2 bottom-2 flex items-end gap-2 text-xs text-muted-foreground tabular-nums *:pointer-events-auto">
+      <div className="flex min-h-7 min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2 py-0.5 has-[>*:not(:empty)]:border has-[>*:not(:empty)]:bg-background">
+        {zplSize && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setSettings(panelId, zplSize)}
+              >
+                <IconAlertTriangle data-icon="inline-start" />
+                {m.zpl_zpl_size_differs({
+                  width: zplSize.widthIn,
+                  height: zplSize.heightIn,
                 })}
-          </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{m.zpl_use_zpl_size()}</TooltipContent>
+          </Tooltip>
         )}
-        {isRendering && (
-          <span className="ml-auto">{m.zpl_status_rendering()}</span>
-        )}
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex flex-wrap items-center gap-x-3 gap-y-1"
+        >
+          {error ? (
+            <span className="flex items-center gap-2">
+              <span className="text-destructive">
+                {error instanceof LabelaryError && error.status === 429
+                  ? m.zpl_render_rate_limited()
+                  : m.zpl_render_failed({ message: error.message })}
+              </span>
+              <Button variant="outline" size="xs" onClick={onRetry}>
+                {m.zpl_retry()}
+              </Button>
+            </span>
+          ) : null}
+          {render && (
+            <>
+              <span>
+                {render.total > labels.length
+                  ? m.zpl_status_first_labels({
+                      shown: labels.length,
+                      count: render.total,
+                    })
+                  : labels.length === 1
+                    ? m.zpl_status_one_label()
+                    : m.zpl_status_many_labels({ count: labels.length })}
+              </span>
+              <span className={problems > 0 ? 'text-foreground' : undefined}>
+                {problems === 0
+                  ? m.zpl_status_no_problems()
+                  : problems === 1
+                    ? m.zpl_status_one_problem()
+                    : m.zpl_status_many_problems({ count: problems })}
+              </span>
+            </>
+          )}
+          {otherPanel && otherPanel.labelCount !== labels.length && (
+            <span className="text-foreground">
+              {otherPanel.labelCount === 1
+                ? m.zpl_compare_panel_one_label({ name: otherPanel.name })
+                : m.zpl_compare_panel_many_labels({
+                    name: otherPanel.name,
+                    count: otherPanel.labelCount,
+                  })}
+            </span>
+          )}
+          {isRendering && <span>{m.zpl_status_rendering()}</span>}
+        </div>
       </div>
-      <div className="flex items-center gap-1">{children}</div>
+      <div className="ml-auto flex h-7 shrink-0 items-center rounded-md border bg-background px-0.5">
+        {children}
+      </div>
     </div>
   )
 }
