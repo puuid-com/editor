@@ -49,6 +49,8 @@ export function ZplPane({
       f.deletedAt === null &&
       languageOf(f.name, f.content) === 'zpl',
   )
+  // Comparing and syncing zoom need a second ZPL file.
+  const alone = candidates.length === 0
   const compareTarget = candidates.some((f) => f.id === target) ? target : null
   const dpi = dpiFor(file?.settings.dpmm ?? 8)
 
@@ -100,12 +102,17 @@ export function ZplPane({
         <Button
           variant="ghost"
           size="xs"
-          aria-pressed={syncZoom}
+          aria-pressed={syncZoom && !alone}
+          disabled={alone}
           onClick={() => setSyncZoom(!syncZoom)}
         >
           {m.zpl_sync_zoom()}
         </Button>
-        <Select value={compareTarget ?? 'none'} onValueChange={setTarget}>
+        <Select
+          value={compareTarget ?? 'none'}
+          onValueChange={setTarget}
+          disabled={alone}
+        >
           <SelectTrigger
             size="sm"
             className="ml-auto max-w-48 text-xs"

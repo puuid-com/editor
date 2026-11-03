@@ -1148,6 +1148,28 @@ function ZplWorkspace() {
   )
 }
 
+function ZplLoneToolbar() {
+  const bar = (dim: boolean) => (
+    <>
+      <Tabs>
+        <Tab name="label.zpl" active />
+      </Tabs>
+      <div className="flex items-center gap-3 border-b px-2 py-1.5 text-xs">
+        <span>{m.zpl_explain()}</span>
+        <span className={dim ? 'opacity-45' : undefined}>
+          {m.zpl_sync_zoom()}
+        </span>
+        <span
+          className={`ml-auto border px-2 py-0.5 ${dim ? 'opacity-45' : ''}`}
+        >
+          {m.zpl_compare_none()}
+        </span>
+      </div>
+    </>
+  )
+  return <BeforeAfter before={bar(false)} after={bar(true)} />
+}
+
 function ZplSideBySide() {
   const code = (
     <Code
@@ -1237,6 +1259,7 @@ function PaneTabs() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.167.2': figure(ZplLoneToolbar),
   '0.167.1': figure(ZplSideBySide),
   '0.167.0': figure(PaneTabs),
   '0.166.0': figure(ZplWorkspace),
