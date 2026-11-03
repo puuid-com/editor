@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.165.1] - 2026-11-02
+
+### Fixed
+
+- "Change type" is back to the four types (XML, JSON, fixed-width and SQL) instead of a long list of extensions.
+- "Change type" now works on empty files too, from the command menu and the tab menu, and the tab shows the new extension. Content pasted afterwards keeps that type unless it clearly reads as another.
+
 ## [0.165.0] - 2026-11-02
 
 ### Changed

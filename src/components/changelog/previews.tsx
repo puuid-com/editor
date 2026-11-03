@@ -215,33 +215,26 @@ function ChangeType() {
   )
 }
 
-function ChangeExtension() {
-  const groups = [
-    {
-      label: m.paste_type_xml(),
-      names: ['schema.xml', 'schema.xsd'],
-      checked: 'schema.xsd',
-    },
-    { label: m.paste_type_json(), names: ['schema.json', 'schema.geojson'] },
-  ]
+function ChangeTypeEmpty() {
   return (
-    <Shot className="font-sans">
-      <div className="border-b px-3 py-2 text-muted-foreground">
-        {m.file_type_placeholder()}
-      </div>
-      <div className="py-1">
-        {groups.map((group) => (
-          <div key={group.label}>
-            <div className="px-3 pt-1.5 pb-0.5 text-[11px] text-muted-foreground">
-              {group.label}
-            </div>
-            {group.names.map((name) => (
-              <MenuItem key={name} checked={name === group.checked}>
-                <span className="font-mono">{name}</span>
-              </MenuItem>
-            ))}
+    <Shot>
+      <Tabs>
+        <Tab name="untitled" active />
+      </Tabs>
+      <div className="relative h-32">
+        <div className="absolute top-1 left-6 flex items-start">
+          <div className="w-44 border bg-popover py-1 shadow-md">
+            <MenuItem>{m.file_rename()}</MenuItem>
+            <MenuItem sub>{m.file_change_type()}</MenuItem>
+            <MenuItem>{m.tabs_close()}</MenuItem>
           </div>
-        ))}
+          <div className="mt-8 -ml-1 w-36 border bg-popover py-1 shadow-md">
+            <MenuItem>{m.paste_type_xml()}</MenuItem>
+            <MenuItem checked>{m.paste_type_json()}</MenuItem>
+            <MenuItem>{m.paste_type_flat()}</MenuItem>
+            <MenuItem>{m.paste_type_sql()}</MenuItem>
+          </div>
+        </div>
       </div>
     </Shot>
   )
@@ -1097,7 +1090,7 @@ function figure(...parts: Array<ComponentType>): ComponentType {
 }
 
 export const previews: Record<string, ComponentType> = {
-  '0.165.0': figure(ChangeExtension),
+  '0.165.1': figure(ChangeTypeEmpty),
   '0.164.1': figure(PrefixedPins),
   '0.164.0': figure(FoldedNotes),
   '0.163.0': figure(ReleasePictures),

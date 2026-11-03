@@ -1,6 +1,6 @@
 import { notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
-import { LANGUAGE_EXTENSIONS, untypedName } from '#/lib/document'
+import { LANGUAGE_EXTENSIONS } from '#/lib/document'
 import { dropEditorState } from '#/components/editor/editor-session'
 import { closeFile, createFile, filesCollection } from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
@@ -50,11 +50,6 @@ export interface TabFile {
   profileId: string
   /** No content, so no type or profile to show yet. */
   empty: boolean
-}
-
-/** A tab's name, without the extension while the file is empty and untyped. */
-export function tabName(file: Pick<TabFile, 'name' | 'empty'>) {
-  return file.empty ? untypedName(file.name) : file.name
 }
 
 /** The tab to show once `closing` are gone: the nearest one to the right, else the left. */

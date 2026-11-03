@@ -10,7 +10,7 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { newFile, tabName } from './files'
+import { newFile } from './files'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
 import { askClose, askRename, uiStore } from './ui-store'
@@ -161,7 +161,7 @@ export function TabStrip({
                         <IconFileCode className="size-3.5! text-muted-foreground" />
                       )}
                       {file.empty ? (
-                        <span className="truncate">{tabName(file)}</span>
+                        <span className="truncate">{file.name}</span>
                       ) : profile ? (
                         <span
                           style={hlStyle(profileCss(profile))}
@@ -269,12 +269,12 @@ function TabContextMenu({
   )
 }
 
-/** Picks the file's type; an empty file gets one when something is pasted. */
+/** Picks the file's type, empty files included. */
 function TypeSubMenu({ file }: { file: TabFile }) {
   const type = useFileType(file.id)
   return (
     <ContextMenuSub>
-      <ContextMenuSubTrigger disabled={file.empty || !type}>
+      <ContextMenuSubTrigger disabled={!type}>
         {m.file_change_type()}
       </ContextMenuSubTrigger>
       <ContextMenuSubContent className="w-40">

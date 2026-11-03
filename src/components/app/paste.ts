@@ -1,11 +1,6 @@
 import { setFileType } from './file-type'
 import { setPasteChoice } from './ui-store'
-import {
-  detectLanguage,
-  languageOf,
-  typedName,
-  untypedName,
-} from '#/lib/document'
+import { detectLanguage, languageOf, typedName } from '#/lib/document'
 import { filesCollection, setFileProfile } from '#/lib/store/files'
 import { learnSample, profileGuesser } from '#/lib/store/profiles'
 import type { PasteChoice } from './ui-store'
@@ -18,7 +13,7 @@ export function askPasteChoice(fileId: string, text: string) {
   const file = filesCollection.get(fileId)
   if (!file) return
   const detected = detectLanguage(text)
-  const language = detected ?? languageOf(untypedName(file.name), text)
+  const language = detected ?? languageOf(file.name, text)
   const guessed = profileGuesser(fileId)(typedName(file.name, language), text)
   setPasteChoice({
     fileId,

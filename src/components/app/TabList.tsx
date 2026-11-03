@@ -1,7 +1,6 @@
 import { IconChevronDown, IconX } from '@tabler/icons-react'
 
 import { FileIcon } from './FileIcon'
-import { tabName } from './files'
 import { ToolbarButton } from './ToolbarButton'
 import { askClose, setTabListOpen } from './ui-store'
 import { UnsavedMark } from './UnsavedMark'
@@ -66,7 +65,7 @@ export function TabList({
                 >
                   <FileIcon file={file} />
                   <span className="min-w-0 flex-1 truncate font-mono">
-                    {tabName(file)}
+                    {file.name}
                   </span>
                   <UnsavedMark fileId={file.id} />
                   <button
