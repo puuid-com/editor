@@ -9,9 +9,7 @@ describe('zpl', () => {
   })
 
   it('links a label through the base64 query parameter', () => {
-    expect(zplViewerUrl(' XlhB\n XkZE+/= ')).toBe(
-      'https://zpl.puuid.com/?base64=XlhBXkZE%2B%2F%3D',
-    )
+    expect(zplViewerUrl(' XlhB\n XkZE+/= ')).toBe('/#base64=XlhBXkZE%2B%2F%3D')
     expect(zplViewerUrl(' \n')).toBeNull()
   })
 })

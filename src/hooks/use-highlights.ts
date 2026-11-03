@@ -7,8 +7,8 @@ import { swatchColors } from '#/lib/store/colors'
 import { highlightCss, highlightsCollection } from '#/lib/store/highlights'
 
 /** Highlight rules of the active profile, oldest first. */
-export function useHighlights() {
-  const profileId = useActiveProfileId()
+export function useHighlights(fileId?: string) {
+  const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
     query: (q) =>
       q
@@ -20,8 +20,8 @@ export function useHighlights() {
 }
 
 /** Enabled rules as local tag name (no prefix) → CSS colour. */
-export function useHighlightMap(): ReadonlyMap<string, string> {
-  const rules = useHighlights()
+export function useHighlightMap(fileId?: string): ReadonlyMap<string, string> {
+  const rules = useHighlights(fileId)
   return useMemo(
     () =>
       new Map(
@@ -34,7 +34,7 @@ export function useHighlightMap(): ReadonlyMap<string, string> {
 }
 
 /** Swatches for picking a highlight: the profile's colours, then presets. */
-export function useHighlightSwatches(): Array<string> {
-  const rules = useHighlights()
+export function useHighlightSwatches(fileId?: string): Array<string> {
+  const rules = useHighlights(fileId)
   return useMemo(() => swatchColors(rules.map((r) => r.color)), [rules])
 }

@@ -24,9 +24,9 @@ import { StatusBar } from './StatusBar'
 import { TabStrip } from './TabStrip'
 import { useAppShortcuts } from './use-app-shortcuts'
 import { VariableValueDialog } from './VariableValueDialog'
-import { setCompareId, setMobileView, uiStore } from './ui-store'
+import { setCompareId, uiStore } from './ui-store'
 import { Welcome } from './Welcome'
-import { DesktopWorkspace, MobileWorkspace } from './Workspace'
+import { MixedWorkspace } from './MixedWorkspace'
 import { QuickHighlight } from '#/components/highlights/QuickHighlight'
 import {
   DeleteProfileDialog,
@@ -87,11 +87,7 @@ export function EditorApp() {
     fileIds: files.map((f) => f.id),
     onOpenFromDisk: openFromDisk,
     onTogglePanel: () => {
-      if (wide) setPanelOpen(!sessionStore.state.panelOpen)
-      else
-        setMobileView(
-          uiStore.state.mobileView === 'editor' ? 'structure' : 'editor',
-        )
+      setPanelOpen(!sessionStore.state.panelOpen)
     },
   })
 
@@ -137,11 +133,7 @@ export function EditorApp() {
       </AppHeader>
       <main id="main" className="min-h-0 flex-1">
         {activeId ? (
-          wide ? (
-            <DesktopWorkspace fileId={activeId} compareId={compareId} />
-          ) : (
-            <MobileWorkspace fileId={activeId} compareId={compareId} />
-          )
+          <MixedWorkspace fileId={activeId} compareId={compareId} wide={wide} />
         ) : (
           <Welcome onOpenFromDisk={openFromDisk} />
         )}

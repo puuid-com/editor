@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { labelSettingsSchema } from './zpl/schema'
 
 import { isPreset } from './store/colors'
 import { formatSettingsSchema } from './store/format-settings'
@@ -42,6 +43,7 @@ const sharedProfileSchema = z.object({
 const shareSchema = z.object({
   name: z.string().trim().min(1).max(255),
   content: z.string(),
+  zplSettings: labelSettingsSchema.optional(),
   // Links made before profiles were shared have none.
   profile: sharedProfileSchema.optional(),
 })

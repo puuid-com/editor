@@ -10,6 +10,7 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
+import { openBeside } from './panes'
 import { newFile } from './files'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
@@ -244,6 +245,9 @@ function TabContextMenu({
     <ContextMenuContent className="w-56">
       <ContextMenuItem onSelect={() => askRename(file.id)}>
         {m.file_rename()}
+      </ContextMenuItem>
+      <ContextMenuItem onSelect={() => openBeside(file.id)}>
+        {m.pane_open()}
       </ContextMenuItem>
       <TypeSubMenu file={file} />
       <ContextMenuSeparator />

@@ -8,6 +8,19 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.166.0] - 2026-11-02
+
+### Added
+
+- Open up to four editable XML, JSON, fixed-width, SQL and ZPL files side by side, with independent editor history and profiles.
+- Edit ZPL labels with live Labelary previews, command explanations, lint warnings, per-file dimensions and print density, zoom and visual comparisons.
+- Export labels as ZPL, PNG, ZIP or PDF, copy base64, and share compressed label links. Label settings are included in workspace backups and shared files.
+
+### Changed
+
+- Base64 label fields open beside their source document in this workspace. Existing ZPL URL parameters and XML share links remain supported.
+- Explain that rendering ZPL previews and image exports sends label content to Labelary.
+
 ## [0.165.1] - 2026-11-02
 
 ### Fixed

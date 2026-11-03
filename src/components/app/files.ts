@@ -7,9 +7,12 @@ import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 
+import { decodeBase64Zpl } from '#/lib/zpl/base64'
+import { SAMPLE_LABEL } from '#/components/zpl/sample-label'
+
 const NEW_JSON_CONTENT = '{\n  \n}\n'
 
-const { xml, json, flat, sql } = LANGUAGE_EXTENSIONS
+const { xml, json, flat, sql, zpl } = LANGUAGE_EXTENSIONS
 
 const STRUCTURED_TYPES = [
   ...xml,
@@ -27,17 +30,18 @@ export const ACCEPTED_TYPES = [
   ...flat,
   'text/plain',
   ...sql,
+  ...zpl,
   'application/sql',
 ].join(',')
 
 /** File types for the open picker, as the File System Access API wants them. */
 const PICKER_TYPES: Array<FilePickerAcceptType> = [
   {
-    description: 'XML, JSON, TXT, SQL',
+    description: 'XML, JSON, TXT, SQL, ZPL',
     accept: {
       'application/xml': [...xml],
       'application/json': [...json],
-      'text/plain': [...flat],
+      'text/plain': [...flat, ...zpl],
       'application/sql': [...sql],
     },
   },
@@ -147,7 +151,8 @@ export async function importHandles(
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       const file = await handle.getFile()
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      const text = await file.text()
+      const raw = await file.text()
+      const text = decodeBase64Zpl(raw) ?? raw
       const profileId = guess(file.name, text) ?? fallback
       last = createFile(file.name, text, profileId).id
       void setDiskLink(last, {
@@ -203,7 +208,11 @@ export async function importFiles(list: FileList | Array<File>) {
     const { name } = files[i]
     if (result.status === 'fulfilled') {
       const profileId = guess(name, result.value) ?? fallback
-      last = createFile(name, result.value, profileId).id
+      last = createFile(
+        name,
+        decodeBase64Zpl(result.value) ?? result.value,
+        profileId,
+      ).id
       continue
     }
     notify.error(m.file_import_failed({ name }), {
@@ -212,4 +221,14 @@ export async function importFiles(list: FileList | Array<File>) {
     })
   }
   if (last) setActive(last)
+}
+
+export function newZplFile() {
+  const file = createFile(
+    m.file_untitled_zpl(),
+    SAMPLE_LABEL,
+    activeProfileId(),
+  )
+  setActive(file.id)
+  return file.id
 }

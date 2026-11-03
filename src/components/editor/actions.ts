@@ -118,7 +118,7 @@ export function formatActive() {
 /** Asks to confirm the enabled default values that would change the active file. */
 export function applyDefaultsActive() {
   const view = getView()
-  if (!view || activeLanguage() === 'sql') return true
+  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return true
   const rules = enabledDefaults()
   if (rules.length === 0) {
     notify.info(m.defaults_none())
@@ -150,7 +150,7 @@ export function commitDefaultsActive() {
  * confirm before the file is changed.
  */
 export function resolveVarsActive() {
-  if (!getView() || activeLanguage() === 'sql') return true
+  if (!getView() || ['sql', 'zpl'].includes(activeLanguage())) return true
   // Faker is large and only needed here, so it loads on first use.
   void import('@faker-js/faker').then(({ faker }) => {
     const { fileId } = editorStore.state
@@ -215,7 +215,7 @@ export function commitVarsPreview({
 /** Rewrites every variable in the active file in `style`, as one undo step. */
 export function convertVarsActive(style: VarStyle) {
   const view = getView()
-  if (!view || activeLanguage() === 'sql') return
+  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return
   const text = view.state.doc.toString()
   const result = convertVars(text, style)
   if (result.count === 0) {
@@ -274,7 +274,7 @@ function tagAtCursor(view: EditorView) {
 /** Opens the colour picker for the tag at the cursor. */
 export function highlightAtCursor() {
   const view = getView()
-  if (!view || activeLanguage() === 'sql') return true
+  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return true
   const tag = tagAtCursor(view)
   const coords = tag && view.coordsAtPos(tag.at)
   if (!tag || !coords) {
@@ -339,6 +339,7 @@ export async function copyShareLink({
     const hash = await encodeShare({
       name: file.name,
       content: getText(),
+      zplSettings: file.zplSettings,
       profile: shared,
     })
     const { origin, pathname } = window.location

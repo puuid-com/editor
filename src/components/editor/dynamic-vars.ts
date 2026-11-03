@@ -157,5 +157,7 @@ function varCompletions(context: CompletionContext): CompletionResult | null {
 
 /** Works in every language but SQL, next to the grammar's own completions. */
 export const dynamicVarCompletions = EditorState.languageData.of((state) =>
-  state.facet(docLanguage) === 'sql' ? [] : [{ autocomplete: varCompletions }],
+  ['sql', 'zpl'].includes(state.facet(docLanguage))
+    ? []
+    : [{ autocomplete: varCompletions }],
 )

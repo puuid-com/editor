@@ -5,6 +5,8 @@ import { Language, LanguageSupport } from '@codemirror/language'
 import { Compartment, Facet } from '@codemirror/state'
 import { Parser } from '@lezer/common'
 
+import { zplHelpCompartment } from '#/components/zpl/editor-support'
+import { zpl, zplHelp } from '#/components/zpl/zpl-language'
 import { sqlHighlight } from './sql-highlight'
 import { VAR_MAX_LENGTH, maskVars, maskVarsAsNumbers } from '#/lib/xml/vars'
 import type { Extension } from '@codemirror/state'
@@ -92,6 +94,7 @@ const SUPPORT: Record<DocLanguage, Extension> = {
   json: jsonSupport,
   flat: [],
   sql: sqlSupport,
+  zpl: [zpl(), zplHelpCompartment.of(zplHelp({ dpi: 203, explain: true }))],
 }
 
 /** The language of the file in this editor state. */

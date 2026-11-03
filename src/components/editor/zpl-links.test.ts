@@ -16,7 +16,7 @@ describe('zplLinkTargets', () => {
     expect(links).toEqual([
       {
         name: 'ns:Label',
-        url: 'https://zpl.puuid.com/?base64=XlhB',
+        url: '/#base64=XlhB',
         at: doc.indexOf('XlhB'),
         side: 1,
       },
@@ -27,7 +27,7 @@ describe('zplLinkTargets', () => {
     const [link] = zplLinkTargets(stateOf('<Label><![CDATA[XlhB]]></Label>'), [
       'Label',
     ])
-    expect(link.url).toBe('https://zpl.puuid.com/?base64=XlhB')
+    expect(link.url).toBe('/#base64=XlhB')
   })
 
   it('links JSON string values, before the string', () => {

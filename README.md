@@ -1,6 +1,6 @@
 # XML Editor
 
-A browser-based XML and JSON editor with a synchronized structure tree, file tabs, formatting, comparisons, and reusable profiles. Files and settings stay in the browser; there are no accounts or server-side document storage.
+A browser-based XML, JSON, TXT, SQL and ZPL editor with a synchronized structure tree, file tabs, formatting, comparisons, and reusable profiles. Files and settings are saved in the browser; ZPL previews send label content to Labelary; there are no accounts or server-side document storage.
 
 ## Develop
 
@@ -19,6 +19,14 @@ Open http://localhost:3000. Installation compiles the English and French message
 - Open files from disk and save back where the browser supports file handles.
 - Archive closed files, export workspace backups, and restore them later.
 - Share a document and optional profile settings through a link.
+
+## ZPL and mixed panes
+
+Open up to four editable files side by side through a tab’s **Open side by side** action or a pane’s **Add pane** menu. The selected file controls shared actions and the structure panel. On phones, tabs switch between files. Pane selection survives reloads.
+
+ZPL tools come from `puuid-com/zpl` at `766a928` (v0.35.1): multi-label previews, command explanations, lint warnings, per-file size/density, zoom and synchronized scrolling, visual comparisons, PNG/ZIP/PDF export, base64 decoding and compressed sharing. Labelary requests are queued 350 ms apart; jobs display their first 50 labels.
+
+Both compressed `#zpl=…` and `#base64=…` / `?base64=…` links work, with optional `dpmm`, `w`, and `h`. Existing XML share links and backups remain valid. ZPL settings travel with new shared files and backups. Marked base64 label fields open beside their source document.
 
 ## State and persistence
 

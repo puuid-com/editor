@@ -6,8 +6,8 @@ import { defaultsCollection } from '#/lib/store/defaults'
 import type { DefaultRule } from '#/lib/xml/defaults'
 
 /** Default-value rules of the active profile, oldest first. */
-export function useDefaults() {
-  const profileId = useActiveProfileId()
+export function useDefaults(fileId?: string) {
+  const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
     query: (q) =>
       q
@@ -19,7 +19,9 @@ export function useDefaults() {
 }
 
 /** The rules that are switched on. */
-export function useEnabledDefaults(): ReadonlyArray<DefaultRule> {
-  const rules = useDefaults()
+export function useEnabledDefaults(
+  fileId?: string,
+): ReadonlyArray<DefaultRule> {
+  const rules = useDefaults(fileId)
   return useMemo(() => rules.filter((r) => r.enabled), [rules])
 }

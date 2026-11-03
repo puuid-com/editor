@@ -18,7 +18,9 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const hasActive = useSelector(sessionStore, (s) => s.activeId !== null)
   // SQL files have no side panel.
-  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
+  const sql = useSelector(editorStore, (s) =>
+    ['sql', 'zpl'].includes(s.doc.language),
+  )
 
   return (
     <header className="flex h-12 shrink-0 items-center bg-foreground/5 shadow-[inset_0_-1px_var(--border)] md:h-10">
@@ -33,7 +35,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           label={m.action_toggle_panel()}
           shortcut={shortcuts.togglePanel}
           size="icon-sm"
-          className="mx-1 hidden md:inline-flex"
+          className="mx-1"
           aria-pressed={panelOpen}
           onClick={() => setPanelOpen(!panelOpen)}
         >

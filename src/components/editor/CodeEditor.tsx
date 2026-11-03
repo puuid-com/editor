@@ -12,13 +12,15 @@ import {
 import { saveActive, saveActiveAs } from './disk'
 import {
   parseActive,
+  getView,
+  registerFileView,
   publishCursor,
   publishParse,
   setView,
 } from './editor-store'
 import { createEditorSession, remoteSync } from './editor-session'
 import { setVarValues } from './dynamic-vars'
-import { editorExtensions, setDefaultRules } from './extensions'
+import { editorExtensions, setDefaultRules, fileIdField } from './extensions'
 import { setLongValueLimit } from './long-values'
 import { setZplTags } from './zpl-links'
 import { setTagHighlights } from './tag-highlights'
@@ -28,6 +30,10 @@ import { useHighlightMap } from '#/hooks/use-highlights'
 import { useFormatSettings } from '#/hooks/use-profiles'
 import { useVariableValues } from '#/hooks/use-variables'
 import { shortcuts } from '#/lib/shortcuts'
+import { sessionStore, setActive } from '#/lib/store/session'
+import { useSelector } from '@tanstack/react-store'
+import { parseDocument } from '#/lib/document'
+import { docLanguage } from './language'
 import { saveContent } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
 import type { EditorState, Extension } from '@codemirror/state'
@@ -49,12 +55,16 @@ function sharedExtensions(
 ) {
   extensions ??= editorExtensions(
     {
-      onParse: (fileId, doc) => publishParse(fileId, doc),
+      onParse: (fileId, doc) => {
+        if (sessionStore.state.activeId === fileId) publishParse(fileId, doc)
+      },
       onChange: (fileId, update) => {
         if (update.transactions.some((tr) => tr.annotation(remoteSync))) return
         saveContent({ id: fileId, content: update.state.doc.toString() })
       },
-      onCursor: (update) => publishCursorFrom(update.state),
+      onCursor: (update) => {
+        if (getView() === update.view) publishCursorFrom(update.state)
+      },
       onPasteWhole: askPasteChoice,
       keys: [
         { key: shortcuts.format.key, run: formatActive, preventDefault: true },
@@ -86,15 +96,16 @@ function sharedExtensions(
 }
 
 export function CodeEditor({ fileId }: { fileId: string }) {
+  const active = useSelector(sessionStore, (s) => s.activeId === fileId)
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const highlights = useHighlightMap()
+  const highlights = useHighlightMap(fileId)
   const highlightsRef = useRef(highlights)
-  const defaults = useEnabledDefaults()
+  const defaults = useEnabledDefaults(fileId)
   const defaultsRef = useRef(defaults)
-  const values = useVariableValues()
+  const values = useVariableValues(fileId)
   const valuesRef = useRef(values)
-  const format = useFormatSettings()
+  const format = useFormatSettings(fileId)
   const shortenAt = format.shortenValues ? format.shortenAt : 0
   const shortenAtRef = useRef(shortenAt)
   const zplTags = format.zplTags
@@ -104,21 +115,25 @@ export function CodeEditor({ fileId }: { fileId: string }) {
   useEffect(() => {
     const view = new EditorView({ parent: parentRef.current! })
     viewRef.current = view
-    setView(view)
+    // Focus selects the global command target; other panes keep their own view.
 
     const session = createEditorSession(view, {
       onRemoteChange: (file) =>
         notify.info(m.updated_elsewhere({ name: file.name })),
-      onLanguageChange: (id) => publishParse(id, parseActive()),
+      onLanguageChange: (id) => {
+        if (getView() === view) publishParse(id, parseActive())
+      },
     })
     sessionRef.current = session
 
     return () => {
+      const id = view.state.field(fileIdField, false)
+      if (id) registerFileView(id, null)
       session.dispose()
       sessionRef.current = null
       view.destroy()
       viewRef.current = null
-      setView(null)
+      if (getView() === view) setView(null)
     }
   }, [])
 
@@ -135,6 +150,7 @@ export function CodeEditor({ fileId }: { fileId: string }) {
       ),
     )
     if (!opened) return
+    registerFileView(fileId, view)
     view.dispatch({
       effects: [
         setTagHighlights(highlightsRef.current),
@@ -144,10 +160,27 @@ export function CodeEditor({ fileId }: { fileId: string }) {
         setZplTags(zplTagsRef.current),
       ],
     })
-    publishCursorFrom(view.state)
-    publishParse(fileId, parseActive())
-    view.focus()
+    if (sessionStore.state.activeId === fileId) {
+      setView(view)
+      publishCursorFrom(view.state)
+      publishParse(fileId, parseActive())
+    }
   }, [fileId])
+
+  const activate = () => {
+    const view = viewRef.current
+    if (!view || !view.state.field(fileIdField, false)) return
+    setActive(fileId)
+    setView(view)
+    publishCursorFrom(view.state)
+    publishParse(
+      fileId,
+      parseDocument(view.state.doc.toString(), view.state.facet(docLanguage)),
+    )
+  }
+  useEffect(() => {
+    if (active) activate()
+  }, [active, fileId])
 
   useEffect(() => {
     highlightsRef.current = highlights
@@ -176,7 +209,12 @@ export function CodeEditor({ fileId }: { fileId: string }) {
 
   return (
     <TagContextMenu>
-      <div ref={parentRef} className="h-full min-h-0 overflow-hidden" />
+      <div
+        onFocusCapture={activate}
+        onPointerDownCapture={activate}
+        ref={parentRef}
+        className="h-full min-h-0 overflow-hidden"
+      />
     </TagContextMenu>
   )
 }

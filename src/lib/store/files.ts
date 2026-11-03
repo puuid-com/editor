@@ -12,6 +12,8 @@ import {
   withDefaultProfile,
 } from './persist'
 import { writerId } from './session'
+import type { LabelSettings } from '#/lib/zpl/settings'
+import { labelSettingsSchema } from '#/lib/zpl/schema'
 
 export const fileSchema = z.object({
   id: z.string(),
@@ -25,6 +27,7 @@ export const fileSchema = z.object({
   deletedAt: z.number().nullable().default(null),
   /** Profile whose settings apply while this file is open. */
   profileId: z.string().default(DEFAULT_PROFILE_ID),
+  zplSettings: labelSettingsSchema.optional(),
 })
 
 export type XmlFile = z.infer<typeof fileSchema>
@@ -247,4 +250,13 @@ export function saveContent({ id, content }: { id: string; content: string }) {
       draft.writer = writerId
     })
   })
+}
+
+export function saveZplSettings(id: string, settings: LabelSettings) {
+  if (!filesCollection.has(id)) return
+  return updateMetadata(() =>
+    filesCollection.update(id, (draft) => {
+      draft.zplSettings = settings
+    }),
+  )
 }

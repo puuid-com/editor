@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { useActiveProfile } from '#/hooks/use-profiles'
 import { decodeShare, isShareHash, ShareError } from '#/lib/share'
 import type { SharedFile, SharedProfile } from '#/lib/share'
-import { createFile } from '#/lib/store/files'
+import { createFile, saveZplSettings } from '#/lib/store/files'
 import { setActive } from '#/lib/store/session'
 import {
   importSharedProfile,
@@ -45,7 +45,12 @@ export function OpenSharedDialog() {
   useEffect(() => {
     const read = () => {
       const { hash } = window.location
-      if (!isShareHash(hash)) return
+      if (!isShareHash(hash)) {
+        void import('#/components/zpl/open-label').then(({ openZplLocation }) =>
+          openZplLocation(),
+        )
+        return
+      }
       decodeShare(hash)
         .then(setShared)
         .catch((error: unknown) => {
@@ -105,6 +110,7 @@ function OpenSharedForm({
       shared.content,
       (profile ?? current)?.id,
     )
+    if (shared.zplSettings) saveZplSettings(file.id, shared.zplSettings)
     setActive(file.id)
     notify.success(
       profile

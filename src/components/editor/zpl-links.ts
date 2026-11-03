@@ -3,7 +3,7 @@ import { Compartment, Facet, StateField } from '@codemirror/state'
 import { Decoration, EditorView, WidgetType } from '@codemirror/view'
 
 import { decodeString } from '#/lib/json/parse'
-import { isZplTag, zplViewerUrl } from '#/lib/zpl'
+import { isZplTag, zplViewerUrl, openZplLabel } from '#/lib/zpl'
 import { m } from '#/paraglide/messages'
 import type { EditorState, Extension, Range } from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
@@ -42,7 +42,14 @@ class ZplLinkWidget extends WidgetType {
     const link = document.createElement('a')
     link.className = 'cm-zpl-link'
     link.href = this.url
-    link.target = '_blank'
+    link.addEventListener('click', (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+        return
+      event.preventDefault()
+      openZplLabel(
+        new URLSearchParams(this.url.split('#')[1]).get('base64') ?? '',
+      )
+    })
     link.rel = 'noopener noreferrer'
     link.title = m.zpl_open_name({ name: this.name })
     link.setAttribute('aria-label', link.title)

@@ -40,6 +40,7 @@ export const LANGUAGE_EXTENSIONS = {
   json: ['.json', '.geojson', '.jsonld', '.webmanifest', '.har', '.ipynb'],
   flat: ['.txt', '.dat'],
   sql: ['.sql', '.ddl', '.dml'],
+  zpl: ['.zpl'],
 } as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
 
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
@@ -48,6 +49,8 @@ const extensionPattern = (extensions: ReadonlyArray<string>) =>
 const JSON_EXT = extensionPattern(LANGUAGE_EXTENSIONS.json)
 const XML_EXT = extensionPattern(LANGUAGE_EXTENSIONS.xml)
 const SQL_EXT = extensionPattern(LANGUAGE_EXTENSIONS.sql)
+const ZPL_EXT = extensionPattern(LANGUAGE_EXTENSIONS.zpl)
+const ZPL_START = /^\s*[\^~][A-Z][A-Z0-9@]/i
 const FLAT_EXT = extensionPattern(LANGUAGE_EXTENSIONS.flat)
 // A statement keyword first, after any leading comments.
 const SQL_START =
@@ -57,9 +60,11 @@ const SQL_START =
 export function languageOf(name: string, content: string): DocLanguage {
   // A flat file is never valid XML or JSON, so its content beats the name.
   if (isFlatFile(content)) return 'flat'
+  if (ZPL_EXT.test(name)) return 'zpl'
   if (JSON_EXT.test(name)) return 'json'
   if (XML_EXT.test(name)) return 'xml'
   if (SQL_EXT.test(name)) return 'sql'
+  if (ZPL_START.test(content)) return 'zpl'
   if (SQL_START.test(content)) return 'sql'
   return /^\s*[[{]/.test(content) ? 'json' : 'xml'
 }
@@ -69,13 +74,14 @@ export function detectLanguage(content: string): DocLanguage | null {
   if (isFlatFile(content)) return 'flat'
   if (/^\s*[[{]/.test(content)) return 'json'
   if (/^\s*</.test(content)) return 'xml'
+  if (ZPL_START.test(content)) return 'zpl'
   if (SQL_START.test(content)) return 'sql'
   return null
 }
 
 /** A file name without the extension that gives its type. */
 export function untypedName(name: string) {
-  for (const ext of [JSON_EXT, XML_EXT, SQL_EXT, FLAT_EXT]) {
+  for (const ext of [JSON_EXT, XML_EXT, SQL_EXT, FLAT_EXT, ZPL_EXT]) {
     const stem = name.replace(ext, '')
     if (stem !== name) return stem || name
   }
@@ -87,6 +93,7 @@ const EXTENSIONS: Record<DocLanguage, string> = {
   json: '.json',
   flat: '.txt',
   sql: '.sql',
+  zpl: '.zpl',
 }
 
 /** `name` with the extension of `language`, unless it already reads as one. */
@@ -95,7 +102,8 @@ export function typedName(name: string, language: DocLanguage) {
     (language === 'json' && JSON_EXT.test(name)) ||
     (language === 'xml' && XML_EXT.test(name)) ||
     (language === 'flat' && FLAT_EXT.test(name)) ||
-    (language === 'sql' && SQL_EXT.test(name))
+    (language === 'sql' && SQL_EXT.test(name)) ||
+    (language === 'zpl' && ZPL_EXT.test(name))
   return keep ? name : untypedName(name) + EXTENSIONS[language]
 }
 
@@ -103,7 +111,7 @@ export function parseDocument(
   text: string,
   language: DocLanguage,
 ): XmlDocument {
-  if (language === 'flat' || language === 'sql') {
+  if (language === 'flat' || language === 'sql' || language === 'zpl') {
     return {
       language,
       nodes: [],
@@ -121,7 +129,7 @@ export function formatDocument(
   options: FormatOptions,
 ): FormatResult {
   // Fixed-width fields are already aligned.
-  if (language === 'flat') return { ok: true, text }
+  if (language === 'flat' || language === 'zpl') return { ok: true, text }
   if (language === 'sql') return { ok: true, text: formatSql(text) }
   return language === 'json'
     ? formatJson(text, options)
@@ -170,4 +178,5 @@ export const MIME_TYPES: Record<DocLanguage, string> = {
   json: 'application/json',
   flat: 'text/plain',
   sql: 'application/sql',
+  zpl: 'application/octet-stream',
 }

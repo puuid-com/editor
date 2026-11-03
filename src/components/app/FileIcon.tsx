@@ -3,6 +3,7 @@ import {
   IconFileDots,
   IconJson,
   IconSql,
+  IconBarcode,
 } from '@tabler/icons-react'
 
 import { languageOf } from '#/lib/document'
@@ -13,6 +14,7 @@ export function FileIcon({ file }: { file: Pick<TabFile, 'name' | 'empty'> }) {
   if (file.empty) return <IconFileDots />
   const language = languageOf(file.name, '')
   if (language === 'json') return <IconJson />
+  if (language === 'zpl') return <IconBarcode />
   if (language === 'sql') return <IconSql />
   return <IconFileCode />
 }

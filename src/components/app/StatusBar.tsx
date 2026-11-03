@@ -32,11 +32,12 @@ export function StatusBar() {
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
   // SQL is only formatted: no highlights, profiles, defaults or variables.
+  const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
   const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
-      {typed && !sql && <HighlightsBar />}
+      {typed && !sql && !zpl && <HighlightsBar />}
       <div className="flex-1" />
       {typed && sql && (
         <>
@@ -49,7 +50,7 @@ export function StatusBar() {
           />
         </>
       )}
-      {typed && !sql && (
+      {typed && !sql && !zpl && (
         <>
           <ActionBar />
           <SettingsPopover />

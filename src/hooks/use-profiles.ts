@@ -19,9 +19,10 @@ export function useProfiles() {
 }
 
 /** The profile of the active file, whose settings the editor uses. */
-export function useActiveProfile() {
+export function useActiveProfile(forFileId?: string) {
   const profiles = useProfiles()
-  const fileId = useSelector(sessionStore, (s) => s.activeId)
+  const activeId = useSelector(sessionStore, (s) => s.activeId)
+  const fileId = forFileId ?? activeId
   const { data } = useLiveQuery({
     query: (q) =>
       q
@@ -32,10 +33,10 @@ export function useActiveProfile() {
   return resolveProfile(profiles, data.at(0)?.profileId)
 }
 
-export function useActiveProfileId() {
-  return useActiveProfile()?.id ?? DEFAULT_PROFILE_ID
+export function useActiveProfileId(fileId?: string) {
+  return useActiveProfile(fileId)?.id ?? DEFAULT_PROFILE_ID
 }
 
-export function useFormatSettings() {
-  return withDefaults(useActiveProfile()?.format)
+export function useFormatSettings(fileId?: string) {
+  return withDefaults(useActiveProfile(fileId)?.format)
 }

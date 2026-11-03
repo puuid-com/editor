@@ -30,7 +30,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { FileIcon } from './FileIcon'
-import { newFile, newJsonFile } from './files'
+import { newFile, newJsonFile, newZplFile } from './files'
 import { readLastCommand, saveLastCommand } from './last-command'
 import {
   askDeleteProfile,
@@ -333,7 +333,9 @@ function RootCommands({
   const [depth] = useState(historyDepth)
   const activeFile = files.find((f) => f.id === activeId)
   // SQL files are only formatted.
-  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
+  const sql = useSelector(editorStore, (s) =>
+    ['sql', 'zpl'].includes(s.doc.language),
+  )
 
   return (
     <>
@@ -554,6 +556,9 @@ function RootCommands({
           <IconFilePlus />
           {m.file_new()}
           <CommandShortcut>{shortcutLabel(shortcuts.newFile)}</CommandShortcut>
+        </CommandItem>
+        <CommandItem onSelect={() => run(newZplFile)}>
+          {m.file_new_zpl()}
         </CommandItem>
         <CommandItem onSelect={() => run(newJsonFile)}>
           <IconFilePlus />

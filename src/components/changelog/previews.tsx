@@ -1089,7 +1089,67 @@ function figure(...parts: Array<ComponentType>): ComponentType {
   }
 }
 
+function ZplWorkspace() {
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Tabs>
+            <Tab name="shipment.xml" active />
+          </Tabs>
+          <Code lines={['<shipment>', '  <id>4821</id>', '</shipment>']} />
+        </>
+      }
+      after={
+        <>
+          <Tabs>
+            <Tab name="shipment.xml" />
+            <Tab name="label.zpl" active />
+          </Tabs>
+          <div className="grid grid-cols-2 divide-x">
+            <Code lines={['<shipment>', '  <id>4821</id>', '</shipment>']} />
+            <div>
+              <Code
+                lines={['^XA', '^FO20,20^FD4821^FS', '^XZ']}
+                format={(line) => line}
+              />
+              <div className="border-t bg-muted p-3">
+                <div className="mx-auto w-24 border border-black/20 bg-white p-3 font-mono text-black">
+                  <span>4821</span>
+                  <svg
+                    viewBox="0 0 72 20"
+                    className="mt-2 w-full"
+                    aria-hidden="true"
+                  >
+                    {[
+                      0, 4, 7, 12, 18, 21, 27, 31, 36, 42, 45, 50, 56, 61, 66,
+                      70,
+                    ].map((x) => (
+                      <rect
+                        key={x}
+                        x={x}
+                        width={(x % 3) + 1}
+                        height="20"
+                        fill="currentColor"
+                      />
+                    ))}
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <StatusBar>
+            <span>{m.zpl_preview_label()}</span>
+            <span className="ml-auto">{m.zpl_status_one_label()}</span>
+          </StatusBar>
+        </>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.166.0': figure(ZplWorkspace),
   '0.165.1': figure(ChangeTypeEmpty),
   '0.164.1': figure(PrefixedPins),
   '0.164.0': figure(FoldedNotes),

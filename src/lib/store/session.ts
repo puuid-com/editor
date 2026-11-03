@@ -28,6 +28,7 @@ interface SessionState {
   activeId: string | null
   /** Collapsed tree paths, by file id. */
   collapsed: Record<string, Array<string>>
+  paneIds?: Array<string>
   panelOpen: boolean
 }
 

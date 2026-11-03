@@ -56,6 +56,7 @@ import {
 import { docLanguage } from './language'
 import { shortenLongValues } from './long-values'
 import { zplLinks } from './zpl-links'
+import { zplBase64Input } from '#/components/zpl/editor-support'
 import { pasteOverStarter, pastedWhole } from './paste'
 import { searchNoAutofill } from './search'
 import { namesParent, treeChanged } from './syntax'
@@ -99,7 +100,7 @@ const varDecorator = new MatchDecorator({
 
 // SQL is only formatted, so `<<` there is just an operator.
 function varMarks(view: EditorView) {
-  return view.state.facet(docLanguage) === 'sql'
+  return ['sql', 'zpl'].includes(view.state.facet(docLanguage))
     ? Decoration.none
     : varDecorator.createDeco(view)
 }
@@ -112,14 +113,13 @@ const varHighlighter = ViewPlugin.fromClass(
     }
     update(update: ViewUpdate) {
       const language = update.state.facet(docLanguage)
-      this.decorations =
-        language === 'sql'
-          ? Decoration.none
-          : update.startState.facet(varValuesFacet) ===
-                update.state.facet(varValuesFacet) &&
-              update.startState.facet(docLanguage) === language
-            ? varDecorator.updateDeco(update, this.decorations)
-            : varDecorator.createDeco(update.view)
+      this.decorations = ['sql', 'zpl'].includes(language)
+        ? Decoration.none
+        : update.startState.facet(varValuesFacet) ===
+              update.state.facet(varValuesFacet) &&
+            update.startState.facet(docLanguage) === language
+          ? varDecorator.updateDeco(update, this.decorations)
+          : varDecorator.createDeco(update.view)
     }
   },
   { decorations: (v) => v.decorations },
@@ -287,6 +287,7 @@ export function editorExtensions(
     highlightActiveLine(),
     highlightSelectionMatches(),
     placeholder(m.editor_placeholder()),
+    zplBase64Input,
     pasteOverStarter,
     editorTheme,
     parentTags,

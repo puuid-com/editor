@@ -140,3 +140,12 @@ export function revealRange(from: number, to = from, focus = true) {
 export function getText() {
   return currentView?.state.doc.toString() ?? ''
 }
+
+const views = new Map<string, EditorView>()
+export function registerFileView(fileId: string, view: EditorView | null) {
+  if (view) views.set(fileId, view)
+  else views.delete(fileId)
+}
+export function getFileView(fileId: string) {
+  return views.get(fileId)
+}

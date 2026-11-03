@@ -5,8 +5,8 @@ import { useActiveProfileId } from './use-profiles'
 import { variablesCollection } from '#/lib/store/variables'
 
 /** Variables of the active profile, oldest first. */
-export function useVariables() {
-  const profileId = useActiveProfileId()
+export function useVariables(fileId?: string) {
+  const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
     query: (q) =>
       q
@@ -18,8 +18,10 @@ export function useVariables() {
 }
 
 /** Name to value for the active profile. */
-export function useVariableValues(): ReadonlyMap<string, string> {
-  const variables = useVariables()
+export function useVariableValues(
+  fileId?: string,
+): ReadonlyMap<string, string> {
+  const variables = useVariables(fileId)
   return useMemo(
     () => new Map(variables.map((v) => [v.name, v.value])),
     [variables],

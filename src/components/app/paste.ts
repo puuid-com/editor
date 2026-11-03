@@ -13,6 +13,10 @@ export function askPasteChoice(fileId: string, text: string) {
   const file = filesCollection.get(fileId)
   if (!file) return
   const detected = detectLanguage(text)
+  if (detected === 'zpl') {
+    void setFileType(fileId, 'zpl')
+    return
+  }
   const language = detected ?? languageOf(file.name, text)
   const guessed = profileGuesser(fileId)(typedName(file.name, language), text)
   setPasteChoice({
