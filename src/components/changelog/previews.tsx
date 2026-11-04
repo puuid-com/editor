@@ -392,11 +392,30 @@ function flat(line: string) {
 }
 
 function FlatFiles() {
-  const rows = FLAT.slice(1).map((line) => line.split('|').slice(1))
   return (
     <Shot className="grid sm:grid-cols-[1fr_1fr]">
       <Code lines={FLAT} format={flat} marks={{ 2: 'active' }} />
-      <div className="border-t bg-muted/20 sm:border-t-0 sm:border-l">
+      <FlatRecordsPanel className="border-t sm:border-t-0 sm:border-l" />
+    </Shot>
+  )
+}
+
+function FlatRecordsPanel({
+  className,
+  pins,
+}: {
+  className?: string
+  pins?: boolean
+}) {
+  const rows = FLAT.slice(1).map((line) => line.split('|').slice(1))
+  return (
+    <div className={cn('bg-muted/20', className)}>
+      {pins && (
+        <div className="flex h-8 items-center border-b px-3 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+          {m.pins_title()}
+        </div>
+      )}
+      <div>
         <div className="flex h-8 items-center gap-3 border-b px-3 text-muted-foreground">
           <span>SH</span>
           <span className="flex h-full items-center border-b border-foreground text-foreground">
@@ -435,7 +454,26 @@ function FlatFiles() {
           </tbody>
         </table>
       </div>
-    </Shot>
+    </div>
+  )
+}
+
+function FlatRecordsBelow() {
+  return (
+    <BeforeAfter
+      before={
+        <div className="grid grid-cols-[1fr_1fr]">
+          <Code lines={FLAT} format={flat} marks={{ 2: 'active' }} />
+          <FlatRecordsPanel className="border-l" pins />
+        </div>
+      }
+      after={
+        <>
+          <Code lines={FLAT} format={flat} marks={{ 2: 'active' }} />
+          <FlatRecordsPanel className="border-t" />
+        </>
+      }
+    />
   )
 }
 
@@ -2017,6 +2055,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.186.0': figure(FlatRecordsBelow),
   '0.185.0': figure(PinOccurrenceRevert),
   '0.184.0': figure(PinOccurrenceList),
   '0.183.0': figure(PinOccurrences),

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.186.0] - 2026-11-04
+
+### Changed
+
+- Flat files no longer show the pinned fields panel, and their records table always sits under the code, even with a single wide pane.
+
 ## [0.185.0] - 2026-11-04
 
 ### Changed

@@ -7,13 +7,14 @@ import { XmlTree } from '#/components/inspector/XmlTree'
 import { PinnedFields } from '#/components/pins/PinnedFields'
 import { m } from '#/paraglide/messages'
 
-/** Pinned fields and the structure tree, or records, of the active document. */
+/** Pinned fields and the structure tree of the active document, or the
+ * records of a flat file (which has no pins). */
 export function SidePanel() {
   const fileId = useSelector(editorStore, (s) => s.fileId)
   const flat = useSelector(editorStore, (s) => s.doc.language === 'flat')
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <PinnedFields />
+      {!flat && <PinnedFields />}
       {!fileId && <PanelHeading>{m.panel_structure()}</PanelHeading>}
       <div className="min-h-0 flex-1">
         {flat ? <FlatRecords key={fileId} /> : <XmlTree key={fileId} />}

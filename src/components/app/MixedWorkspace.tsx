@@ -154,8 +154,14 @@ function FilePane({
         }
       />
       <div className="min-h-0 flex-1">
+        {/* A flat file's records are wide tables, so they always sit
+            under the code. */}
         <ResizablePanelGroup
-          orientation={wide && count === 1 ? 'horizontal' : 'vertical'}
+          orientation={
+            wide && count === 1 && language !== 'flat'
+              ? 'horizontal'
+              : 'vertical'
+          }
         >
           <ResizablePanel id="code" minSize="25%">
             <Suspense>
