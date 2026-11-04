@@ -80,7 +80,7 @@ public/                   Icons and static assets
 | `bun run cf-typegen`      | Regenerate Cloudflare binding types                         |
 | `bun run icons`           | Render PNG app icons from `public/favicon.svg`              |
 
-CI runs formatting, lint, type checking, tests, and the production build. Tests use `fake-indexeddb`; editor-session tests exercise independent database connections, remote edits, undo history, and restore rollback. Browser checks still need a reproducible harness; see [TASKS.md](TASKS.md).
+CI runs formatting, lint, type checking, tests, and the production build. Tests use `fake-indexeddb`; editor-session tests exercise independent database connections, remote edits, undo history, and restore rollback. Browser checks still need a reproducible harness.
 
 ## Conventions
 

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.175.3] - 2026-11-03
+
+### Changed
+
+- `TASKS.md` now lists ten ranked feature proposals, each with what it does, why it matters, the model and effort to build it, and its pros and cons. The earlier follow-up list is replaced.
+
 ## [0.175.2] - 2026-11-03
 
 ### Fixed
