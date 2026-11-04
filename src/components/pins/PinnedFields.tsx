@@ -308,18 +308,6 @@ function PinnedField({
           )}
           style={hlStyle(color)}
         >
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'min-h-11 min-w-0 cursor-pointer truncate text-left md:min-h-0',
-                color && 'pl-1',
-              )}
-              onClick={() => cycleTag(tag)}
-            >
-              <span className={cn(color && 'hl-ink')}>{tag}</span>
-            </button>
-          </ContextMenuTrigger>
           <button
             type="button"
             aria-label={m.pin_copy_name({ name: tag })}
@@ -331,6 +319,18 @@ function PinnedField({
           >
             <IconTag aria-hidden className="size-3" />
           </button>
+          <ContextMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                'min-h-11 min-w-0 cursor-pointer truncate text-left md:min-h-0',
+                color && 'pr-1',
+              )}
+              onClick={() => cycleTag(tag)}
+            >
+              <span className={cn(color && 'hl-ink')}>{tag}</span>
+            </button>
+          </ContextMenuTrigger>
         </span>
         <ContextMenuContent className="w-56">
           <TagMenuHeader tag={tag} />
