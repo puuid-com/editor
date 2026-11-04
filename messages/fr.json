@@ -101,8 +101,6 @@
   "dynvar_randomAbbreviation": "Une abréviation aléatoire",
   "tabs_label": "Fichiers ouverts",
   "tab_close": "Fermer {name}",
-  "tabs_scroll_left": "Faire défiler les onglets vers la gauche",
-  "tabs_scroll_right": "Faire défiler les onglets vers la droite",
   "tabs_list": "Tous les onglets",
   "tabs_search": "Rechercher dans les onglets ouverts…",
   "tabs_search_empty": "Aucun onglet correspondant",

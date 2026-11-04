@@ -5,10 +5,12 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconDots,
+  IconFileCode,
   IconFileDots,
   IconFilePlus,
   IconFolderOpen,
   IconJson,
+  IconLayoutColumns,
   IconLayoutSidebarRight,
   IconPin,
   IconReplace,
@@ -26,6 +28,8 @@ import {
   Code,
   Figure,
   NewTab,
+  SheetTab,
+  SheetTabs,
   Shot,
   StatusBar,
   Syn,
@@ -1360,7 +1364,89 @@ function PaneTabs() {
   )
 }
 
+function CardTabs() {
+  const panes = [
+    {
+      tabs: [
+        ['order.xml', BLUE],
+        ['rates.json', GREEN],
+      ],
+      lines: ['<order>', '  <id>1042</id>', '</order>'],
+    },
+    {
+      tabs: [['label.xml', PURPLE]],
+      lines: ['<label>', '  <id>1042</id>', '</label>'],
+    },
+  ]
+  const buttons = (split: boolean) => (
+    <>
+      {split && <IconLayoutColumns />}
+      <IconDots />
+    </>
+  )
+  // Stacked rather than side by side, so each pane has room for its tabs.
+  return (
+    <>
+      <Shot label={m.changelog_before()}>
+        <div className="grid grid-cols-2 divide-x">
+          {panes.map((pane) => (
+            <div key={pane.tabs[0][0]} className="min-w-0">
+              <div className="flex h-8 items-stretch border-b text-[11px]">
+                <div className="flex min-w-0 flex-1 items-stretch overflow-hidden px-1">
+                  {pane.tabs.map(([name, color], i) => (
+                    <span
+                      key={name}
+                      className={cn(
+                        'flex shrink-0 items-center gap-1 px-1.5',
+                        i === 0
+                          ? 'shadow-[inset_0_-2px_var(--foreground)]'
+                          : 'text-muted-foreground',
+                      )}
+                    >
+                      <IconFileCode className="size-3 shrink-0 text-muted-foreground" />
+                      <span
+                        style={{ '--hl': color } as CSSProperties}
+                        className="hl-tag hl-ink truncate px-1 leading-4"
+                      >
+                        {name}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5 px-2 text-muted-foreground [&_svg]:size-3.5">
+                  {buttons(true)}
+                </div>
+              </div>
+              <Code lines={pane.lines} />
+            </div>
+          ))}
+        </div>
+      </Shot>
+      <Shot label={m.changelog_after()}>
+        <div className="grid grid-cols-2 divide-x">
+          {panes.map((pane, i) => (
+            <div key={pane.tabs[0][0]} className="min-w-0">
+              <SheetTabs end={buttons(i === panes.length - 1)}>
+                {pane.tabs.map(([name, color], j) => (
+                  <SheetTab
+                    key={name}
+                    name={name}
+                    color={color}
+                    active={j === 0}
+                  />
+                ))}
+              </SheetTabs>
+              <Code lines={pane.lines} />
+            </div>
+          ))}
+        </div>
+      </Shot>
+    </>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.170.0': figure(CardTabs),
   '0.169.0': figure(ZplOneBar),
   '0.168.0': figure(ZplPreviewOnTop),
   '0.167.2': figure(ZplLoneToolbar),

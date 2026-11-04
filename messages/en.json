@@ -101,8 +101,6 @@
   "dynvar_randomAbbreviation": "A random abbreviation",
   "tabs_label": "Open files",
   "tab_close": "Close {name}",
-  "tabs_scroll_left": "Scroll tabs left",
-  "tabs_scroll_right": "Scroll tabs right",
   "tabs_list": "All tabs",
   "tabs_search": "Search open tabs…",
   "tabs_search_empty": "No matching tabs",

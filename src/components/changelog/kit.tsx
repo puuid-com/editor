@@ -339,6 +339,66 @@ export function Tab({
   )
 }
 
+/**
+ * A pane's tab row since 0.170.0: the active tab is a card joined to the
+ * editor below, the rest sit flat on the band. `end` holds the row's buttons.
+ */
+export function SheetTabs({
+  children,
+  end,
+}: {
+  children: ReactNode
+  end?: ReactNode
+}) {
+  return (
+    <div className="flex h-8 items-stretch bg-muted/60 text-[11px] shadow-[inset_0_-1px_var(--border)]">
+      <div className="flex min-w-0 flex-1 items-end overflow-hidden px-1.5 pt-1">
+        {children}
+      </div>
+      {end && (
+        <div className="flex shrink-0 items-center gap-1.5 px-2 text-muted-foreground [&_svg]:size-3.5">
+          {end}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function SheetTab({
+  name,
+  active,
+  color,
+}: {
+  name: string
+  active?: boolean
+  /** A profile's highlight colour, shown as a dot before the name. */
+  color?: string
+}) {
+  return (
+    <div
+      data-active={active || undefined}
+      className={cn(
+        'relative flex h-full min-w-0 shrink-0 items-center gap-1.5 rounded-t-md border border-b-0 pr-1 pl-2',
+        'before:absolute before:top-1/2 before:-left-px before:h-3 before:w-px before:-translate-y-1/2 before:bg-border first:before:hidden data-active:before:hidden [[data-active]+&]:before:hidden',
+        active
+          ? 'border-border bg-background'
+          : 'border-transparent text-muted-foreground',
+      )}
+    >
+      {color && (
+        <span
+          style={{ '--hl': color } as CSSProperties}
+          className="size-1.5 shrink-0 rounded-full bg-(--hl)"
+        />
+      )}
+      <span className="truncate">{name}</span>
+      <span className="grid size-3.5 shrink-0 place-items-center">
+        {active && <IconX className="size-3 text-muted-foreground" />}
+      </span>
+    </div>
+  )
+}
+
 export function NewTab({ className }: { className?: string }) {
   return (
     <div

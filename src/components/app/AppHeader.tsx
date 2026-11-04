@@ -18,7 +18,10 @@ import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
 
-/** One row per pane: its tabs, split action and secondary file controls. */
+/**
+ * One row per pane: its tabs and secondary file controls. The split action
+ * sits only on the rightmost pane, where new panes open.
+ */
 export function AppHeader({
   paneId,
   files,
@@ -26,6 +29,7 @@ export function AppHeader({
   fileId,
   active,
   count,
+  last,
   wide,
   structured,
   actions,
@@ -37,6 +41,8 @@ export function AppHeader({
   fileId: string
   active: boolean
   count: number
+  /** The rightmost pane on screen. */
+  last: boolean
   wide: boolean
   structured: boolean
   /** The file type's own actions, before the split and ⋯ buttons. */
@@ -50,7 +56,7 @@ export function AppHeader({
   const focus = () => setActive(fileId)
 
   return (
-    <header className="flex h-12 shrink-0 items-center border-b bg-background md:h-10">
+    <header className="flex h-12 shrink-0 items-center bg-muted/60 shadow-[inset_0_-1px_var(--border)] md:h-10">
       <TabStrip
         files={files}
         activeId={fileId}
@@ -58,7 +64,7 @@ export function AppHeader({
         focused={active}
       />
       {actions}
-      {wide && (
+      {wide && last && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

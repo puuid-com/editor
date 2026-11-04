@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.170.0] - 2026-11-03
+
+### Changed
+
+- New tab look: the active tab is a card joined to the editor below it, and the other tabs sit flat on a grey band, split by hairlines. File icons are gone.
+- A tab's profile shows as a coloured dot before its name instead of tinting the name.
+- The split button sits only on the rightmost pane instead of on every pane.
+- When tabs don't fit, the strip fades at the edge with more tabs instead of showing scroll arrows. Scroll it with the wheel or open the full list.
+- The dot on a file with unsaved changes takes the close button's place and turns into it on hover.
+
 ## [0.169.0] - 2026-11-02
 
 ### Changed

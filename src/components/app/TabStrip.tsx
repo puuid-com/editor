@@ -1,17 +1,11 @@
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconFileCode,
-  IconFileDots,
-  IconPlus,
-  IconX,
-} from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { MAX_PANES, moveTab, openBeside } from './panes'
 import { newFile } from './files'
+import { TabClose } from './TabClose'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
 import { askClose, askRename, uiStore } from './ui-store'
@@ -40,8 +34,22 @@ import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
 import type { DocLanguage } from '#/lib/document'
 
-// Tabs fit their name, within bounds, however many are open. When they don't
-// fit, the strip scrolls and the full list sits behind a menu at its end.
+// Tabs fit their name, within bounds, however many are open. The active one
+// is the top edge of the editor sheet below it; the rest sit flat on the
+// header band, split by hairlines. When they don't fit, the strip scrolls,
+// fades at the edge that has more, and the full list sits behind a menu at
+// its end.
+
+// A hairline before each tab, hidden next to the active or hovered one.
+const DIVIDER =
+  'before:absolute before:top-1/2 before:-left-px before:h-4 before:w-px before:-translate-y-1/2 before:bg-border first:before:hidden hover:before:hidden data-active:before:hidden [:hover+&]:before:hidden [[data-active]+&]:before:hidden'
+
+/** Fades the strip's edges that hide more tabs. */
+function edgeMask(start: boolean, end: boolean) {
+  if (!start && !end) return undefined
+  const mask = `linear-gradient(to right, ${start ? 'transparent' : '#000'}, #000 2rem, #000 calc(100% - 2rem), ${end ? 'transparent' : '#000'})`
+  return { maskImage: mask, WebkitMaskImage: mask }
+}
 
 export function TabStrip({
   files,
@@ -76,11 +84,6 @@ export function TabStrip({
     else if (strip.scrollLeft < right) strip.scrollLeft = right
   }, [activeId, files.length])
 
-  const scrollBy = (direction: number) => {
-    const strip = stripRef.current
-    if (strip) strip.scrollLeft += direction * strip.clientWidth * 0.8
-  }
-
   return (
     <div
       className="flex h-full min-w-0 flex-1 items-stretch"
@@ -96,16 +99,6 @@ export function TabStrip({
         setOverId(null)
       }}
     >
-      {overflowing && (
-        <ToolbarButton
-          label={m.tabs_scroll_left()}
-          disabled={!edges.start}
-          className="ml-1 shrink-0 self-center"
-          onClick={() => scrollBy(-1)}
-        >
-          <IconChevronLeft />
-        </ToolbarButton>
-      )}
       <Tabs
         value={activeId ?? ''}
         onValueChange={setActive}
@@ -115,7 +108,8 @@ export function TabStrip({
           ref={stripRef}
           variant="line"
           aria-label={m.tabs_label()}
-          className="relative h-full! w-full items-end justify-start gap-0 overflow-x-auto px-2 py-0 [scrollbar-width:none]"
+          style={edgeMask(edges.start, edges.end)}
+          className="relative h-full! w-full items-end justify-start gap-0 overflow-x-auto px-2 pt-1.5 pb-0 [scrollbar-width:none]"
         >
           {files.map((file, index) => {
             const profile = resolveProfile(profiles, file.profileId)
@@ -150,10 +144,11 @@ export function TabStrip({
                     }}
                     data-active={file.id === activeId || undefined}
                     className={cn(
-                      'group/tab relative flex h-full max-w-60 min-w-24 shrink-0 items-stretch',
+                      'group/tab relative flex h-full max-w-56 min-w-0 shrink-0 items-center rounded-t-lg border border-b-0 border-transparent pr-1.5',
+                      DIVIDER,
                       file.id === activeId
-                        ? 'z-10 bg-background shadow-[inset_0_-2px_var(--foreground)]'
-                        : 'hover:bg-foreground/5',
+                        ? 'z-10 border-border bg-background'
+                        : 'hover:bg-background/60',
                       overId === file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',
                     )}
@@ -164,41 +159,23 @@ export function TabStrip({
                       onAuxClick={(e) => {
                         if (e.button === 1) askClose(file.id)
                       }}
-                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-11 pl-3 font-normal after:hidden md:pr-8"
+                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1.5 pl-3 font-normal after:hidden"
                     >
-                      {file.empty ? (
-                        <IconFileDots className="size-3.5! text-muted-foreground" />
-                      ) : (
-                        <IconFileCode className="size-3.5! text-muted-foreground" />
-                      )}
-                      {file.empty ? (
-                        <span className="truncate">{file.name}</span>
-                      ) : profile ? (
+                      {profile && !file.empty && (
                         <span
                           style={hlStyle(profileCss(profile))}
-                          className="hl-tag hl-ink min-w-0 truncate px-1 leading-5"
-                        >
-                          {file.name}
-                          <span className="sr-only">
-                            {` (${m.profile_label({ name: profile.name })})`}
-                          </span>
+                          className="size-2 shrink-0 rounded-full bg-(--hl)"
+                        />
+                      )}
+                      <span className="truncate">{file.name}</span>
+                      {profile && !file.empty && (
+                        <span className="sr-only">
+                          {` (${m.profile_label({ name: profile.name })})`}
                         </span>
-                      ) : (
-                        <span className="truncate">{file.name}</span>
                       )}
-                      <UnsavedMark fileId={file.id} />
+                      <UnsavedMark fileId={file.id} srOnly />
                     </TabsTrigger>
-                    <button
-                      type="button"
-                      aria-label={m.tab_close({ name: file.name })}
-                      onClick={() => askClose(file.id)}
-                      className={cn(
-                        'absolute top-1/2 right-0 grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:opacity-100 md:right-2 md:size-5 md:opacity-0 md:group-hover/tab:opacity-100',
-                        file.id === activeId && 'md:opacity-100',
-                      )}
-                    >
-                      <IconX className="size-3" />
-                    </button>
+                    <TabClose file={file} active={file.id === activeId} />
                   </div>
                 </ContextMenuTrigger>
                 <TabContextMenu files={files} index={index} paneId={paneId} />
@@ -207,27 +184,11 @@ export function TabStrip({
           })}
         </TabsList>
       </Tabs>
-      {overflowing && (
-        <ToolbarButton
-          label={m.tabs_scroll_right()}
-          disabled={!edges.end}
-          className="shrink-0 self-center"
-          onClick={() => scrollBy(1)}
-        >
-          <IconChevronRight />
-        </ToolbarButton>
-      )}
-      <div
-        className={cn(
-          'flex shrink-0 items-center gap-0.5 px-1',
-          overflowing && 'border-l',
-        )}
-      >
+      <div className="flex shrink-0 items-center gap-0.5 px-1">
         <ToolbarButton
           label={m.file_new()}
           shortcut={shortcuts.newFile}
           size="icon-sm"
-          className="rounded-full"
           onClick={newFile}
         >
           <IconPlus />
