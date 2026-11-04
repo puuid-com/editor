@@ -32,6 +32,7 @@ export const shortcuts = {
   redo: { hotkey: 'Mod+Shift+Z', keys: ['⇧', mod, 'Z'] },
   // Windows and Linux only: Chrome on macOS keeps ⌘Y for its history.
   redoAlt: { hotkey: 'Mod+Y', keys: [mod, 'Y'] },
+  wordWrap: { hotkey: 'Alt+Z', keys: [alt, 'Z'] },
   togglePanel: { hotkey: 'Mod+B', keys: [mod, 'B'] },
   nextProfile: { hotkey: 'Mod+Alt+P', keys: [alt, mod, 'P'] },
   previousTab: { hotkey: 'Control+ArrowLeft', keys: ['⌃', '←'] },

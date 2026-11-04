@@ -16,6 +16,7 @@ import {
   IconHighlight,
   IconLink,
   IconMoon,
+  IconTextWrap,
   IconPencil,
   IconPlus,
   IconReplace,
@@ -84,6 +85,7 @@ import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
 import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { setActive } from '#/lib/store/session'
 import { toggleTheme } from '#/lib/theme'
+import { toggleWordWrap } from '#/components/editor/word-wrap'
 import { m } from '#/paraglide/messages'
 import type { DocLanguage } from '#/lib/document'
 
@@ -593,6 +595,11 @@ function RootCommands({
         <CommandItem onSelect={() => run(toggleTheme)}>
           <IconMoon />
           {m.theme_toggle()}
+        </CommandItem>
+        <CommandItem onSelect={() => run(toggleWordWrap)}>
+          <IconTextWrap />
+          {m.word_wrap_toggle()}
+          <CommandShortcut>{shortcutLabel(shortcuts.wordWrap)}</CommandShortcut>
         </CommandItem>
       </CommandGroup>
     </>

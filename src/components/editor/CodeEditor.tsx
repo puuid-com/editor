@@ -25,6 +25,7 @@ import { setLongValueLimit } from './long-values'
 import { setZplTags } from './zpl-links'
 import { setTagHighlights } from './tag-highlights'
 import { TagContextMenu } from './TagContextMenu'
+import { editorPrefs, setWordWrap } from './word-wrap'
 import { useEnabledDefaults } from '#/hooks/use-defaults'
 import { useHighlightMap } from '#/hooks/use-highlights'
 import { useFormatSettings } from '#/hooks/use-profiles'
@@ -110,6 +111,8 @@ export function CodeEditor({ fileId }: { fileId: string }) {
   const shortenAtRef = useRef(shortenAt)
   const zplTags = format.zplTags
   const zplTagsRef = useRef(zplTags)
+  const wrap = useSelector(editorPrefs, (s) => s.wordWrap)
+  const wrapRef = useRef(wrap)
   const sessionRef = useRef<ReturnType<typeof createEditorSession> | null>(null)
 
   useEffect(() => {
@@ -158,6 +161,7 @@ export function CodeEditor({ fileId }: { fileId: string }) {
         setVarValues(valuesRef.current),
         setLongValueLimit(shortenAtRef.current),
         setZplTags(zplTagsRef.current),
+        setWordWrap(wrapRef.current),
       ],
     })
     if (sessionStore.state.activeId === fileId) {
@@ -206,6 +210,11 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     zplTagsRef.current = zplTags
     viewRef.current?.dispatch({ effects: setZplTags(zplTags) })
   }, [zplTags])
+
+  useEffect(() => {
+    wrapRef.current = wrap
+    viewRef.current?.dispatch({ effects: setWordWrap(wrap) })
+  }, [wrap])
 
   return (
     <TagContextMenu>

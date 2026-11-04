@@ -3,6 +3,7 @@ import { useHotkey, useHotkeys } from '@tanstack/react-hotkeys'
 import { newFile, newJsonFile } from './files'
 import { askRename, setPaletteOpen, setTabListOpen, uiStore } from './ui-store'
 import { redoActive, undoActive } from '#/components/editor/actions'
+import { toggleWordWrap } from '#/components/editor/word-wrap'
 import {
   switchToNextProfile,
   switchToProfileAt,
@@ -35,6 +36,8 @@ export function useAppShortcuts({
   useHotkey(shortcuts.newFile.hotkey, newFile)
   useHotkey(shortcuts.newJsonFile.hotkey, newJsonFile)
   useHotkey(shortcuts.togglePanel.hotkey, onTogglePanel)
+  // VS Code's key; works in the editor too, where ⌥Z would type a character.
+  useHotkey(shortcuts.wordWrap.hotkey, toggleWordWrap, { ignoreInputs: false })
   // Undo the active file from anywhere but text fields and the editor, which
   // keep their own history, so an edit made on a tree row or pinned field
   // can be taken back where it was made.

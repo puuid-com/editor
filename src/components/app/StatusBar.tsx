@@ -9,6 +9,7 @@ import { FormatOptions } from './FormatControls'
 import { ArchiveButton } from './ArchiveDialog'
 import { StatusNotice } from './StatusNotice'
 import { ThemeToggle } from './ThemeToggle'
+import { WordWrapToggle } from './WordWrapToggle'
 import { editorStore } from '#/components/editor/editor-store'
 import { DefaultsRules } from '#/components/defaults/DefaultsControls'
 import { HighlightsBar } from '#/components/highlights/HighlightsBar'
@@ -83,6 +84,7 @@ export function StatusBar() {
       <StatusNotice />
       <ArchiveButton />
       <CommandMenuButton />
+      <WordWrapToggle />
       <ThemeToggle />
       <Button
         asChild

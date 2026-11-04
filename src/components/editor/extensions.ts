@@ -61,6 +61,7 @@ import { pasteOverStarter, pastedWhole } from './paste'
 import { searchNoAutofill } from './search'
 import { namesParent, treeChanged } from './syntax'
 import { tagHighlights } from './tag-highlights'
+import { wordWrap } from './word-wrap'
 import { editorTheme } from './theme'
 import { parseDocument } from '#/lib/document'
 import { defaultMatches } from '#/lib/xml/defaults'
@@ -290,6 +291,7 @@ export function editorExtensions(
     zplBase64Input,
     pasteOverStarter,
     editorTheme,
+    wordWrap(),
     parentTags,
     varHighlighter,
     tagHighlights(highlights),

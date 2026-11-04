@@ -15,6 +15,7 @@ import {
   IconPin,
   IconReplace,
   IconShare,
+  IconTextWrap,
   IconUserCircle,
   IconVariable,
   IconWand,
@@ -1481,7 +1482,34 @@ function TabClickOutline() {
   return <BeforeAfter before={pane(true)} after={pane(false)} />
 }
 
+const WRAP_LINES = [
+  '<order id="1042">',
+  '  <note>Leave the parcel with the front desk if nobody answers the door after two rings.</note>',
+  '</order>',
+]
+
+function WordWrap() {
+  const pane = (wrap: boolean) => (
+    <>
+      <Code lines={WRAP_LINES} wrap={wrap} />
+      <StatusBar>
+        <div className="flex-1" />
+        <span
+          className={cn(
+            'flex size-6 items-center justify-center',
+            wrap && 'bg-muted text-foreground',
+          )}
+        >
+          <IconTextWrap className="size-3.5" />
+        </span>
+      </StatusBar>
+    </>
+  )
+  return <BeforeAfter before={pane(false)} after={pane(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.171.0': figure(WordWrap),
   '0.170.2': figure(TabClickOutline),
   '0.170.1': figure(TabFocusRing),
   '0.170.0': figure(CardTabs),

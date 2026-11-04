@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.171.0] - 2026-11-03
+
+### Added
+
+- Word wrap: long lines can now wrap to fit the editor instead of scrolling sideways. Turn it on or off with the wrap button in the bottom bar, the command menu or ⌥Z. The choice applies to every file and is remembered.
+
 ## [0.170.2] - 2026-11-03
 
 ### Fixed
