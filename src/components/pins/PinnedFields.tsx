@@ -11,7 +11,11 @@ import { useSelector } from '@tanstack/react-store'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 import { copyText } from '#/components/app/clipboard'
-import { editAtPath, editorStore } from '#/components/editor/editor-store'
+import {
+  editAtPath,
+  editorStore,
+  revealElement,
+} from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import {
   MatchNavItems,
@@ -20,8 +24,6 @@ import {
 } from '#/components/highlights/TagMenuItems'
 import { LeafText } from '#/components/inspector/LeafText'
 import { useDraft } from '#/components/inspector/use-draft'
-import { PinMatches } from '#/components/pins/PinMatches'
-import type { PinMatch } from '#/components/pins/PinMatches'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +59,7 @@ import { reorderPins, unpinTag } from '#/lib/store/pins'
 import { cn } from '#/lib/utils'
 import { isZplTag, openZplLabel } from '#/lib/zpl'
 import { defaultIndex, isDefaultLeaf, leafDiffers } from '#/lib/xml/defaults'
-import { allElements } from '#/lib/xml/locate'
+import { allElements, displayPath, parentStep } from '#/lib/xml/locate'
 import { hasName, isTextLeaf, leafValue } from '#/lib/xml/model'
 import { m } from '#/paraglide/messages'
 import type { XmlElement } from '#/lib/xml/model'
@@ -156,12 +158,10 @@ export function PinnedFields() {
               defaultKey: isDefaultLeaf(defaults, el) ? el.name : undefined,
               differs: leafDiffers(defaults, el),
             }))
-          // Follow the cursor when it sits on one of several matches.
-          const current = Math.max(
-            0,
-            matches.findIndex((match) => match.el.path === selectedPath),
+          // The occurrence under the cursor, or -1.
+          const current = matches.findIndex(
+            (match) => match.el.path === selectedPath,
           )
-          const match = matches.at(current)
           return (
             <Fragment key={pin.id}>
               {index === first && group > 0 && (
@@ -217,11 +217,8 @@ export function PinnedFields() {
                 </button>
                 <PinnedField
                   tag={pin.tag}
-                  el={match?.el}
                   matches={matches}
                   current={current}
-                  defaultKey={match?.defaultKey}
-                  differs={!!match?.differs}
                   color={highlights.get(localName(pin.tag))}
                   onMoveUp={
                     index > first ? () => move(index, index - 1) : undefined
@@ -271,43 +268,45 @@ export function PinnedFields() {
   )
 }
 
+interface PinMatch {
+  el: XmlElement
+  /** Set when the value equals the default for this key. */
+  defaultKey: string | undefined
+  /** Whether the value differs from the default for this key. */
+  differs: boolean
+}
+
+/** Occurrences listed before the rest hide behind "Show all". */
+const FOLDED = 5
+
+/**
+ * A pinned tag and its value. A tag that appears more than once lists every
+ * occurrence on its own row, labelled with its parent and position.
+ */
 function PinnedField({
   tag,
-  el,
   matches,
   current,
-  defaultKey,
-  differs,
   color,
   onMoveUp,
   onMoveDown,
   onUnpin,
 }: {
   tag: string
-  el: XmlElement | undefined
   /** Every element named `tag`, in document order. */
   matches: ReadonlyArray<PinMatch>
+  /** Index into `matches` of the one under the cursor, or -1. */
   current: number
-  /** Set when the value equals the default for this key. */
-  defaultKey: string | undefined
-  /** Whether the value differs from the default for this key. */
-  differs: boolean
   color: string | undefined
   /** Unset when the row can't move that way. */
   onMoveUp: (() => void) | undefined
   onMoveDown: (() => void) | undefined
   onUnpin: () => void
 }) {
-  const value = el ? leafValue(el) : ''
-  const path = el?.path
-  const draft = useDraft(value, (next) => {
-    if (path) editAtPath(path, (fresh) => setValue(fresh, next))
-  })
-  const placeholder = el ? m.node_empty() : m.pin_missing()
-  const zpl = isZplTag(useFormatSettings().zplTags, tag)
-  // Show the value like the tree does until the field is being edited.
-  const [editing, setEditing] = useState(false)
-  const rendered = !!el && !editing && draft.value.trim() !== ''
+  const [expanded, setExpanded] = useState(false)
+  const many = matches.length > 1
+  const menuEl = (matches.at(current) ?? matches.at(0))?.el
+  const shown = expanded ? matches : matches.slice(0, FOLDED)
 
   return (
     <>
@@ -343,7 +342,10 @@ function PinnedField({
             {m.pin_move_down()}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ZplMenuItems tag={tag} value={el ? draft.value : undefined} />
+          <ZplMenuItems
+            tag={tag}
+            value={menuEl ? leafValue(menuEl) : undefined}
+          />
           <ContextMenuSeparator />
           <ContextMenuItem variant="destructive" onSelect={onUnpin}>
             <IconPinnedOff />
@@ -351,67 +353,143 @@ function PinnedField({
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      <InputGroup className="h-11 bg-background font-mono md:h-6">
-        <div className="relative flex h-full min-w-0 flex-1">
-          <InputGroupInput
-            aria-label={tag}
-            disabled={!el}
-            placeholder={placeholder}
-            className={cn(
-              'h-11 px-1.5 text-base md:h-6 md:text-xs',
-              rendered && 'text-transparent',
-            )}
-            {...draft}
-            onFocus={() => {
-              draft.onFocus()
-              setEditing(true)
-            }}
-            onBlur={() => {
-              draft.onBlur()
-              setEditing(false)
-            }}
-          />
-          {rendered && (
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 flex min-w-0 items-center overflow-hidden px-1.5 text-base md:text-xs"
-            >
-              <LeafText
-                value={draft.value}
-                defaultKey={defaultKey}
-                differs={differs}
+      {many ? (
+        <span className="px-1.5 text-xs text-muted-foreground">
+          {m.pin_matches_count({ count: matches.length })}
+        </span>
+      ) : (
+        <PinValue tag={tag} label={tag} match={matches.at(0)} />
+      )}
+      {many &&
+        shown.map((match, index) => {
+          const parent = parentStep(match.el.path)
+          return (
+            <Fragment key={match.el.path}>
+              <button
+                type="button"
+                title={displayPath(match.el.path).join(' › ')}
+                onClick={() => revealElement(match.el)}
+                className="flex min-h-11 min-w-0 items-center justify-end gap-1.5 px-1 font-mono text-[11px] text-muted-foreground hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:min-h-0"
+              >
+                <span className="truncate">{parent}</span>
+                <span className="tabular-nums">{index + 1}</span>
+              </button>
+              <PinValue
+                tag={tag}
+                label={m.pin_occurrence({
+                  name: tag,
+                  index: index + 1,
+                  count: matches.length,
+                  parent,
+                })}
+                match={match}
+                current={index === current}
               />
-            </span>
+            </Fragment>
+          )
+        })}
+      {many && matches.length > FOLDED && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="col-start-3 min-h-11 justify-self-start px-1.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:min-h-0"
+        >
+          {expanded
+            ? m.pin_show_fewer()
+            : m.pin_show_all({ count: matches.length })}
+        </button>
+      )}
+    </>
+  )
+}
+
+/** One occurrence's value, editable in place. */
+function PinValue({
+  tag,
+  label,
+  match,
+  current = false,
+}: {
+  tag: string
+  label: string
+  /** Unset when the tag isn't in the file. */
+  match: PinMatch | undefined
+  /** Whether the cursor sits on this occurrence. */
+  current?: boolean
+}) {
+  const el = match?.el
+  const value = el ? leafValue(el) : ''
+  const path = el?.path
+  const draft = useDraft(value, (next) => {
+    if (path) editAtPath(path, (fresh) => setValue(fresh, next))
+  })
+  const placeholder = el ? m.node_empty() : m.pin_missing()
+  const zpl = isZplTag(useFormatSettings().zplTags, tag)
+  // Show the value like the tree does until the field is being edited.
+  const [editing, setEditing] = useState(false)
+  const rendered = !!el && !editing && draft.value.trim() !== ''
+
+  return (
+    <InputGroup
+      className={cn(
+        'h-11 bg-background font-mono md:h-6',
+        current && 'shadow-[inset_2px_0_var(--foreground)]',
+      )}
+    >
+      <div className="relative flex h-full min-w-0 flex-1">
+        <InputGroupInput
+          aria-label={label}
+          disabled={!el}
+          placeholder={placeholder}
+          className={cn(
+            'h-11 px-1.5 text-base md:h-6 md:text-xs',
+            rendered && 'text-transparent',
           )}
-        </div>
-        {matches.length > 1 && (
-          <InputGroupAddon align="inline-end" className="py-0">
-            <PinMatches tag={tag} matches={matches} current={current} />
-          </InputGroupAddon>
+          {...draft}
+          onFocus={() => {
+            draft.onFocus()
+            setEditing(true)
+          }}
+          onBlur={() => {
+            draft.onBlur()
+            setEditing(false)
+          }}
+        />
+        {rendered && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 flex min-w-0 items-center overflow-hidden px-1.5 text-base md:text-xs"
+          >
+            <LeafText
+              value={draft.value}
+              defaultKey={match.defaultKey}
+              differs={match.differs}
+            />
+          </span>
         )}
-        <InputGroupAddon align="inline-end" className="py-0">
+      </div>
+      <InputGroupAddon align="inline-end" className="py-0">
+        <InputGroupButton
+          size="icon-xs"
+          aria-label={m.pin_copy({ name: tag })}
+          disabled={!el}
+          className="text-muted-foreground max-md:size-11"
+          onClick={() => void copyText(draft.value, draft.value)}
+        >
+          <IconCopy className="size-3" />
+        </InputGroupButton>
+        {zpl && (
           <InputGroupButton
             size="icon-xs"
-            aria-label={m.pin_copy({ name: tag })}
-            disabled={!el}
+            aria-label={m.zpl_open_name({ name: tag })}
+            disabled={!el || !draft.value.trim()}
             className="text-muted-foreground max-md:size-11"
-            onClick={() => void copyText(draft.value, draft.value)}
+            onClick={() => openZplLabel(draft.value)}
           >
-            <IconCopy className="size-3" />
+            <IconExternalLink className="size-3" />
           </InputGroupButton>
-          {zpl && (
-            <InputGroupButton
-              size="icon-xs"
-              aria-label={m.zpl_open_name({ name: tag })}
-              disabled={!el || !draft.value.trim()}
-              className="text-muted-foreground max-md:size-11"
-              onClick={() => openZplLabel(draft.value)}
-            >
-              <IconExternalLink className="size-3" />
-            </InputGroupButton>
-          )}
-        </InputGroupAddon>
-      </InputGroup>
-    </>
+        )}
+      </InputGroupAddon>
+    </InputGroup>
   )
 }

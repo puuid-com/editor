@@ -25,6 +25,7 @@ import {
   IconVariable,
   IconWand,
 } from '@tabler/icons-react'
+import { Fragment } from 'react'
 import type { CSSProperties, ComponentType, ReactNode } from 'react'
 
 import {
@@ -1231,6 +1232,51 @@ function PinOccurrences() {
   )
 }
 
+function PinOccurrenceRows() {
+  const rows = [
+    ['Line', 'Bolts'],
+    ['Line[2]', 'Washers'],
+    ['Line[3]', 'Nuts'],
+  ]
+  const field = (value: string, current?: boolean) => (
+    <span
+      className={cn(
+        'flex h-6 min-w-0 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5',
+        current && 'shadow-[inset_2px_0_var(--foreground)]',
+      )}
+    >
+      <span className="flex-1 truncate">{value}</span>
+      <IconCopy aria-hidden className="size-3 text-muted-foreground" />
+    </span>
+  )
+  return (
+    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+      <span className="font-medium text-syntax-tag">Description</span>
+      <span className="px-1.5 font-sans text-muted-foreground">
+        {m.pin_matches_count({ count: 3 })}
+      </span>
+      {rows.map(([parent, value], i) => (
+        <Fragment key={parent}>
+          <span className="flex justify-end gap-1.5 text-[10px] text-muted-foreground">
+            <span>{parent}</span>
+            <span>{i + 1}</span>
+          </span>
+          {field(value, i === 1)}
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
+function PinOccurrenceList() {
+  return (
+    <BeforeAfter
+      before={<PinOccurrence count />}
+      after={<PinOccurrenceRows />}
+    />
+  )
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -1965,6 +2011,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.184.0': figure(PinOccurrenceList),
   '0.183.0': figure(PinOccurrences),
   '0.182.0': figure(NoticeSlot),
   '0.181.0': figure(BottomBarMenus),
