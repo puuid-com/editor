@@ -1559,7 +1559,45 @@ function ClosePane() {
   )
 }
 
+function PaneButtonPlaces() {
+  const panes = [
+    { name: 'order.xml', color: BLUE, lines: ['<order>', '  <id>1042</id>'] },
+    { name: 'label.xml', color: PURPLE, lines: ['<label>', '  <id>1042</id>'] },
+  ]
+  const split = (fixed: boolean) => (
+    <div className="grid grid-cols-2 divide-x">
+      {panes.map((pane, i) => {
+        const first = i === 0
+        const last = i === panes.length - 1
+        return (
+          <div key={pane.name} className="min-w-0">
+            <SheetTabs
+              end={
+                <>
+                  {(fixed ? last : true) && <IconColumnsOff />}
+                  {(fixed ? first : last) && <IconLayoutColumns />}
+                  <IconDots />
+                </>
+              }
+            >
+              <SheetTab name={pane.name} color={pane.color} active />
+            </SheetTabs>
+            <Code lines={pane.lines} />
+          </div>
+        )
+      })}
+    </div>
+  )
+  return (
+    <>
+      <Shot label={m.changelog_before()}>{split(false)}</Shot>
+      <Shot label={m.changelog_after()}>{split(true)}</Shot>
+    </>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.173.0': figure(PaneButtonPlaces),
   '0.172.0': figure(ClosePane),
   '0.171.1': figure(ZplTabSheet),
   '0.171.0': figure(WordWrap),

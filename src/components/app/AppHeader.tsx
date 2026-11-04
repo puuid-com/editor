@@ -29,7 +29,8 @@ import type { TabFile } from './files'
 
 /**
  * One row per pane: its tabs and secondary file controls. The split action
- * sits only on the rightmost pane, where new panes open.
+ * stays on the leftmost pane and the close-pane button on the rightmost, so
+ * neither moves as panes come and go.
  */
 export function AppHeader({
   paneId,
@@ -38,6 +39,7 @@ export function AppHeader({
   fileId,
   active,
   count,
+  first,
   last,
   wide,
   structured,
@@ -50,6 +52,8 @@ export function AppHeader({
   fileId: string
   active: boolean
   count: number
+  /** The leftmost pane on screen. */
+  first: boolean
   /** The rightmost pane on screen. */
   last: boolean
   wide: boolean
@@ -73,7 +77,7 @@ export function AppHeader({
         focused={active}
       />
       {actions}
-      {wide && count > 1 && (
+      {wide && count > 1 && last && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -92,7 +96,7 @@ export function AppHeader({
           </TooltipContent>
         </Tooltip>
       )}
-      {wide && last && (
+      {wide && first && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

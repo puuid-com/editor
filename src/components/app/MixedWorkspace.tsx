@@ -71,6 +71,7 @@ export function MixedWorkspace({
               compareId={pane.activeId === fileId ? compareId : null}
               wide={wide}
               count={panes.length}
+              first={index === 0}
               last={index === rendered.length - 1}
             />
           </ResizablePanel>
@@ -86,6 +87,7 @@ function FilePane({
   compareId,
   wide,
   count,
+  first,
   last,
 }: {
   pane: FilePaneGroup
@@ -93,6 +95,7 @@ function FilePane({
   compareId: string | null
   wide: boolean
   count: number
+  first: boolean
   last: boolean
 }) {
   const fileId = pane.activeId
@@ -131,6 +134,7 @@ function FilePane({
         allFiles={files}
         active={active}
         count={count}
+        first={first}
         last={last}
         wide={wide}
         structured={language !== 'zpl' && language !== 'sql'}

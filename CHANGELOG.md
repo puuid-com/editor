@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.173.0] - 2026-11-03
+
+### Changed
+
+- With side-by-side panes, the split button now stays on the first pane and the close-pane button shows only on the last one, so each sits in one fixed place.
+
 ## [0.172.0] - 2026-11-03
 
 ### Added
