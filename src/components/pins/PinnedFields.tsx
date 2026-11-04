@@ -301,19 +301,37 @@ function PinnedField({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger asChild>
+        <span
+          className={cn(
+            'flex max-w-44 min-w-0 items-center font-mono text-xs font-medium',
+            color ? 'hl-tag' : 'text-syntax-tag',
+          )}
+          style={hlStyle(color)}
+        >
+          <ContextMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                'min-h-11 min-w-0 cursor-pointer truncate text-left md:min-h-0',
+                color && 'pl-1',
+              )}
+              onClick={() => cycleTag(tag)}
+            >
+              <span className={cn(color && 'hl-ink')}>{tag}</span>
+            </button>
+          </ContextMenuTrigger>
           <button
             type="button"
+            aria-label={m.pin_copy_name({ name: tag })}
             className={cn(
-              'min-h-11 max-w-40 cursor-pointer truncate text-left font-mono text-xs font-medium md:min-h-0',
-              color ? 'hl-tag px-1' : 'text-syntax-tag',
+              'grid min-h-11 shrink-0 cursor-pointer place-items-center px-1 opacity-60 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none max-md:min-w-11 md:min-h-4',
+              color && 'hl-ink',
             )}
-            style={hlStyle(color)}
-            onClick={() => cycleTag(tag)}
+            onClick={() => void copyText(tag, tag)}
           >
-            <span className={cn(color && 'hl-ink')}>{tag}</span>
+            <IconTag aria-hidden className="size-3" />
           </button>
-        </ContextMenuTrigger>
+        </span>
         <ContextMenuContent className="w-56">
           <TagMenuHeader tag={tag} />
           <MatchNavItems tag={tag} count={count} />
@@ -382,14 +400,6 @@ function PinnedField({
             onClick={() => void copyText(draft.value, draft.value)}
           >
             <IconCopy className="size-3" />
-          </InputGroupButton>
-          <InputGroupButton
-            size="icon-xs"
-            aria-label={m.pin_copy_name({ name: tag })}
-            className="text-muted-foreground max-md:size-11"
-            onClick={() => void copyText(tag, tag)}
-          >
-            <IconTag className="size-3" />
           </InputGroupButton>
           {zpl && (
             <InputGroupButton

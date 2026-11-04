@@ -1117,6 +1117,29 @@ function PinCopyNames() {
   return <BeforeAfter before={<PinCopyName />} after={<PinCopyName name />} />
 }
 
+function PinTagChip({ inChip }: { inChip?: boolean }) {
+  const tagStyle = { '--hl': TEAL } as CSSProperties
+  return (
+    <div className="flex items-center gap-2 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+      <span className="hl-tag flex items-center font-medium" style={tagStyle}>
+        <span className="hl-ink pl-1 pr-1">SenderCode</span>
+        {inChip && <IconTag aria-hidden className="hl-ink mr-1 size-3" />}
+      </span>
+      <span className="flex h-6 min-w-0 flex-1 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5">
+        <span className="flex-1 truncate">ACME01</span>
+        <IconCopy aria-hidden className="size-3 text-muted-foreground" />
+        {!inChip && (
+          <IconTag aria-hidden className="size-3 text-muted-foreground" />
+        )}
+      </span>
+    </div>
+  )
+}
+
+function PinTagChips() {
+  return <BeforeAfter before={<PinTagChip />} after={<PinTagChip inChip />} />
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -1678,6 +1701,7 @@ function ZplCentered() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.177.0': figure(PinTagChips),
   '0.176.0': figure(PinCopyNames),
   '0.175.0': figure(ZplCentered),
   '0.174.0': figure(ZplQuietStatus),

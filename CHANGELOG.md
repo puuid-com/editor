@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.177.0] - 2026-11-04
+
+### Changed
+
+- The button that copies a pinned tag's name now sits inside the tag itself, in the tag's highlight colour, instead of next to the value's copy button.
+
 ## [0.176.0] - 2026-11-04
 
 ### Changed
