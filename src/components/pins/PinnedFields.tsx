@@ -11,7 +11,6 @@ import { useSelector } from '@tanstack/react-store'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 import { copyText } from '#/components/app/clipboard'
-import { cycleTag } from '#/components/editor/actions'
 import { editAtPath, editorStore } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import {
@@ -301,37 +300,24 @@ function PinnedField({
   return (
     <>
       <ContextMenu>
-        <span
-          className={cn(
-            'flex max-w-44 min-w-0 items-center font-mono text-xs font-medium',
-            color ? 'hl-tag' : 'text-syntax-tag',
-          )}
-          style={hlStyle(color)}
-        >
+        <ContextMenuTrigger asChild>
           <button
             type="button"
             aria-label={m.pin_copy_name({ name: tag })}
             className={cn(
-              'grid min-h-11 shrink-0 cursor-pointer place-items-center px-1 opacity-60 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none max-md:min-w-11 md:min-h-4',
-              color && 'hl-ink',
+              'group/tag flex min-h-11 max-w-44 min-w-0 cursor-pointer items-center gap-1 px-1 text-left font-mono text-xs font-medium focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:min-h-0',
+              color ? 'hl-tag hl-ink' : 'text-syntax-tag',
             )}
+            style={hlStyle(color)}
             onClick={() => void copyText(tag, tag)}
           >
-            <IconTag aria-hidden className="size-3" />
+            <IconTag
+              aria-hidden
+              className="size-3 shrink-0 opacity-60 group-hover/tag:opacity-100 group-focus-visible/tag:opacity-100"
+            />
+            <span className="truncate">{tag}</span>
           </button>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'min-h-11 min-w-0 cursor-pointer truncate text-left md:min-h-0',
-                color && 'pr-1',
-              )}
-              onClick={() => cycleTag(tag)}
-            >
-              <span className={cn(color && 'hl-ink')}>{tag}</span>
-            </button>
-          </ContextMenuTrigger>
-        </span>
+        </ContextMenuTrigger>
         <ContextMenuContent className="w-56">
           <TagMenuHeader tag={tag} />
           <MatchNavItems tag={tag} count={count} />

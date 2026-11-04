@@ -1152,6 +1152,26 @@ function PinTagChipStart() {
   )
 }
 
+function PinTagChipClick() {
+  return (
+    <Shot>
+      <div className="flex items-center gap-2 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+        <span
+          className="hl-tag hl-ink flex items-center gap-1 px-1 font-medium"
+          style={{ '--hl': TEAL } as CSSProperties}
+        >
+          <IconTag aria-hidden className="size-3" />
+          SenderCode
+        </span>
+        <Badge variant="outline" className="font-sans">
+          <IconCheck aria-hidden />
+          {m.copied()}
+        </Badge>
+      </div>
+    </Shot>
+  )
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -1713,6 +1733,7 @@ function ZplCentered() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.179.0': figure(PinTagChipClick),
   '0.178.0': figure(PinTagChipStart),
   '0.177.0': figure(PinTagChips),
   '0.176.0': figure(PinCopyNames),
