@@ -1625,7 +1625,27 @@ function ZplQuietStatus() {
   )
 }
 
+function ZplCentered() {
+  const preview = (centered: boolean) => (
+    <div
+      className={cn(
+        'flex h-40 flex-col items-center bg-muted p-3',
+        centered && 'justify-center',
+      )}
+    >
+      <div className="w-20 border border-black/20 bg-white p-2 font-mono text-xs text-black">
+        4821
+      </div>
+      <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
+        {m.zpl_label_caption({ index: 1, count: 1 })}
+      </p>
+    </div>
+  )
+  return <BeforeAfter before={preview(false)} after={preview(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.175.0': figure(ZplCentered),
   '0.174.0': figure(ZplQuietStatus),
   '0.173.0': figure(PaneButtonPlaces),
   '0.172.0': figure(ClosePane),

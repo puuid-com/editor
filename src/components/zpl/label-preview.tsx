@@ -410,7 +410,7 @@ export function LabelPreview({
             </div>
           ) : (
             <div
-              className="flex w-max min-w-full flex-col items-center gap-6"
+              className="flex min-h-full w-max min-w-full flex-col items-center justify-center gap-6"
               style={{
                 padding: VIEWPORT_PADDING,
                 paddingBottom: VIEWPORT_PADDING + OVERLAY_HEIGHT,
