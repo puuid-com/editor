@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { addChild, diffChange, removeNode, setAttr, setText } from './edit'
+import { diffChange, setAttr, setText } from './edit'
 import { decodeEntities, escapeAttr, escapeText } from './entities'
 import { formatXml } from './format'
 import { elementAt, elementByPath, flattenVisible } from './locate'
@@ -308,23 +308,6 @@ describe('edit', () => {
     const item = child(root(text))
     expect(apply(text, setAttr(item.attrs[0], '"2"'))).toContain(
       'id="&quot;2&quot;"',
-    )
-  })
-
-  it('adds a child with matching indentation', () => {
-    const el = root(text)
-    expect(apply(text, addChild(text, el, 'next'))).toBe(
-      '<root>\n  <item id="1" kind="a">old</item>\n  <empty/>\n  <next></next>\n</root>',
-    )
-    expect(apply(text, addChild(text, child(el, 1), 'x'))).toContain(
-      '  <empty>\n    <x></x>\n  </empty>',
-    )
-  })
-
-  it('removes a node and its line', () => {
-    const el = root(text)
-    expect(apply(text, removeNode(text, child(el)))).toBe(
-      '<root>\n  <empty/>\n</root>',
     )
   })
 })

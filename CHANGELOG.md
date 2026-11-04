@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.173.1] - 2026-11-03
+
+### Changed
+
+- Remove unused editor commands, obsolete tab-ordering code, and unused UI components and dependencies.
+- Share the download helper between document, backup, and label exports to keep file handling consistent.
+
 ## [0.173.0] - 2026-11-03
 
 ### Changed

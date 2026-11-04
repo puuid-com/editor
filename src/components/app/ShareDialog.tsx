@@ -1,8 +1,6 @@
-import { IconLink } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useSelector } from '@tanstack/react-store'
 
-import { ToolbarButton } from './ToolbarButton'
 import { setShareOpen, uiStore } from './ui-store'
 import { copyShareLink } from '#/components/editor/actions'
 import { ProfileTag } from '#/components/profiles/ProfileTag'
@@ -24,20 +22,6 @@ import { usePins } from '#/hooks/use-pins'
 import { useActiveProfile } from '#/hooks/use-profiles'
 import { useVariables } from '#/hooks/use-variables'
 import { m } from '#/paraglide/messages'
-
-/** Opens the share dialog for the active file. */
-export function ShareButton() {
-  return (
-    <ToolbarButton
-      label={m.share_button()}
-      size="icon-sm"
-      className="mx-1"
-      onClick={() => setShareOpen(true)}
-    >
-      <IconLink />
-    </ToolbarButton>
-  )
-}
 
 /** Picks what a share link of the active file carries, then copies it. */
 export function ShareLinkDialog({ activeId }: { activeId: string | null }) {

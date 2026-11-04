@@ -1,5 +1,7 @@
 import { zipSync } from 'fflate'
 
+import { downloadBlob } from '#/lib/file-io'
+
 import { encodeBase64 } from './base64'
 import { dotsToInches } from './settings'
 import type { LabelaryLabel } from './labelary'
@@ -29,10 +31,7 @@ export function exportAs(
 }
 
 /** A single PNG downloads as-is; several are bundled in a zip. */
-export async function exportPng(
-  labels: readonly LabelaryLabel[],
-  baseName: string,
-) {
+async function exportPng(labels: readonly LabelaryLabel[], baseName: string) {
   const pngs = await Promise.all(labels.map(toPngBytes))
   if (pngs.length === 0) throw new Error('No labels to export')
 
@@ -54,10 +53,7 @@ export async function exportPng(
   )
 }
 
-export async function exportPdf(
-  labels: readonly LabelaryLabel[],
-  baseName: string,
-) {
+async function exportPdf(labels: readonly LabelaryLabel[], baseName: string) {
   if (labels.length === 0) throw new Error('No labels to export')
 
   // Only PDF export needs pdf-lib, so fetch it on first use.
@@ -80,7 +76,7 @@ export async function exportPdf(
   )
 }
 
-export function exportZpl(source: string, baseName: string) {
+function exportZpl(source: string, baseName: string) {
   if (!source.trim()) throw new Error('No ZPL to export')
   // A text/plain type makes Safari tack .txt onto the name.
   return downloadBlob(
@@ -119,18 +115,6 @@ function legacyCopy(text: string): boolean {
   } finally {
     textarea.remove()
   }
-}
-
-/** Returns `filename` so exporters can report what they saved. */
-export function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.click()
-  // Give the browser a tick to start the download before revoking.
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-  return filename
 }
 
 function toPngBytes(label: LabelaryLabel): Promise<Uint8Array<ArrayBuffer>> {

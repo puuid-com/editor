@@ -12,11 +12,11 @@ import {
   createFile,
   filesCollection,
   isStorageFull,
-  reorderFile,
   renameFile,
   reassignProfile,
   restoreFile,
   saveContent,
+  saveZplSettings,
   setFileProfile,
   uniqueName,
 } from './files'
@@ -166,15 +166,22 @@ describe('files', () => {
     )
   })
 
-  it('keeps tab ordering changed before a debounced content save completes', async () => {
-    const a = createFile('a.xml', '<old/>')
-    const b = createFile('b.xml')
-    const pending = saveContent({ id: a.id, content: '<latest/>' })
-    reorderFile(b.id, a.id)
+  it('keeps label settings changed before a debounced content save completes', async () => {
+    const file = createFile('label.zpl', '^XA^XZ')
+    const content = '^XA^FO20,20^FDUpdated^FS^XZ'
+    const settings = { dpmm: 12 as const, widthIn: 2, heightIn: 3 }
+    const pending = saveContent({ id: file.id, content })
+    saveZplSettings(file.id, settings)
     await pending.isPersisted.promise
-    expect(openOrder()).toEqual(['b.xml', 'a.xml'])
+    expect(filesCollection.get(file.id)).toMatchObject({
+      content,
+      zplSettings: settings,
+    })
     const saved = await filesCollection.utils.exportData()
-    expect(saved.find((file) => file.id === a.id)?.order).toBe(2)
+    expect(saved.find((entry) => entry.id === file.id)).toMatchObject({
+      content,
+      zplSettings: settings,
+    })
   })
 
   it('keeps renames and further typing while an earlier content write is in flight', async () => {
@@ -342,17 +349,6 @@ describe('files', () => {
     } finally {
       write.mockRestore()
     }
-  })
-
-  it('reorders tabs', () => {
-    const a = createFile('a.xml')
-    const b = createFile('b.xml')
-    const c = createFile('c.xml')
-    reorderFile(c.id, a.id)
-    expect(openOrder()).toEqual(['c.xml', 'a.xml', 'b.xml'])
-    reorderFile(c.id, null)
-    expect(openOrder()).toEqual(['a.xml', 'b.xml', 'c.xml'])
-    expect(b.id).toBeTruthy()
   })
 
   it('persists to IndexedDB', async () => {

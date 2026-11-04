@@ -63,15 +63,6 @@ export function setActive(activeId: string | null) {
   })
 }
 
-export function toggleCollapsed(fileId: string, path: string) {
-  sessionStore.setState((s) => {
-    const current = new Set(s.collapsed[fileId] ?? [])
-    if (current.has(path)) current.delete(path)
-    else current.add(path)
-    return { ...s, collapsed: { ...s.collapsed, [fileId]: [...current] } }
-  })
-}
-
 /** Collapses (or expands) every one of `paths` in a file's tree. */
 export function setCollapsed(
   fileId: string,

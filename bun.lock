@@ -21,7 +21,6 @@
         "@fontsource-variable/geist-mono": "^5.3.0",
         "@lezer/common": "^1.5.4",
         "@lezer/highlight": "^1.2.5",
-        "@lezer/json": "^1.0.3",
         "@lezer/xml": "^1.0.6",
         "@tabler/icons-react": "^3.49.0",
         "@tailwindcss/vite": "^4.3.3",

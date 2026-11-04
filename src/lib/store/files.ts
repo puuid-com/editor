@@ -160,30 +160,9 @@ export async function reassignProfile(fromId: string, toId: string) {
   }).isPersisted.promise
 }
 
-/** Moves a tab to sit before `beforeId`, or last when `null`. */
-export function reorderFile(id: string, beforeId: string | null) {
-  const open = [...filesCollection.values()]
-    .filter((f) => f.id !== id && f.deletedAt === null)
-    .sort((a, b) => a.order - b.order)
-  const index = beforeId ? open.findIndex((f) => f.id === beforeId) : -1
-  const moving = filesCollection.get(id)
-  if (!moving || moving.deletedAt !== null) return
-  open.splice(index < 0 ? open.length : index, 0, moving)
-  return updateMetadata(() =>
-    filesCollection.update(
-      open.map((f) => f.id),
-      (drafts) => {
-        drafts.forEach((draft, i) => {
-          draft.order = i + 1
-        })
-      },
-    ),
-  )
-}
-
 /**
  * Debounced file edits: metadata changes join any pending content save, so
- * its full-record snapshot cannot undo a rename or tab reorder.
+ * its full-record snapshot cannot undo a rename or label settings change.
  */
 const pacedSaveFile = createPacedMutations<() => void>({
   onMutate: (mutate) => mutate(),

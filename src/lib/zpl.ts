@@ -3,8 +3,6 @@ import { sameName } from '#/lib/names'
 // Tags a profile marks as holding a ZPL label, base64-encoded, open in the
 // shared workspace, which decodes a `base64` fragment parameter.
 
-export const ZPL_VIEWER_URL = '/'
-
 /** Whether `name` is one of the tags marked as ZPL labels. */
 export function isZplTag(tags: ReadonlyArray<string>, name: string) {
   return tags.some((tag) => sameName(tag, name))

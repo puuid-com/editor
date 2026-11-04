@@ -2,14 +2,12 @@
 // actions treat XML and JSON files the same way.
 
 import { isFlatFile, parseFlat } from './flat/parse'
-import { addJsonChild, removeJsonNode, setJsonValue } from './json/edit'
+import { setJsonValue } from './json/edit'
 import { formatJson } from './json/format'
 import { parseJson } from './json/parse'
 import { defaultChanges } from './xml/defaults'
-import { addChild, removeNode, setText } from './xml/edit'
+import { setText } from './xml/edit'
 import { formatXml } from './xml/format'
-import { elementByPath } from './xml/locate'
-import { isElement } from './xml/model'
 import { parseXml } from './xml/parse'
 import { formatSql } from './sql/format'
 import type { DefaultRule } from './xml/defaults'
@@ -138,32 +136,6 @@ export function formatDocument(
 
 export function setValue(el: XmlElement, value: string): Array<TextChange> {
   return el.json ? setJsonValue(el, value) : setText(el, value)
-}
-
-/** Whether `addChildTo` can add anything to `el`. */
-export function canAddChild(el: XmlElement) {
-  return !el.json || el.json.type === 'object' || el.json.type === 'array'
-}
-
-export function addChildTo(
-  text: string,
-  el: XmlElement,
-  name: string,
-): Array<TextChange> {
-  return el.json ? addJsonChild(text, el, name) : addChild(text, el, name)
-}
-
-export function removeElement(
-  text: string,
-  el: XmlElement,
-  doc: XmlDocument,
-): Array<TextChange> {
-  if (!el.json) return removeNode(text, el)
-  const parentPath = el.path.slice(0, el.path.lastIndexOf('/'))
-  const level = parentPath
-    ? (elementByPath(doc.nodes, parentPath)?.children ?? [])
-    : doc.nodes
-  return removeJsonNode(text, el, level.filter(isElement))
 }
 
 export function documentDefaults(

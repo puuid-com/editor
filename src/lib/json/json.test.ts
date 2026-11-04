@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { addJsonChild, jsonLiteral, removeJsonNode, setJsonValue } from './edit'
+import { jsonLiteral, setJsonValue } from './edit'
 import { formatJson } from './format'
 import { parseJson, parseJsonAst } from './parse'
-import { documentDefaults, languageOf, removeElement } from '#/lib/document'
+import { documentDefaults, languageOf } from '#/lib/document'
 import { defaultKeys } from '#/lib/xml/defaults'
 import { displayPath, elementAt, elementByPath } from '#/lib/xml/locate'
 import { childElements, isLeaf, leafValue } from '#/lib/xml/model'
@@ -254,40 +254,6 @@ describe('JSON edits', () => {
     )
     expect(restored).toBe('{"qty": 2}')
     expect(parseJson(restored).errors).toEqual([])
-  })
-
-  it('adds children to objects and arrays', () => {
-    const text = '{\n  "o": {\n    "key": 1\n  },\n  "a": [],\n  "s": {}\n}'
-    expect(apply(text, addJsonChild(text, at(text, '/o[1]'), 'key'))).toBe(
-      '{\n  "o": {\n    "key": 1,\n    "key2": ""\n  },\n  "a": [],\n  "s": {}\n}',
-    )
-    expect(apply(text, addJsonChild(text, at(text, '/a[1]'), 'key'))).toBe(
-      '{\n  "o": {\n    "key": 1\n  },\n  "a": [\n    ""\n  ],\n  "s": {}\n}',
-    )
-    const inline = '{"o": {"a": 1}}'
-    expect(apply(inline, addJsonChild(inline, at(inline, '/o[1]'), 'b'))).toBe(
-      '{"o": {"a": 1, "b": ""}}',
-    )
-  })
-
-  it('removes entries with their comma', () => {
-    const text = '{\n  "a": 1,\n  "b": 2,\n  "c": 3\n}'
-    const doc = parse(text)
-    const remove = (path: string) =>
-      apply(text, removeElement(text, elementByPath(doc.nodes, path)!, doc))
-    expect(remove('/a[1]')).toBe('{\n  "b": 2,\n  "c": 3\n}')
-    expect(remove('/b[1]')).toBe('{\n  "a": 1,\n  "c": 3\n}')
-    expect(remove('/c[1]')).toBe('{\n  "a": 1,\n  "b": 2\n}')
-
-    const inline = '{"x": [1, 2, 3]}'
-    const list = childElements(at(inline, '/x[1]'))
-    expect(apply(inline, removeJsonNode(inline, list[1], list))).toBe(
-      '{"x": [1, 3]}',
-    )
-    expect(apply(inline, removeJsonNode(inline, list[2], list))).toBe(
-      '{"x": [1, 2]}',
-    )
-    expect(parseJson(remove('/b[1]')).errors).toEqual([])
   })
 })
 
