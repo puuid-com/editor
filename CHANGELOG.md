@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.170.2] - 2026-11-03
+
+### Fixed
+
+- Clicking a tab after typing no longer draws an outline around it. The outline now shows only when you move between tabs with the keyboard.
+
 ## [0.170.1] - 2026-11-03
 
 ### Fixed

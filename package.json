@@ -1,7 +1,7 @@
 {
   "name": "xml",
   "private": true,
-  "version": "0.170.1",
+  "version": "0.170.2",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "imports": {

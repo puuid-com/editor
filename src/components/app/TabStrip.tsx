@@ -65,6 +65,9 @@ export function TabStrip({
 }) {
   const profiles = useProfiles()
   const [overId, setOverId] = useState<string | null>(null)
+  // Focus that came from a press. Chrome can count it as keyboard focus
+  // after typing, so the focus outline waits for a key in the strip.
+  const [pressed, setPressed] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const edges = useScrollEdges(stripRef)
   const listOpen = useSelector(uiStore, (s) => s.tabListOpen) && focused
@@ -110,6 +113,11 @@ export function TabStrip({
           variant="line"
           aria-label={m.tabs_label()}
           style={edgeMask(edges.start, edges.end)}
+          onPointerDown={() => setPressed(true)}
+          onKeyDown={() => setPressed(false)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) setPressed(false)
+          }}
           className="relative h-full! w-full items-end justify-start gap-0 overflow-x-auto px-2 pt-1.5 pb-0 [scrollbar-width:none]"
         >
           {files.map((file, index) => {
@@ -148,7 +156,8 @@ export function TabStrip({
                       'group/tab relative flex h-full max-w-56 min-w-0 shrink-0 items-center rounded-t-lg border border-b-0 border-transparent pr-1.5',
                       DIVIDER,
                       // Keyboard focus outlines the whole tab, not the name.
-                      'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
+                      !pressed &&
+                        'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
                       file.id === activeId
                         ? 'z-10 border-border bg-background'
                         : 'hover:bg-background/60',

@@ -1463,7 +1463,26 @@ function TabFocusRing() {
   return <BeforeAfter before={pane(true)} after={pane(false)} />
 }
 
+function TabClickOutline() {
+  const pane = (outline: boolean) => (
+    <>
+      <SheetTabs>
+        <SheetTab name="orders.xml" color={BLUE} />
+        <div className="relative flex h-full">
+          <SheetTab name="label.zpl" color={BLUE} active />
+          {outline && (
+            <span className="pointer-events-none absolute inset-0.5 bottom-0 rounded-t-md border-2 border-ring" />
+          )}
+        </div>
+      </SheetTabs>
+      <Code lines={['^XA', '^FO50,50^FDACME^FS', '^XZ']} format={(l) => l} />
+    </>
+  )
+  return <BeforeAfter before={pane(true)} after={pane(false)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.170.2': figure(TabClickOutline),
   '0.170.1': figure(TabFocusRing),
   '0.170.0': figure(CardTabs),
   '0.169.0': figure(ZplOneBar),
