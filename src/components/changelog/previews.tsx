@@ -5,6 +5,7 @@ import {
   IconCopy,
   IconChevronDown,
   IconChevronRight,
+  IconChevronUp,
   IconColumnsOff,
   IconDots,
   IconFileCode,
@@ -1732,7 +1733,78 @@ function ZplCentered() {
   return <BeforeAfter before={preview(false)} after={preview(true)} />
 }
 
+function BottomBarOverflow() {
+  const profile = (name: string, color: string, active?: boolean) => (
+    <span
+      style={{ '--hl': color } as CSSProperties}
+      className={cn(
+        'inline-flex h-5 items-center gap-1.5 border px-1.5 not-first:border-l-0',
+        active && 'hl-ink bg-(--hl)/15 font-medium',
+      )}
+    >
+      <span className="size-1.5 rounded-full bg-(--hl)" />
+      {name}
+    </span>
+  )
+  const more = (count: number) => (
+    <span className="inline-flex h-5 items-center gap-0.5 border px-1 font-mono">
+      +{count}
+      <IconChevronUp className="size-3" />
+    </span>
+  )
+  const chips = [
+    ['order', BLUE, 4],
+    ['sku', PURPLE, 12],
+    ['carrier', TEAL, 2],
+    ['price', AMBER, 9],
+    ['qty', GREEN, 1],
+  ] as const
+  const profiles = [
+    ['Orders', BLUE],
+    ['Rates', PURPLE],
+    ['Labels', TEAL],
+    ['Invoices', AMBER],
+    ['Returns', GREEN],
+    ['Legacy', BLUE],
+  ] as const
+  return (
+    <BeforeAfter
+      before={
+        <StatusBar className="overflow-hidden border-t-0">
+          {chips.map(([name, color, count]) => (
+            <Chip key={name} name={name} color={color} count={count} />
+          ))}
+          <span className="flex">
+            {profiles.map(([name, color], i) => (
+              <span key={name} className="contents">
+                {profile(name, color, i === 0)}
+              </span>
+            ))}
+          </span>
+        </StatusBar>
+      }
+      after={
+        <StatusBar className="border-t-0">
+          <Chip name="order" color={BLUE} count={4} />
+          <Chip name="sku" color={PURPLE} count={12} />
+          <Chip name="price" color={AMBER} count={9} />
+          {more(2)}
+          <span className="flex-1" />
+          <span className="flex">
+            {profile('Orders', BLUE, true)}
+            {profile('Rates', PURPLE)}
+            {profile('Labels', TEAL)}
+            {profile('Invoices', AMBER)}
+            {more(2)}
+          </span>
+        </StatusBar>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.180.0': figure(BottomBarOverflow),
   '0.179.0': figure(PinTagChipClick),
   '0.178.0': figure(PinTagChipStart),
   '0.177.0': figure(PinTagChips),

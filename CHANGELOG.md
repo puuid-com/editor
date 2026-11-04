@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.180.0] - 2026-11-04
+
+### Changed
+
+- The bottom bar no longer overflows with many highlight colours or profiles. It shows the three highlight colours with the most matches and the four profiles holding the most files (always including the current one); the rest sit behind a +N button.
+
 ## [0.179.0] - 2026-11-04
 
 ### Changed

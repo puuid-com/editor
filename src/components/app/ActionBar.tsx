@@ -1,4 +1,5 @@
 import {
+  IconChevronUp,
   IconPlus,
   IconReplace,
   IconVariable,
@@ -19,6 +20,14 @@ import { editorStore, getText } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import { switchProfile } from '#/components/profiles/actions'
 import { Button } from '#/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import {
   Tooltip,
@@ -26,14 +35,20 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import { useEnabledDefaults } from '#/hooks/use-defaults'
-import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
+import {
+  useActiveProfile,
+  useProfileFileCounts,
+  useProfiles,
+} from '#/hooks/use-profiles'
 import { profileShortcuts, shortcuts } from '#/lib/shortcuts'
 import { profileCss } from '#/lib/store/profiles'
+import { splitOverflow } from '#/lib/overflow'
 import { cn } from '#/lib/utils'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { varStyles, writeVar } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
 import type { Shortcut } from '#/lib/shortcuts'
+import type { Profile } from '#/lib/store/profiles'
 import type { VarStyle } from '#/lib/xml/vars'
 
 const VAR_STYLES: Array<VarStyle> = ['curly', 'angle', 'dollar']
@@ -137,11 +152,25 @@ function Divider() {
   )
 }
 
-/** Every profile side by side; one click moves the file to it, two edit it. */
+/** Profiles beyond this many go in a menu, so the bar keeps its width. */
+const MAX_PROFILES = 4
+
+/**
+ * The most used profiles side by side, the active one always among them, and
+ * the rest in a menu. One click moves the file to a profile, two edit it.
+ */
 function ProfileSwitch() {
   const profiles = useProfiles()
   const active = useActiveProfile()
+  const counts = useProfileFileCounts()
   if (!active) return null
+
+  const { shown, hidden } = splitOverflow(
+    profiles,
+    MAX_PROFILES,
+    (p) => counts.get(p.id) ?? 0,
+    (p) => p.id === active.id,
+  )
 
   return (
     <>
@@ -158,53 +187,106 @@ function ProfileSwitch() {
             if (id) void switchProfile(id)
           }}
         >
-          {profiles.map((profile, index) => (
-            <Tooltip key={profile.id}>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value={profile.id}
-                  aria-label={m.profile_label({ name: profile.name })}
-                  style={hlStyle(profileCss(profile))}
-                  onDoubleClick={() =>
-                    setProfileDialog({ mode: 'edit', profileId: profile.id })
-                  }
-                  className={cn(
-                    'h-5 max-w-28 min-w-0 gap-1.5 px-1.5 text-[11px] font-normal text-muted-foreground aria-checked:bg-(--hl)/15 aria-checked:font-medium max-md:h-8',
-                    profile.id === active.id && 'hl-ink',
-                  )}
-                >
-                  <span
-                    aria-hidden
-                    className="size-1.5 shrink-0 rounded-full bg-(--hl)"
-                  />
-                  <span className="truncate">{profile.name}</span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
-              <TooltipContent className="flex items-center gap-2">
-                <span className="flex flex-col">
-                  {profile.name}
-                  <span className="opacity-70">
-                    {m.status_profile_edit_hint()}
+          {shown.map((profile) => {
+            const shortcut = profileShortcuts.at(profiles.indexOf(profile))
+            return (
+              <Tooltip key={profile.id}>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value={profile.id}
+                    aria-label={m.profile_label({ name: profile.name })}
+                    style={hlStyle(profileCss(profile))}
+                    onDoubleClick={() =>
+                      setProfileDialog({ mode: 'edit', profileId: profile.id })
+                    }
+                    className={cn(
+                      'h-5 max-w-28 min-w-0 gap-1.5 px-1.5 text-[11px] font-normal text-muted-foreground aria-checked:bg-(--hl)/15 aria-checked:font-medium max-md:h-8',
+                      profile.id === active.id && 'hl-ink',
+                    )}
+                  >
+                    <ProfileDot />
+                    <span className="truncate">{profile.name}</span>
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent className="flex items-center gap-2">
+                  <span className="flex flex-col">
+                    {profile.name}
+                    <span className="opacity-70">
+                      {m.status_profile_edit_hint()}
+                    </span>
                   </span>
-                </span>
-                {profileShortcuts[index] && (
-                  <ShortcutKeys shortcut={profileShortcuts[index]} />
-                )}
-              </TooltipContent>
-            </Tooltip>
-          ))}
+                  {shortcut && <ShortcutKeys shortcut={shortcut} />}
+                </TooltipContent>
+              </Tooltip>
+            )
+          })}
         </ToggleGroup>
-        <Button
-          variant="outline"
-          size="icon-xs"
-          aria-label={m.profile_new()}
-          onClick={() => setProfileDialog({ mode: 'create' })}
-          className="size-5 border-l-0 text-muted-foreground max-md:size-8"
-        >
-          <IconPlus />
-        </Button>
+        {hidden.length > 0 ? (
+          <MoreProfilesMenu profiles={hidden} />
+        ) : (
+          <NewProfileButton />
+        )}
       </div>
     </>
+  )
+}
+
+function ProfileDot() {
+  return (
+    <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-(--hl)" />
+  )
+}
+
+function NewProfileButton() {
+  return (
+    <Button
+      variant="outline"
+      size="icon-xs"
+      aria-label={m.profile_new()}
+      onClick={() => setProfileDialog({ mode: 'create' })}
+      className="size-5 border-l-0 text-muted-foreground max-md:size-8"
+    >
+      <IconPlus />
+    </Button>
+  )
+}
+
+/** The less used profiles, plus the way to make a new one. */
+function MoreProfilesMenu({ profiles }: { profiles: Array<Profile> }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="xs"
+          aria-label={m.profiles_more({ count: profiles.length })}
+          className="h-5 gap-0.5 border-l-0 px-1 font-mono text-[11px] font-normal text-muted-foreground tabular-nums max-md:h-8"
+        >
+          +{profiles.length}
+          <IconChevronUp />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="end" className="w-56">
+        <DropdownMenuLabel>
+          {m.profiles_more({ count: profiles.length })}
+        </DropdownMenuLabel>
+        {profiles.map((profile) => (
+          <DropdownMenuItem
+            key={profile.id}
+            style={hlStyle(profileCss(profile))}
+            onSelect={() => void switchProfile(profile.id)}
+          >
+            <ProfileDot />
+            <span className="truncate">{profile.name}</span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setProfileDialog({ mode: 'create' })}>
+          <IconPlus />
+          {m.profile_new()}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

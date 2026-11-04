@@ -1,4 +1,9 @@
-import { IconEyeOff, IconPlus, IconTrash } from '@tabler/icons-react'
+import {
+  IconChevronUp,
+  IconEyeOff,
+  IconPlus,
+  IconTrash,
+} from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useState } from 'react'
 
@@ -30,6 +35,7 @@ import {
 import { useHighlightSwatches, useHighlights } from '#/hooks/use-highlights'
 import { useTagCounts } from '#/hooks/use-tag-counts'
 import { localName } from '#/lib/names'
+import { splitOverflow } from '#/lib/overflow'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import {
   groupByColor,
@@ -45,10 +51,14 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import type { Highlight } from '#/lib/store/highlights'
 
+/** Colour groups beyond this many go in a menu, so the bar keeps its width. */
+const MAX_GROUPS = 3
+
 /**
  * Legend of highlight rules in the bottom bar. Rules sharing a colour sit in
- * one pill; each tag in it cycles through its matches. Rules with no match in
- * the file are tucked into a popover instead.
+ * one pill; each tag in it cycles through its matches. Only the groups with
+ * the most matches show; the rest, and rules with no match in the file, are
+ * tucked into popovers.
  */
 export function HighlightsBar() {
   const rules = useHighlights()
@@ -56,6 +66,13 @@ export function HighlightsBar() {
   const countOf = (rule: Highlight) => counts.get(localName(rule.tag)) ?? 0
   const present = rules.filter((r) => countOf(r) > 0)
   const absent = rules.filter((r) => countOf(r) === 0)
+  const total = (group: Array<Highlight>) =>
+    group.reduce((sum, r) => sum + countOf(r), 0)
+  const { shown, hidden } = splitOverflow(
+    groupByColor(present),
+    MAX_GROUPS,
+    total,
+  )
 
   return (
     <div
@@ -63,9 +80,12 @@ export function HighlightsBar() {
       aria-label={m.highlights_title()}
       className="flex h-full min-w-0 shrink items-center gap-2 overflow-x-auto px-px [scrollbar-width:none]"
     >
-      {groupByColor(present).map((group) => (
+      {shown.map((group) => (
         <ColorGroup key={group[0].id} rules={group} countOf={countOf} />
       ))}
+      {hidden.length > 0 && (
+        <MoreGroupsPopover groups={hidden} countOf={countOf} />
+      )}
       {absent.length > 0 && <AbsentRulesPopover rules={absent} />}
       <AddRulePopover
         tagNames={[...counts.keys()].sort()}
@@ -192,6 +212,41 @@ function RuleSegment({
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
+  )
+}
+
+function MoreGroupsPopover({
+  groups,
+  countOf,
+}: {
+  groups: Array<Array<Highlight>>
+  countOf: (rule: Highlight) => number
+}) {
+  const count = groups.reduce((n, g) => n + g.length, 0)
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="xs"
+          className="h-5 shrink-0 gap-0.5 px-1 font-mono text-[11px] font-normal text-muted-foreground tabular-nums max-md:h-11"
+          aria-label={m.highlights_more({ count })}
+        >
+          +{count}
+          <IconChevronUp />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent side="top" align="start" className="w-80">
+        <PopoverHeader>
+          <PopoverTitle>{m.highlights_more({ count })}</PopoverTitle>
+        </PopoverHeader>
+        <div className="flex max-h-64 flex-wrap gap-2 overflow-y-auto">
+          {groups.map((group) => (
+            <ColorGroup key={group[0].id} rules={group} countOf={countOf} />
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
