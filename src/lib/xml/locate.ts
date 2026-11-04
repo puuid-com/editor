@@ -96,11 +96,6 @@ export function displayPath(path: string): Array<string> {
     .map((part) => decodeSegment(part.replace(/\[1\]$/, '')))
 }
 
-/** The parent's step in a path, such as `Line[2]`; empty at the root. */
-export function parentStep(path: string) {
-  return displayPath(path).at(-2) ?? ''
-}
-
 /** JSON keys can hold `/`, so path segments escape it (and `%`). */
 export function encodeSegment(name: string) {
   return name.replaceAll('%', '%25').replaceAll('/', '%2F')

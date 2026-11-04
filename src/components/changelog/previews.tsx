@@ -1277,6 +1277,12 @@ function PinOccurrenceList() {
   )
 }
 
+function PinOccurrenceRevert() {
+  return (
+    <BeforeAfter before={<PinOccurrenceRows />} after={<PinOccurrence />} />
+  )
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -2011,6 +2017,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.185.0': figure(PinOccurrenceRevert),
   '0.184.0': figure(PinOccurrenceList),
   '0.183.0': figure(PinOccurrences),
   '0.182.0': figure(NoticeSlot),
