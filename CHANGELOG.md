@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.175.1] - 2026-11-03
+
+### Fixed
+
+- The ZPL label preview is now truly centered vertically: the room kept for the zoom controls no longer pushes the label up.
+
 ## [0.175.0] - 2026-11-03
 
 ### Changed

@@ -412,8 +412,10 @@ export function LabelPreview({
             <div
               className="flex min-h-full w-max min-w-full flex-col items-center justify-center gap-6"
               style={{
-                padding: VIEWPORT_PADDING,
-                paddingBottom: VIEWPORT_PADDING + OVERLAY_HEIGHT,
+                // The overlay's room is split above and below, so a label
+                // that fits sits in the middle and still clears the controls.
+                paddingInline: VIEWPORT_PADDING,
+                paddingBlock: VIEWPORT_PADDING + OVERLAY_HEIGHT / 2,
               }}
             >
               {labels.map((label, index) => (
