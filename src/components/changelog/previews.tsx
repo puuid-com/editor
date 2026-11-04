@@ -1508,7 +1508,25 @@ function WordWrap() {
   return <BeforeAfter before={pane(false)} after={pane(true)} />
 }
 
+function ZplTabSheet() {
+  const pane = (joined: boolean) => (
+    <div className={joined ? '[--sheet:var(--muted)]' : undefined}>
+      <SheetTabs end={<IconDots />}>
+        <SheetTab name="label.zpl" color={BLUE} active />
+        <SheetTab name="label-3.zpl" color={BLUE} />
+      </SheetTabs>
+      <div className="bg-muted p-3">
+        <div className="mx-auto w-20 border border-black/20 bg-white p-2 font-mono text-xs text-black">
+          ACME
+        </div>
+      </div>
+    </div>
+  )
+  return <BeforeAfter before={pane(false)} after={pane(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.171.1': figure(ZplTabSheet),
   '0.171.0': figure(WordWrap),
   '0.170.2': figure(TabClickOutline),
   '0.170.1': figure(TabFocusRing),

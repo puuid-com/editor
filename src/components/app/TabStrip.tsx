@@ -36,7 +36,7 @@ import type { TabFile } from './files'
 import type { DocLanguage } from '#/lib/document'
 
 // Tabs fit their name, within bounds, however many are open. The active one
-// is the top edge of the editor sheet below it; the rest sit flat on the
+// is the top edge of the sheet below it, in its colour (`--sheet`); the rest sit flat on the
 // header band, split by hairlines. When they don't fit, the strip scrolls,
 // fades at the edge that has more, and the full list sits behind a menu at
 // its end.
@@ -159,7 +159,7 @@ export function TabStrip({
                       !pressed &&
                         'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
                       file.id === activeId
-                        ? 'z-10 border-border bg-background'
+                        ? 'z-10 border-border bg-(--sheet,var(--background))'
                         : 'hover:bg-background/60',
                       overId === file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',

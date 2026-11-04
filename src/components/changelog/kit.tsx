@@ -342,6 +342,7 @@ export function Tab({
 /**
  * A pane's tab row since 0.170.0: the active tab is a card joined to the
  * editor below, the rest sit flat on the band. `end` holds the row's buttons.
+ * Set `--sheet` around it when what sits below isn't the editor.
  */
 export function SheetTabs({
   children,
@@ -381,7 +382,7 @@ export function SheetTab({
         'relative flex h-full min-w-0 shrink-0 items-center gap-1.5 rounded-t-md border border-b-0 pr-1 pl-2',
         'before:absolute before:top-1/2 before:-left-px before:h-3 before:w-px before:-translate-y-1/2 before:bg-border first:before:hidden data-active:before:hidden [[data-active]+&]:before:hidden',
         active
-          ? 'border-border bg-background'
+          ? 'border-border bg-(--sheet,var(--background))'
           : 'border-transparent text-muted-foreground',
       )}
     >

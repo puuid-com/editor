@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.171.1] - 2026-11-03
+
+### Fixed
+
+- In a ZPL pane with the label preview on top, the active tab now has the preview's grey instead of the editor's colour, so it joins the preview instead of standing out as a dark notch.
+
 ## [0.171.0] - 2026-11-03
 
 ### Added
