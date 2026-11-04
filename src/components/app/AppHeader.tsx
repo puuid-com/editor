@@ -1,7 +1,11 @@
-import { IconDots, IconLayoutColumns } from '@tabler/icons-react'
+import {
+  IconColumnsOff,
+  IconDots,
+  IconLayoutColumns,
+} from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
-import { hidePane, MAX_PANES, openBeside } from './panes'
+import { hidePane, joinPanes, MAX_PANES, openBeside } from './panes'
 import { newFile, newZplFile } from './files'
 import { askRename, setShareOpen } from './ui-store'
 import { TabStrip } from './TabStrip'
@@ -14,6 +18,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
 import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
@@ -64,6 +73,25 @@ export function AppHeader({
         focused={active}
       />
       {actions}
+      {wide && count > 1 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0"
+              aria-label={m.pane_close()}
+              onClick={() => hidePane(paneId)}
+            >
+              <IconColumnsOff />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="flex flex-col">
+            {m.pane_close()}
+            <span className="opacity-70">{m.pane_close_hint()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
       {wide && last && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -146,6 +174,9 @@ export function AppHeader({
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => hidePane(paneId)}>
                 {m.pane_close()}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={joinPanes}>
+                {m.pane_join()}
               </DropdownMenuItem>
             </>
           )}

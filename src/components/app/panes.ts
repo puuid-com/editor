@@ -53,6 +53,23 @@ export function moveTab(fileId: string, targetId: string, beforeId?: string) {
   savePanes(movePaneTab(panes, fileId, targetId, beforeId), fileId)
 }
 
+/** Puts every tab back in one pane, in pane order, keeping the active file. */
+export function joinPanes() {
+  const panes = currentPanes()
+  if (panes.length < 2) return
+  const fileIds = panes.flatMap((p) => p.fileIds)
+  const activeId = sessionStore.state.activeId
+  const first = panes[0]
+  savePanes([
+    {
+      ...first,
+      fileIds,
+      activeId:
+        activeId && fileIds.includes(activeId) ? activeId : first.activeId,
+    },
+  ])
+}
+
 /** Closing a pane merges its tabs into its neighbour, preserving every file. */
 export function hidePane(paneId: string) {
   const panes = currentPanes()

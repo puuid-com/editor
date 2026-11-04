@@ -16,6 +16,7 @@ import {
   IconHighlight,
   IconLink,
   IconMoon,
+  IconColumnsOff,
   IconTextWrap,
   IconPencil,
   IconPlus,
@@ -83,7 +84,8 @@ import { useCanWriteDisk } from '#/hooks/use-can-write-disk'
 import { useOpenFiles } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
 import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
-import { setActive } from '#/lib/store/session'
+import { sessionStore, setActive } from '#/lib/store/session'
+import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
 import { toggleWordWrap } from '#/components/editor/word-wrap'
 import { m } from '#/paraglide/messages'
@@ -338,6 +340,7 @@ function RootCommands({
   const sql = useSelector(editorStore, (s) =>
     ['sql', 'zpl'].includes(s.doc.language),
   )
+  const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
 
   return (
     <>
@@ -554,6 +557,12 @@ function RootCommands({
       )}
       <CommandSeparator />
       <CommandGroup heading={m.palette_file()}>
+        {split && (
+          <CommandItem onSelect={() => run(joinPanes)}>
+            <IconColumnsOff />
+            {m.pane_join()}
+          </CommandItem>
+        )}
         <CommandItem onSelect={() => run(newFile)}>
           <IconFilePlus />
           {m.file_new()}

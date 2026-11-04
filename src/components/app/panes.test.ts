@@ -4,7 +4,7 @@ import { createFile, filesCollection } from '#/lib/store/files'
 import { settleWrites } from '#/lib/store/persist'
 import { workspaceReady } from '#/lib/store/workspace'
 import { movePaneTab, normalizePanes } from '#/lib/store/pane-layout'
-import { hidePane, moveTab, openBeside, savePanes } from './panes'
+import { hidePane, joinPanes, moveTab, openBeside, savePanes } from './panes'
 import { closeTabs } from './files'
 
 beforeAll(() => workspaceReady())
@@ -106,6 +106,19 @@ describe('pane actions', () => {
     expect(
       [a, b, c].every((id) => filesCollection.get(id)?.deletedAt === null),
     ).toBe(true)
+  })
+  it('joins every pane into the first, keeping order and the active file', () => {
+    const [a, b, c, d] = ['a.xml', 'b.xml', 'c.xml', 'd.xml'].map(
+      (name) => createFile(name).id,
+    )
+    savePanes(
+      [group('left', [a, b]), group('mid', [c]), group('right', [d])],
+      c,
+    )
+    joinPanes()
+    expect(sessionStore.state.panes).toEqual([group('left', [a, b, c, d], c)])
+    joinPanes()
+    expect(sessionStore.state.panes).toEqual([group('left', [a, b, c, d], c)])
   })
   it('closes the selected tab onto a sibling in the same pane', async () => {
     const [a, b, c] = ['a.xml', 'b.xml', 'c.xml'].map(

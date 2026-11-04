@@ -3,7 +3,7 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { MAX_PANES, moveTab, openBeside } from './panes'
+import { MAX_PANES, joinPanes, moveTab, openBeside } from './panes'
 import { newFile } from './files'
 import { TabClose } from './TabClose'
 import { TabList } from './TabList'
@@ -255,6 +255,9 @@ function TabContextMenu({
               {m.pane_move_to({ number: paneIndex + 1 })}
             </ContextMenuItem>
           ),
+      )}
+      {panes.length > 1 && (
+        <ContextMenuItem onSelect={joinPanes}>{m.pane_join()}</ContextMenuItem>
       )}
       <TypeSubMenu file={file} />
       <ContextMenuSeparator />

@@ -14,6 +14,17 @@ Visible changes also get a picture on the changelog page: add the version to `pr
 
 - In a ZPL pane with the label preview on top, the active tab now has the preview's grey instead of the editor's colour, so it joins the preview instead of standing out as a dark notch.
 
+## [0.172.0] - 2026-11-03
+
+### Added
+
+- Side-by-side panes now have a close button in their tab row, so going back to one pane is a single click. Its tabs move to the pane beside it; no file is closed.
+- Join all panes, from a pane's ⋯ menu, a tab's right-click menu or the command menu, puts every tab back in one pane.
+
+### Changed
+
+- "Hide pane" is now called "Close pane".
+
 ## [0.171.0] - 2026-11-03
 
 ### Added
