@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.183.0] - 2026-11-04
+
+### Added
+
+- When a pinned tag appears more than once, the count beside its field now shows which one you're editing (such as 2/3). Click it to list every occurrence with its position, parent tag and value, and pick one to edit it.
+
 ## [0.182.0] - 2026-11-04
 
 ### Changed

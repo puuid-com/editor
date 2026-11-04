@@ -17,6 +17,7 @@ import {
   IconLayoutSidebarRight,
   IconPin,
   IconReplace,
+  IconSelector,
   IconShare,
   IconTag,
   IconTextWrap,
@@ -851,6 +852,7 @@ function LabelledSwitches() {
     IconUserCircle,
     IconVariable,
     IconReplace,
+    IconSelector,
     IconAdjustmentsHorizontal,
   ]
   return (
@@ -1170,6 +1172,62 @@ function PinTagChipClick() {
         </Badge>
       </div>
     </Shot>
+  )
+}
+
+function PinOccurrence({ count }: { count?: boolean }) {
+  const rows = [
+    ['Line', 'Bolts'],
+    ['Line[2]', 'Washers'],
+    ['Line[3]', 'Nuts'],
+  ]
+  return (
+    <div className="grid gap-2 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+      <div className="flex items-center gap-2">
+        <span className="font-medium text-syntax-tag">Description</span>
+        <span className="flex h-6 min-w-0 flex-1 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5">
+          <span className="flex-1 truncate">Washers</span>
+          <span
+            className={cn(
+              'flex items-center gap-0.5 text-muted-foreground tabular-nums',
+              count && 'bg-muted px-1 text-foreground',
+            )}
+          >
+            {count ? '2/3' : '3'}
+            {count && <IconSelector aria-hidden className="size-3" />}
+          </span>
+          <IconCopy aria-hidden className="size-3 text-muted-foreground" />
+        </span>
+      </div>
+      {count && (
+        <ol className="ml-auto w-48 border bg-popover p-1 shadow-md">
+          {rows.map(([parent, value], i) => (
+            <li
+              key={parent}
+              className={cn(
+                'grid grid-cols-[1rem_minmax(0,1fr)] gap-x-2 px-1.5 py-1',
+                i === 1 &&
+                  'bg-accent/60 shadow-[inset_2px_0_var(--foreground)]',
+              )}
+            >
+              <span className="text-right text-muted-foreground">{i + 1}</span>
+              <span className="grid">
+                <span className="truncate">{value}</span>
+                <span className="truncate text-[10px] text-muted-foreground">
+                  {m.pin_match_parent({ parent })}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  )
+}
+
+function PinOccurrences() {
+  return (
+    <BeforeAfter before={<PinOccurrence />} after={<PinOccurrence count />} />
   )
 }
 
@@ -1907,6 +1965,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.183.0': figure(PinOccurrences),
   '0.182.0': figure(NoticeSlot),
   '0.181.0': figure(BottomBarMenus),
   '0.180.0': figure(BottomBarOverflow),

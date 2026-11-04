@@ -20,6 +20,8 @@ import {
 } from '#/components/highlights/TagMenuItems'
 import { LeafText } from '#/components/inspector/LeafText'
 import { useDraft } from '#/components/inspector/use-draft'
+import { PinMatches } from '#/components/pins/PinMatches'
+import type { PinMatch } from '#/components/pins/PinMatches'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +44,6 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-  InputGroupText,
 } from '#/components/ui/input-group'
 import { useEnabledDefaults } from '#/hooks/use-defaults'
 import { useHighlightMap } from '#/hooks/use-highlights'
@@ -148,10 +149,19 @@ export function PinnedFields() {
     >
       <div className="grid min-h-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 overflow-auto py-2 pr-3 pl-1">
         {rows.map(({ pin, group, first, last }, index) => {
-          const matches = leaves.filter((el) => sameName(el.name, pin.tag))
+          const matches = leaves
+            .filter((el) => sameName(el.name, pin.tag))
+            .map((el) => ({
+              el,
+              defaultKey: isDefaultLeaf(defaults, el) ? el.name : undefined,
+              differs: leafDiffers(defaults, el),
+            }))
           // Follow the cursor when it sits on one of several matches.
-          const el =
-            matches.find((e) => e.path === selectedPath) ?? matches.at(0)
+          const current = Math.max(
+            0,
+            matches.findIndex((match) => match.el.path === selectedPath),
+          )
+          const match = matches.at(current)
           return (
             <Fragment key={pin.id}>
               {index === first && group > 0 && (
@@ -207,12 +217,11 @@ export function PinnedFields() {
                 </button>
                 <PinnedField
                   tag={pin.tag}
-                  el={el}
-                  count={matches.length}
-                  defaultKey={
-                    el && isDefaultLeaf(defaults, el) ? el.name : undefined
-                  }
-                  differs={!!el && leafDiffers(defaults, el)}
+                  el={match?.el}
+                  matches={matches}
+                  current={current}
+                  defaultKey={match?.defaultKey}
+                  differs={!!match?.differs}
                   color={highlights.get(localName(pin.tag))}
                   onMoveUp={
                     index > first ? () => move(index, index - 1) : undefined
@@ -265,7 +274,8 @@ export function PinnedFields() {
 function PinnedField({
   tag,
   el,
-  count,
+  matches,
+  current,
   defaultKey,
   differs,
   color,
@@ -275,7 +285,9 @@ function PinnedField({
 }: {
   tag: string
   el: XmlElement | undefined
-  count: number
+  /** Every element named `tag`, in document order. */
+  matches: ReadonlyArray<PinMatch>
+  current: number
   /** Set when the value equals the default for this key. */
   defaultKey: string | undefined
   /** Whether the value differs from the default for this key. */
@@ -320,7 +332,7 @@ function PinnedField({
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56">
           <TagMenuHeader tag={tag} />
-          <MatchNavItems tag={tag} count={count} />
+          <MatchNavItems tag={tag} count={matches.length} />
           <ContextMenuSeparator />
           <ContextMenuItem disabled={!onMoveUp} onSelect={onMoveUp}>
             <IconArrowUp />
@@ -372,9 +384,9 @@ function PinnedField({
             </span>
           )}
         </div>
-        {count > 1 && (
+        {matches.length > 1 && (
           <InputGroupAddon align="inline-end" className="py-0">
-            <InputGroupText className="tabular-nums">{count}</InputGroupText>
+            <PinMatches tag={tag} matches={matches} current={current} />
           </InputGroupAddon>
         )}
         <InputGroupAddon align="inline-end" className="py-0">
