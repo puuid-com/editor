@@ -166,8 +166,12 @@ export function LabelPreview({
   const widest = Math.max(1, ...sized.map((label) => label.width))
   const tallest = Math.max(1, ...sized.map((label) => label.height))
   const columns = view === 'side-by-side' ? 2 : 1
-  const chromeHeight =
-    CAPTION_HEIGHT + (view === 'side-by-side' ? COLUMN_TITLE_HEIGHT : 0)
+  // Only the labels are centered, not their captions: as much room as a
+  // caption takes below the labels is kept above them, side-by-side column
+  // titles included.
+  const titleHeight = view === 'side-by-side' ? COLUMN_TITLE_HEIGHT : 0
+  const captionBalance = CAPTION_HEIGHT - titleHeight
+  const chromeHeight = CAPTION_HEIGHT * 2
   // Fit shows each label whole, so the pane only scrolls between labels.
   // Rounded down so a fraction of a pixel never brings in a scrollbar.
   // With nothing to fit, a new empty panel would read "Zoom 60000%".
@@ -414,8 +418,11 @@ export function LabelPreview({
               style={{
                 // The overlay's room is split above and below, so a label
                 // that fits sits in the middle and still clears the controls.
+                // Its caption's room is matched above it.
                 paddingInline: VIEWPORT_PADDING,
-                paddingBlock: VIEWPORT_PADDING + OVERLAY_HEIGHT / 2,
+                paddingTop:
+                  VIEWPORT_PADDING + OVERLAY_HEIGHT / 2 + captionBalance,
+                paddingBottom: VIEWPORT_PADDING + OVERLAY_HEIGHT / 2,
               }}
             >
               {labels.map((label, index) => (

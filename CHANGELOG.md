@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.175.2] - 2026-11-03
+
+### Fixed
+
+- The ZPL preview centers the label itself, not the label and its caption together, so it no longer sits higher than the middle of the pane.
+
 ## [0.175.1] - 2026-11-03
 
 ### Fixed
