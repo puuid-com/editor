@@ -40,16 +40,3 @@ export function useActiveProfileId(fileId?: string) {
 export function useFormatSettings(fileId?: string) {
   return withDefaults(useActiveProfile(fileId)?.format)
 }
-
-/** How many files each profile holds, by profile id: how much it's used. */
-export function useProfileFileCounts() {
-  const { data } = useLiveQuery((q) =>
-    q
-      .from({ file: filesCollection })
-      .select(({ file }) => ({ id: file.id, profileId: file.profileId })),
-  )
-  const counts = new Map<string, number>()
-  for (const { profileId } of data)
-    counts.set(profileId, (counts.get(profileId) ?? 0) + 1)
-  return counts
-}

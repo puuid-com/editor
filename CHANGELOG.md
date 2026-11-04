@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.181.0] - 2026-11-04
+
+### Changed
+
+- Highlights and profiles in the bottom bar are now one button each. The Highlights button opens every colour, the ones with no match in the file, and the form to add one. The profile button shows the current profile and opens a menu to switch, edit or create one.
+
 ## [0.180.0] - 2026-11-04
 
 ### Changed

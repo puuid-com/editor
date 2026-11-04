@@ -1,9 +1,4 @@
-import {
-  IconChevronUp,
-  IconEyeOff,
-  IconPlus,
-  IconTrash,
-} from '@tabler/icons-react'
+import { IconChevronUp, IconTrash } from '@tabler/icons-react'
 import { useForm } from '@tanstack/react-form'
 import { useState } from 'react'
 
@@ -35,7 +30,6 @@ import {
 import { useHighlightSwatches, useHighlights } from '#/hooks/use-highlights'
 import { useTagCounts } from '#/hooks/use-tag-counts'
 import { localName } from '#/lib/names'
-import { splitOverflow } from '#/lib/overflow'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import {
   groupByColor,
@@ -51,14 +45,11 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import type { Highlight } from '#/lib/store/highlights'
 
-/** Colour groups beyond this many go in a menu, so the bar keeps its width. */
-const MAX_GROUPS = 3
-
 /**
- * Legend of highlight rules in the bottom bar. Rules sharing a colour sit in
- * one pill; each tag in it cycles through its matches. Only the groups with
- * the most matches show; the rest, and rules with no match in the file, are
- * tucked into popovers.
+ * The bottom bar's highlights: one button, with a dot per colour and the
+ * match total, that opens the legend. Rules sharing a colour sit in one pill;
+ * each tag in it cycles through its matches. Rules with no match in the file
+ * are listed under it, then the form to add one.
  */
 export function HighlightsBar() {
   const rules = useHighlights()
@@ -66,33 +57,66 @@ export function HighlightsBar() {
   const countOf = (rule: Highlight) => counts.get(localName(rule.tag)) ?? 0
   const present = rules.filter((r) => countOf(r) > 0)
   const absent = rules.filter((r) => countOf(r) === 0)
-  const total = (group: Array<Highlight>) =>
-    group.reduce((sum, r) => sum + countOf(r), 0)
-  const { shown, hidden } = splitOverflow(
-    groupByColor(present),
-    MAX_GROUPS,
-    total,
-  )
+  const groups = groupByColor(present)
+  const total = present.reduce((sum, r) => sum + countOf(r), 0)
 
   return (
-    <div
-      role="toolbar"
-      aria-label={m.highlights_title()}
-      className="flex h-full min-w-0 shrink items-center gap-2 overflow-x-auto px-px [scrollbar-width:none]"
-    >
-      {shown.map((group) => (
-        <ColorGroup key={group[0].id} rules={group} countOf={countOf} />
-      ))}
-      {hidden.length > 0 && (
-        <MoreGroupsPopover groups={hidden} countOf={countOf} />
-      )}
-      {absent.length > 0 && <AbsentRulesPopover rules={absent} />}
-      <AddRulePopover
-        tagNames={[...counts.keys()].sort()}
-        existing={rules.map((r) => localName(r.tag))}
-      />
+    <div className="flex min-w-0 shrink items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="shrink-0 gap-1.5 px-1.5 text-[11px] font-normal text-foreground max-md:h-11"
+            aria-label={m.highlights_title()}
+          >
+            {groups.length > 0 && (
+              <span aria-hidden className="flex -space-x-0.5">
+                {groups.slice(0, 6).map((group) => (
+                  <span
+                    key={group[0].id}
+                    style={hlStyle(highlightCss(group[0].color))}
+                    className="size-2 rounded-full bg-(--hl) ring-1 ring-background"
+                  />
+                ))}
+              </span>
+            )}
+            {m.highlights_title()}
+            {total > 0 && (
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                {total}
+              </span>
+            )}
+            <IconChevronUp className="text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          side="top"
+          align="start"
+          className="w-80 max-w-[calc(100vw-1rem)]"
+        >
+          <PopoverHeader>
+            <PopoverTitle>{m.highlights_title()}</PopoverTitle>
+            <PopoverDescription>
+              {m.highlights_description()}
+            </PopoverDescription>
+          </PopoverHeader>
+          {groups.length > 0 && (
+            <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
+              {groups.map((group) => (
+                <ColorGroup key={group[0].id} rules={group} countOf={countOf} />
+              ))}
+            </div>
+          )}
+          {absent.length > 0 && <AbsentRules rules={absent} />}
+          <AddRuleForm
+            tagNames={[...counts.keys()].sort()}
+            existing={rules.map((r) => localName(r.tag))}
+          />
+        </PopoverContent>
+      </Popover>
       {rules.length === 0 && (
-        <span className="hidden truncate sm:inline">
+        <span className="hidden truncate text-muted-foreground lg:inline">
           {m.highlights_hint_prefix()}{' '}
           <Kbd>{shortcutLabel(shortcuts.highlight)}</Kbd>{' '}
           {m.highlights_hint_suffix()}
@@ -215,145 +239,56 @@ function RuleSegment({
   )
 }
 
-function MoreGroupsPopover({
-  groups,
-  countOf,
-}: {
-  groups: Array<Array<Highlight>>
-  countOf: (rule: Highlight) => number
-}) {
-  const count = groups.reduce((n, g) => n + g.length, 0)
+function AbsentRules({ rules }: { rules: Array<Highlight> }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="xs"
-          className="h-5 shrink-0 gap-0.5 px-1 font-mono text-[11px] font-normal text-muted-foreground tabular-nums max-md:h-11"
-          aria-label={m.highlights_more({ count })}
-        >
-          +{count}
-          <IconChevronUp />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="w-80">
-        <PopoverHeader>
-          <PopoverTitle>{m.highlights_more({ count })}</PopoverTitle>
-        </PopoverHeader>
-        <div className="flex max-h-64 flex-wrap gap-2 overflow-y-auto">
-          {groups.map((group) => (
-            <ColorGroup key={group[0].id} rules={group} countOf={countOf} />
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function AbsentRulesPopover({ rules }: { rules: Array<Highlight> }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="xs"
-          className="shrink-0 gap-1 font-mono text-[11px] font-normal text-muted-foreground max-md:h-11"
-          aria-label={m.highlights_absent({ count: rules.length })}
-        >
-          <IconEyeOff />
-          {rules.length}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="end" className="w-72">
-        <PopoverHeader>
-          <PopoverTitle>
-            {m.highlights_absent({ count: rules.length })}
-          </PopoverTitle>
-          <PopoverDescription>
-            {m.highlights_absent_description()}
-          </PopoverDescription>
-        </PopoverHeader>
-        <ul className="-mx-1 max-h-64 overflow-y-auto">
-          {rules.map((rule) => (
-            <li
-              key={rule.id}
-              style={hlStyle(highlightCss(rule.color))}
-              className="flex items-center gap-2 rounded-sm py-0.5 pr-0.5 pl-2 hover:bg-accent"
+    <section className="space-y-1 border-t pt-2">
+      <h3 className="text-xs font-medium">
+        {m.highlights_absent({ count: rules.length })}
+      </h3>
+      <p className="text-xs text-muted-foreground">
+        {m.highlights_absent_description()}
+      </p>
+      <ul className="-mx-1 max-h-32 overflow-y-auto">
+        {rules.map((rule) => (
+          <li
+            key={rule.id}
+            style={hlStyle(highlightCss(rule.color))}
+            className="flex items-center gap-2 rounded-sm py-0.5 pr-0.5 pl-2 hover:bg-accent"
+          >
+            <span
+              aria-hidden
+              className="size-2.5 shrink-0 rounded-full bg-(--hl)"
+            />
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate font-mono text-xs',
+                rule.enabled ? 'hl-ink' : 'text-muted-foreground line-through',
+              )}
             >
-              <span
-                aria-hidden
-                className="size-2.5 shrink-0 rounded-full bg-(--hl)"
-              />
-              <span
-                className={cn(
-                  'min-w-0 flex-1 truncate font-mono text-xs',
-                  rule.enabled
-                    ? 'hl-ink'
-                    : 'text-muted-foreground line-through',
-                )}
-              >
-                {rule.tag}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="max-md:size-11"
-                aria-label={`${m.highlight_remove()}: ${rule.tag}`}
-                onClick={() => removeHighlight(rule.id)}
-              >
-                <IconTrash />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function AddRulePopover({
-  tagNames,
-  existing,
-}: {
-  tagNames: Array<string>
-  existing: Array<string>
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          className="shrink-0 max-md:size-11"
-          aria-label={m.highlight_add_tag()}
-        >
-          <IconPlus />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="end" className="w-72">
-        <PopoverHeader>
-          <PopoverTitle>{m.highlight_add_tag()}</PopoverTitle>
-          <PopoverDescription>{m.highlights_description()}</PopoverDescription>
-        </PopoverHeader>
-        <AddRuleForm
-          tagNames={tagNames}
-          existing={existing}
-          onDone={() => setOpen(false)}
-        />
-      </PopoverContent>
-    </Popover>
+              {rule.tag}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="max-md:size-11"
+              aria-label={`${m.highlight_remove()}: ${rule.tag}`}
+              onClick={() => removeHighlight(rule.id)}
+            >
+              <IconTrash />
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
 function AddRuleForm({
   tagNames,
   existing,
-  onDone,
 }: {
   tagNames: Array<string>
   existing: Array<string>
-  onDone: () => void
 }) {
   const [color, setColor] = useState<string | null>(null)
   const colors = useHighlightSwatches()
@@ -363,7 +298,7 @@ function AddRuleForm({
       const tag = value.tag.trim()
       if (!tag) return
       setHighlight(tag, color ?? nextPreset())
-      onDone()
+      form.reset()
     },
   })
   const taken = new Set(existing)
@@ -371,7 +306,7 @@ function AddRuleForm({
 
   return (
     <form
-      className="space-y-2"
+      className="space-y-2 border-t pt-2"
       onSubmit={(e) => {
         e.preventDefault()
         void form.handleSubmit()

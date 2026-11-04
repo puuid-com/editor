@@ -1803,7 +1803,62 @@ function BottomBarOverflow() {
   )
 }
 
+function BottomBarMenus() {
+  const dot = (color: string) => (
+    <span
+      style={{ '--hl': color } as CSSProperties}
+      className="size-2 rounded-full bg-(--hl) ring-1 ring-background"
+    />
+  )
+  return (
+    <BeforeAfter
+      before={
+        <StatusBar className="border-t-0">
+          <Chip name="order" color={BLUE} count={4} />
+          <Chip name="sku" color={PURPLE} count={12} />
+          <Chip name="price" color={AMBER} count={9} />
+          <span className="border px-1 font-mono">+2</span>
+          <span className="flex-1" />
+          <span className="border px-1.5">Orders</span>
+          <span className="border border-l-0 px-1.5">Rates</span>
+          <span className="border border-l-0 px-1.5">Labels</span>
+          <span className="border border-l-0 px-1 font-mono">+3</span>
+        </StatusBar>
+      }
+      after={
+        <StatusBar className="border-t-0">
+          <span className="flex items-center gap-1.5 px-1.5 text-foreground">
+            <span className="flex -space-x-0.5">
+              {dot(BLUE)}
+              {dot(PURPLE)}
+              {dot(AMBER)}
+              {dot(TEAL)}
+              {dot(GREEN)}
+            </span>
+            {m.highlights_title()}
+            <span className="font-mono text-[10px] text-muted-foreground">
+              28
+            </span>
+            <IconChevronUp className="size-3" />
+          </span>
+          <span className="flex-1" />
+          <span
+            style={{ '--hl': BLUE } as CSSProperties}
+            className="flex items-center gap-1.5 px-1.5"
+          >
+            {m.status_profile()}
+            <span className="size-1.5 rounded-full bg-(--hl)" />
+            <span className="hl-ink font-medium">Orders</span>
+            <IconChevronUp className="size-3" />
+          </span>
+        </StatusBar>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.181.0': figure(BottomBarMenus),
   '0.180.0': figure(BottomBarOverflow),
   '0.179.0': figure(PinTagChipClick),
   '0.178.0': figure(PinTagChipStart),
