@@ -874,26 +874,20 @@ function StatusLine({
               </Button>
             </span>
           ) : null}
-          {render && (
-            <>
-              <span>
-                {render.total > labels.length
-                  ? m.zpl_status_first_labels({
-                      shown: labels.length,
-                      count: render.total,
-                    })
-                  : labels.length === 1
-                    ? m.zpl_status_one_label()
-                    : m.zpl_status_many_labels({ count: labels.length })}
-              </span>
-              <span className={problems > 0 ? 'text-foreground' : undefined}>
-                {problems === 0
-                  ? m.zpl_status_no_problems()
-                  : problems === 1
-                    ? m.zpl_status_one_problem()
-                    : m.zpl_status_many_problems({ count: problems })}
-              </span>
-            </>
+          {render && render.total > labels.length && (
+            <span>
+              {m.zpl_status_first_labels({
+                shown: labels.length,
+                count: render.total,
+              })}
+            </span>
+          )}
+          {problems > 0 && (
+            <span className="text-foreground">
+              {problems === 1
+                ? m.zpl_status_one_problem()
+                : m.zpl_status_many_problems({ count: problems })}
+            </span>
           )}
           {otherPanel && otherPanel.labelCount !== labels.length && (
             <span className="text-foreground">

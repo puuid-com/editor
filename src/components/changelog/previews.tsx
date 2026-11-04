@@ -1596,7 +1596,37 @@ function PaneButtonPlaces() {
   )
 }
 
+function ZplQuietStatus() {
+  const preview = (status?: ReactNode) => (
+    <div className="relative bg-muted p-3 pb-10">
+      <div className="mx-auto w-20 border border-black/20 bg-white p-2 font-mono text-xs text-black">
+        4821
+      </div>
+      <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
+        {m.zpl_label_caption({ index: 1, count: 1 })}
+      </p>
+      {status && (
+        <span className="absolute bottom-1.5 left-1.5 flex gap-2 border bg-background px-1.5 text-[11px] text-muted-foreground">
+          {status}
+        </span>
+      )}
+    </div>
+  )
+  return (
+    <BeforeAfter
+      before={preview(
+        <>
+          <span>{m.zpl_status_one_label()}</span>
+          <span>{m.zpl_status_no_problems()}</span>
+        </>,
+      )}
+      after={preview()}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.174.0': figure(ZplQuietStatus),
   '0.173.0': figure(PaneButtonPlaces),
   '0.172.0': figure(ClosePane),
   '0.171.1': figure(ZplTabSheet),
