@@ -10,6 +10,7 @@ import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
 import { askClose, askRename, uiStore } from './ui-store'
 import { UnsavedMark } from './UnsavedMark'
+import { focusFileView } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import {
   ContextMenu,
@@ -146,6 +147,8 @@ export function TabStrip({
                     className={cn(
                       'group/tab relative flex h-full max-w-56 min-w-0 shrink-0 items-center rounded-t-lg border border-b-0 border-transparent pr-1.5',
                       DIVIDER,
+                      // Keyboard focus outlines the whole tab, not the name.
+                      'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
                       file.id === activeId
                         ? 'z-10 border-border bg-background'
                         : 'hover:bg-background/60',
@@ -155,11 +158,14 @@ export function TabStrip({
                   >
                     <TabsTrigger
                       value={file.id}
+                      // A click hands focus to the file's editor, like VS
+                      // Code, so later keys don't land on the tab.
+                      onClick={() => focusFileView(file.id)}
                       onDoubleClick={() => askRename(file.id)}
                       onAuxClick={(e) => {
                         if (e.button === 1) askClose(file.id)
                       }}
-                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1.5 pl-3 font-normal after:hidden"
+                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1.5 pl-3 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none"
                     >
                       {profile && !file.empty && (
                         <span

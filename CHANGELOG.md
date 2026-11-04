@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.170.1] - 2026-11-03
+
+### Fixed
+
+- Clicking a tab no longer leaves a box around its name after you press a key. The click now puts the cursor in that file's editor, as VS Code does.
+- When you move between tabs with the keyboard, the focus outline now goes around the whole tab.
+
 ## [0.170.0] - 2026-11-03
 
 ### Changed

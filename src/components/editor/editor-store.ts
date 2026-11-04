@@ -142,9 +142,35 @@ export function getText() {
 }
 
 const views = new Map<string, EditorView>()
+// The file each view shows now. A pane's view moves from file to file, so
+// `views` can still point an earlier file at it.
+const shown = new WeakMap<EditorView, string>()
+let pendingFocus: { fileId: string; until: number } | null = null
+
 export function registerFileView(fileId: string, view: EditorView | null) {
-  if (view) views.set(fileId, view)
-  else views.delete(fileId)
+  if (!view) {
+    views.delete(fileId)
+    return
+  }
+  views.set(fileId, view)
+  shown.set(view, fileId)
+  if (pendingFocus?.fileId === fileId) {
+    if (Date.now() < pendingFocus.until) view.focus()
+    pendingFocus = null
+  }
+}
+
+/**
+ * Focuses a file's editor. When it's still loading, as when a click opens a
+ * file in a pane of another type, it takes focus once it's there, if that is
+ * within a moment.
+ */
+export function focusFileView(fileId: string) {
+  const view = views.get(fileId)
+  if (view && shown.get(view) === fileId && view.dom.isConnected) {
+    pendingFocus = null
+    view.focus()
+  } else pendingFocus = { fileId, until: Date.now() + 1500 }
 }
 export function getFileView(fileId: string) {
   return views.get(fileId)

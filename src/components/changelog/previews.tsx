@@ -1445,7 +1445,26 @@ function CardTabs() {
   )
 }
 
+function TabFocusRing() {
+  const pane = (ring: boolean) => (
+    <>
+      <SheetTabs>
+        <SheetTab name="orders.xml" color={BLUE} />
+        <div className="relative flex h-full">
+          <SheetTab name="untitled-3.zpl" color={BLUE} active />
+          {ring && (
+            <span className="pointer-events-none absolute top-1 right-5 bottom-0.5 left-1 border-2 border-ring" />
+          )}
+        </div>
+      </SheetTabs>
+      <Code lines={['^XA', '^FO50,50^FDACME^FS', '^XZ']} format={(l) => l} />
+    </>
+  )
+  return <BeforeAfter before={pane(true)} after={pane(false)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.170.1': figure(TabFocusRing),
   '0.170.0': figure(CardTabs),
   '0.169.0': figure(ZplOneBar),
   '0.168.0': figure(ZplPreviewOnTop),
