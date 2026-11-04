@@ -403,10 +403,13 @@ function FlatFiles() {
 function FlatRecordsPanel({
   className,
   pins,
+  ruled,
 }: {
   className?: string
   pins?: boolean
+  ruled?: boolean
 }) {
+  const cellRule = ruled && 'border-r'
   const rows = FLAT.slice(1).map((line) => line.split('|').slice(1))
   return (
     <div className={cn('bg-muted/20', className)}>
@@ -426,7 +429,10 @@ function FlatRecordsPanel({
           <thead className="text-muted-foreground">
             <tr className="border-b">
               {['#', '1', '2', '3'].map((h) => (
-                <th key={h} className="px-3 py-1 text-left font-normal">
+                <th
+                  key={h}
+                  className={cn('px-3 py-1 text-left font-normal', cellRule)}
+                >
                   {h}
                 </th>
               ))}
@@ -435,12 +441,15 @@ function FlatRecordsPanel({
           <tbody>
             {rows.map((cells, r) => (
               <tr key={r} className={cn('border-b', r === 1 && 'bg-muted')}>
-                <td className="px-3 py-1 text-muted-foreground">{r + 2}</td>
+                <td className={cn('px-3 py-1 text-muted-foreground', cellRule)}>
+                  {r + 2}
+                </td>
                 {cells.map((cell, c) => (
                   <td
                     key={c}
                     className={cn(
                       'px-3 py-1',
+                      cellRule,
                       r === 1 &&
                         c === 1 &&
                         'outline outline-foreground -outline-offset-1',
@@ -455,6 +464,15 @@ function FlatRecordsPanel({
         </table>
       </div>
     </div>
+  )
+}
+
+function FlatRecordsRuled() {
+  return (
+    <BeforeAfter
+      before={<FlatRecordsPanel />}
+      after={<FlatRecordsPanel ruled />}
+    />
   )
 }
 
@@ -2055,6 +2073,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.187.0': figure(FlatRecordsRuled),
   '0.186.0': figure(FlatRecordsBelow),
   '0.185.0': figure(PinOccurrenceRevert),
   '0.184.0': figure(PinOccurrenceList),

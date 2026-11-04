@@ -103,7 +103,9 @@ function RecordTable({ group, line }: { group: FlatGroup; line: number }) {
       {/* The table's own container scrolls both ways, so the header and
           line column can stick. */}
       <div className="min-h-0 flex-1 [&>[data-slot=table-container]]:h-full">
-        <Table className="font-mono">
+        <Table className="border-separate border-spacing-0 font-mono">
+          {/* Every cell is ruled so fields line up at a glance. Separate
+              borders stay on the sticky header and line column. */}
           <TableHeader className="sticky top-0 z-20 bg-background">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -112,8 +114,8 @@ function RecordTable({ group, line }: { group: FlatGroup; line: number }) {
                     key={header.id}
                     className={
                       i === 0
-                        ? 'sticky left-0 z-10 h-8 border-r bg-background font-sans text-muted-foreground'
-                        : 'h-8 font-sans text-muted-foreground'
+                        ? 'sticky left-0 z-10 h-8 border-r border-b bg-background font-sans text-muted-foreground'
+                        : 'h-8 border-r border-b font-sans text-muted-foreground'
                     }
                   >
                     <table.FlexRender header={header} />
@@ -141,8 +143,8 @@ function RecordTable({ group, line }: { group: FlatGroup; line: number }) {
                         key={cell.id}
                         className={
                           i === 0
-                            ? 'sticky left-0 z-10 border-r bg-background p-0 text-muted-foreground group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
-                            : 'p-0'
+                            ? 'sticky left-0 z-10 border-r border-b bg-background p-0 text-muted-foreground group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
+                            : 'border-r border-b p-0'
                         }
                       >
                         <button
