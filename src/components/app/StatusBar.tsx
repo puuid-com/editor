@@ -35,7 +35,7 @@ const ZplStatusControls = lazy(() =>
   })),
 )
 
-/** Bottom bar: highlight chips on the left; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
+/** Bottom bar: highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
 export function StatusBar() {
   const activeId = useSelector(editorStore, (s) => s.fileId)
   // An empty file has no type yet, so nothing to highlight, format or set up.
@@ -48,7 +48,7 @@ export function StatusBar() {
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
       {typed && !sql && !zpl && <HighlightsBar />}
-      <div className="flex-1" />
+      <StatusNotice />
       {typed && sql && (
         <>
           <div className="flex items-center text-foreground">
@@ -81,7 +81,6 @@ export function StatusBar() {
           />
         </>
       )}
-      <StatusNotice />
       <ArchiveButton />
       <CommandMenuButton />
       <WordWrapToggle />

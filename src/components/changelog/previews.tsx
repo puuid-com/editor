@@ -1857,7 +1857,57 @@ function BottomBarMenus() {
   )
 }
 
+function NoticeSlot() {
+  const profile = (
+    <span
+      style={{ '--hl': BLUE } as CSSProperties}
+      className="flex items-center gap-1.5 px-1.5"
+    >
+      {m.status_profile()}
+      <span className="size-1.5 rounded-full bg-(--hl)" />
+      <span className="hl-ink font-medium">Orders</span>
+      <IconChevronUp className="size-3" />
+    </span>
+  )
+  const actions = (
+    <span className="flex items-center gap-1 px-1.5 text-foreground">
+      <IconWand className="size-3" />
+      {m.action_format()}
+    </span>
+  )
+  const notice = (
+    <span className="flex items-center gap-1.5 px-1.5 text-foreground">
+      <IconCheck className="size-3" />
+      {m.copied()}
+    </span>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <StatusBar className="border-t-0">
+          <span className="flex-1" />
+          <span className="relative flex items-center">
+            {profile}
+            <span className="absolute inset-y-0 right-0 flex items-center bg-[color-mix(in_oklab,var(--foreground)_5%,var(--background))] shadow-[inset_0_-1px_var(--border)]">
+              {notice}
+            </span>
+          </span>
+          {actions}
+        </StatusBar>
+      }
+      after={
+        <StatusBar className="border-t-0">
+          <span className="flex flex-1 justify-end">{notice}</span>
+          {profile}
+          {actions}
+        </StatusBar>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '0.182.0': figure(NoticeSlot),
   '0.181.0': figure(BottomBarMenus),
   '0.180.0': figure(BottomBarOverflow),
   '0.179.0': figure(PinTagChipClick),

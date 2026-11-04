@@ -8,9 +8,10 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
 /**
- * Latest notice, at the right of the status bar. It floats over the end of the
- * tabs instead of holding space, and stays mounted as a live region, so
- * notices never move the bar.
+ * Latest notice, in the status bar's free space between the highlights and
+ * the file's actions, against the actions. It takes the space the bar leaves
+ * over and truncates to fit, so it never covers a control, and it stays
+ * mounted as a live region, so notices never move the bar.
  */
 export function StatusNotice() {
   const notice = useSelector(noticeStore, (n) => n)
@@ -20,10 +21,10 @@ export function StatusNotice() {
     <div
       role="status"
       aria-live="polite"
-      className="relative w-0 shrink-0 self-stretch text-[11px] whitespace-nowrap text-muted-foreground"
+      className="flex min-w-0 flex-1 items-center justify-end self-stretch text-[11px] whitespace-nowrap text-muted-foreground"
     >
       {notice && (
-        <div className="absolute inset-y-0 right-0 z-20 flex w-max max-w-40 items-center overflow-hidden bg-[color-mix(in_oklab,var(--foreground)_5%,var(--background))] shadow-[inset_0_-1px_var(--border)] md:max-w-72">
+        <div className="flex min-w-0 items-center">
           <span
             title={[notice.message, notice.detail].filter(Boolean).join(': ')}
             className={cn(
@@ -31,8 +32,10 @@ export function StatusNotice() {
               error && 'text-destructive',
             )}
           >
-            {notice.tone === 'success' && <IconCheck className="size-3" />}
-            {error && <IconAlertCircle className="size-3" />}
+            {notice.tone === 'success' && (
+              <IconCheck className="size-3 shrink-0" />
+            )}
+            {error && <IconAlertCircle className="size-3 shrink-0" />}
             <span className="truncate">
               {notice.message}
               {notice.detail && (
@@ -47,7 +50,7 @@ export function StatusNotice() {
             <Button
               variant="link"
               size="xs"
-              className="h-auto px-1 text-[11px] text-foreground underline max-md:h-11"
+              className="h-auto shrink-0 px-1 text-[11px] text-foreground underline max-md:h-11"
               onClick={() => {
                 notice.action?.run()
                 dismissNotice(notice.id)
@@ -59,7 +62,7 @@ export function StatusNotice() {
           {(error || notice.sticky) && (
             <ToolbarButton
               label={m.notice_dismiss()}
-              className="text-muted-foreground"
+              className="shrink-0 text-muted-foreground"
               onClick={() => dismissNotice(notice.id)}
             >
               <IconX />
