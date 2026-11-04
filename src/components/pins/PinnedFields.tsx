@@ -1,17 +1,17 @@
 import {
   IconArrowDown,
   IconArrowUp,
-  IconBraces,
   IconCopy,
   IconExternalLink,
   IconGripVertical,
   IconPinnedOff,
+  IconTag,
 } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 import { copyText } from '#/components/app/clipboard'
-import { copyVar, cycleTag } from '#/components/editor/actions'
+import { cycleTag } from '#/components/editor/actions'
 import { editAtPath, editorStore } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import {
@@ -385,11 +385,11 @@ function PinnedField({
           </InputGroupButton>
           <InputGroupButton
             size="icon-xs"
-            aria-label={m.pin_copy_var({ name: tag })}
+            aria-label={m.pin_copy_name({ name: tag })}
             className="text-muted-foreground max-md:size-11"
-            onClick={() => copyVar(localName(tag))}
+            onClick={() => void copyText(tag, tag)}
           >
-            <IconBraces className="size-3" />
+            <IconTag className="size-3" />
           </InputGroupButton>
           {zpl && (
             <InputGroupButton

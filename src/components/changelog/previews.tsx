@@ -2,6 +2,7 @@ import {
   IconAdjustmentsHorizontal,
   IconBraces,
   IconCheck,
+  IconCopy,
   IconChevronDown,
   IconChevronRight,
   IconColumnsOff,
@@ -16,6 +17,7 @@ import {
   IconPin,
   IconReplace,
   IconShare,
+  IconTag,
   IconTextWrap,
   IconUserCircle,
   IconVariable,
@@ -1084,6 +1086,37 @@ function PrefixedPins() {
   )
 }
 
+function PinCopyName({ name }: { name?: boolean }) {
+  const Icon = name ? IconTag : IconBraces
+  return (
+    <div className="flex items-center gap-2 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+      <span className="font-medium text-syntax-tag">SenderCode</span>
+      <span className="flex h-6 min-w-0 flex-1 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5">
+        <span className="flex-1 truncate">ACME01</span>
+        <IconCopy aria-hidden className="size-3 text-muted-foreground" />
+        <span
+          className={cn(
+            'grid size-4 place-items-center rounded-sm text-muted-foreground',
+            name && 'bg-muted text-foreground',
+          )}
+        >
+          <Icon aria-hidden className="size-3" />
+        </span>
+      </span>
+      {name && (
+        <Badge variant="outline" className="font-sans">
+          <IconCheck aria-hidden />
+          {m.copied()}
+        </Badge>
+      )}
+    </div>
+  )
+}
+
+function PinCopyNames() {
+  return <BeforeAfter before={<PinCopyName />} after={<PinCopyName name />} />
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -1645,6 +1678,7 @@ function ZplCentered() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.176.0': figure(PinCopyNames),
   '0.175.0': figure(ZplCentered),
   '0.174.0': figure(ZplQuietStatus),
   '0.173.0': figure(PaneButtonPlaces),

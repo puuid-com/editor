@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.176.0] - 2026-11-04
+
+### Changed
+
+- The second copy button on a pinned tag now copies the tag name itself, such as `SenderCode`, instead of a `{{SenderCode}}` variable. Its icon is now a tag.
+
 ## [0.175.3] - 2026-11-03
 
 ### Changed
