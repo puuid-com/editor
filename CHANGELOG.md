@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.1.0] - 2026-11-04
+
+### Changed
+
+- Problems found in XML and JSON files, in the editor and the structure panel, are now written in French when the site is in French, instead of always in English.
+
 ## [1.0.6] - 2026-11-04
 
 ### Changed

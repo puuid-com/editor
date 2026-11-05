@@ -2,6 +2,7 @@ import { parser } from '@lezer/xml'
 
 import { decodeEntities } from './entities'
 import { findVarProblems, maskVars } from './vars'
+import { m } from '#/paraglide/messages'
 import type { SyntaxNode } from '@lezer/common'
 import type {
   XmlAttr,
@@ -35,7 +36,7 @@ export function parseXml(text: string): XmlDocument {
         errors.push({
           from: ref.from,
           to: Math.max(ref.to, ref.from + 1),
-          message: 'Unexpected input',
+          message: m.parse_unexpected_input(),
         })
       } else if (ref.name === 'MismatchedCloseTag') {
         const name = ref.node.getChild('TagName')
@@ -43,7 +44,7 @@ export function parseXml(text: string): XmlDocument {
         errors.push({
           from: ref.from,
           to: ref.to,
-          message: `Closing tag </${label}> does not match an open element`,
+          message: m.parse_xml_close_mismatch({ name: label }),
         })
       } else if (ref.name === 'EntityReference' && !hasDoctype) {
         const entity = text.slice(ref.from + 1, ref.to - 1)
@@ -51,7 +52,7 @@ export function parseXml(text: string): XmlDocument {
           errors.push({
             from: ref.from,
             to: ref.to,
-            message: `Unknown entity &${entity};`,
+            message: m.parse_xml_unknown_entity({ entity }),
           })
         }
       }
@@ -78,7 +79,7 @@ export function parseXml(text: string): XmlDocument {
         errors.push({
           from: node.nameFrom,
           to: node.nameTo,
-          message: 'Only one root element is allowed',
+          message: m.parse_xml_one_root(),
         })
       } else {
         root = node
@@ -87,7 +88,7 @@ export function parseXml(text: string): XmlDocument {
       errors.push({
         from: node.from,
         to: node.to,
-        message: 'Text is not allowed outside the root element',
+        message: m.parse_xml_text_outside_root(),
       })
     }
   }
@@ -209,7 +210,7 @@ class Builder {
       this.errors.push({
         from: nameFrom,
         to: nameTo,
-        message: `<${name}> is not closed`,
+        message: m.parse_xml_not_closed({ name }),
       })
     }
 
@@ -247,7 +248,7 @@ class Builder {
         this.errors.push({
           from: nameNode.from,
           to: nameNode.to,
-          message: `Duplicate attribute "${name}"`,
+          message: m.parse_xml_duplicate_attribute({ name }),
         })
       }
       seen.add(name)

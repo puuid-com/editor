@@ -1,5 +1,6 @@
 import {
   IconAdjustmentsHorizontal,
+  IconAlertTriangle,
   IconBraces,
   IconCheck,
   IconCopy,
@@ -2172,7 +2173,42 @@ function NoticeSlot() {
   )
 }
 
+const PROBLEM_LINES = ['<order>', '  <id>1042', '</order>', '<note/>']
+
+function ProblemLanguage() {
+  const pane = (problems: Array<string>) => (
+    <>
+      <Code lines={PROBLEM_LINES} marks={{ 1: 'remove', 3: 'remove' }} />
+      <div className="border-t bg-destructive/5 px-3 py-2">
+        <div className="mb-1 flex items-center gap-1.5 font-medium text-destructive">
+          <IconAlertTriangle className="size-3.5" />
+          {m.tree_errors({ count: problems.length })}
+        </div>
+        <ul className="space-y-0.5 text-muted-foreground">
+          {problems.map((problem) => (
+            <li key={problem} className="truncate">
+              {problem}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  )
+  // Before, every reader got the English text; now a French one reads this.
+  const fr = { locale: 'fr' } as const
+  return (
+    <BeforeAfter
+      before={pane(['<id> is not closed', 'Only one root element is allowed'])}
+      after={pane([
+        m.parse_xml_not_closed({ name: 'id' }, fr),
+        m.parse_xml_one_root({}, fr),
+      ])}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.1.0': figure(ProblemLanguage),
   '0.190.0': figure(PinOccurrenceRepeated),
   '0.189.0': figure(PinOccurrenceDiff),
   '0.188.0': figure(PinOccurrenceRail),

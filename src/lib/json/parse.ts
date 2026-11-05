@@ -1,6 +1,7 @@
 import { dedupe } from '#/lib/xml/parse'
 import { encodeSegment } from '#/lib/xml/locate'
 import { VAR_PATTERN, findVarProblems } from '#/lib/xml/vars'
+import { m } from '#/paraglide/messages'
 import type {
   JsonType,
   XmlDocument,
@@ -67,7 +68,7 @@ export function parseJsonAst(text: string): JsonAst {
   const value = reader.value()
   reader.skipSpace()
   if (value && reader.pos < text.length) {
-    reader.error(reader.pos, text.length, 'Unexpected input after the value')
+    reader.error(reader.pos, text.length, m.parse_json_after_value())
   }
   const errors = reader.errors.sort((a, b) => a.from - b.from)
   return { value, errors: dedupe(errors) }
@@ -103,7 +104,7 @@ class Reader {
     const start = this.pos
     const c = this.text[start] as string | undefined
     if (c === undefined) {
-      this.error(Math.max(0, start - 1), start, 'Expected a value')
+      this.error(Math.max(0, start - 1), start, m.parse_json_expected_value())
       return null
     }
     if (c === '<' || c === '{' || c === '$') {
@@ -127,10 +128,10 @@ class Reader {
     if (word === 'null') return this.literal('null', start + word.length)
     if (word) {
       this.pos += word.length
-      this.error(start, this.pos, `Unexpected "${word}"`)
+      this.error(start, this.pos, m.parse_json_unexpected_word({ word }))
       return null
     }
-    this.error(start, start + 1, 'Expected a value')
+    this.error(start, start + 1, m.parse_json_expected_value())
     return null
   }
 
@@ -152,18 +153,22 @@ class Reader {
         const next = this.text[i + 1] as string | undefined
         if (next === 'u') {
           if (!/^[0-9a-fA-F]{4}$/.test(this.text.slice(i + 2, i + 6))) {
-            this.error(i, i + 2, 'Invalid \\u escape')
+            this.error(i, i + 2, m.parse_json_invalid_escape({ escape: '\\u' }))
           }
         } else if (!next || !'"\\/bfnrt'.includes(next)) {
-          this.error(i, i + 2, `Invalid escape \\${next ?? ''}`)
+          this.error(
+            i,
+            i + 2,
+            m.parse_json_invalid_escape({ escape: `\\${next ?? ''}` }),
+          )
         }
         i++
       } else if (c < ' ') {
-        this.error(i, i + 1, 'Control characters must be escaped')
+        this.error(i, i + 1, m.parse_json_control_character())
       }
     }
     if (this.text[i] !== '"') {
-      this.error(from, i, 'String is not closed')
+      this.error(from, i, m.parse_json_string_not_closed())
       this.pos = i
     } else {
       this.pos = i + 1
@@ -180,13 +185,13 @@ class Reader {
     let close: number | null = null
     this.list('}', () => {
       if (this.text[this.pos] !== '"') {
-        this.error(this.pos, this.pos + 1, 'Expected a property name')
+        this.error(this.pos, this.pos + 1, m.parse_json_expected_key())
         return false
       }
       const key = this.string()
       const name = key.value
       if (seen.has(name)) {
-        this.error(key.from, key.to, `Duplicate key "${name}"`)
+        this.error(key.from, key.to, m.parse_json_duplicate_key({ name }))
       }
       seen.add(name)
       this.skipSpace()
@@ -195,7 +200,7 @@ class Reader {
         this.pos++
         value = this.value()
       } else {
-        this.error(key.to, key.to + 1, 'Expected ":"')
+        this.error(key.to, key.to + 1, m.parse_json_expected_colon())
       }
       members.push({
         key: name,
@@ -208,7 +213,7 @@ class Reader {
       return value !== null
     })
     if (this.text[this.pos] === '}') close = this.pos++
-    else this.error(from, from + 1, '"{" is not closed')
+    else this.error(from, from + 1, m.parse_json_not_closed({ bracket: '{' }))
     return { type: 'object', from, to: this.pos, members, close }
   }
 
@@ -222,7 +227,7 @@ class Reader {
       return value !== null
     })
     if (this.text[this.pos] === ']') close = this.pos++
-    else this.error(from, from + 1, '"[" is not closed')
+    else this.error(from, from + 1, m.parse_json_not_closed({ bracket: '[' }))
     return { type: 'array', from, to: this.pos, items, close }
   }
 
@@ -238,7 +243,7 @@ class Reader {
     for (;;) {
       this.skipSpace()
       if (comma >= 0 && this.text[this.pos] === end) {
-        this.error(comma, comma + 1, 'Trailing comma')
+        this.error(comma, comma + 1, m.parse_json_trailing_comma())
         return
       }
       if (!entry()) this.recover()
@@ -250,7 +255,11 @@ class Reader {
           break
         }
         if (c === undefined || c === '}' || c === ']') return
-        this.error(this.pos, this.pos + 1, `Expected "," or "${end}"`)
+        this.error(
+          this.pos,
+          this.pos + 1,
+          m.parse_json_expected_separator({ end }),
+        )
         // Most likely a forgotten comma: read the next entry.
         if (c === '"' || c === '{' || c === '[') {
           comma = -1

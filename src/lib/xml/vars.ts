@@ -1,3 +1,5 @@
+import { m } from '#/paraglide/messages'
+
 // Postman-style `<<name>>`, `{{name}}` and `${name}` placeholders. `<<name>>` is not
 // valid XML (`<` is not allowed in text), so every parser works on a masked
 // copy where the brackets are swapped for private-use characters. The masked
@@ -168,7 +170,7 @@ export function findVarProblems(
     problems.push({
       from: from + offset,
       to: to + offset,
-      message: `Invalid variable ${text.slice(from, to)}`,
+      message: m.parse_invalid_variable({ text: text.slice(from, to) }),
     })
   // Valid variables are blanked so leftover brackets stand out.
   const vars = [...text.matchAll(varRegExp())]

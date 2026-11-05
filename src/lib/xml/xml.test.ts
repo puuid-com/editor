@@ -7,6 +7,8 @@ import { elementAt, elementByPath, flattenVisible } from './locate'
 import { childElements, leafValue } from './model'
 import { parseXml } from './parse'
 import { findVars, maskVars } from './vars'
+import { parseJson } from '#/lib/json/parse'
+import { getLocale, overwriteGetLocale } from '#/paraglide/runtime'
 import type { TextChange } from './edit'
 import type { XmlElement } from './model'
 
@@ -340,5 +342,20 @@ describe('locate', () => {
       flattenVisible(doc.nodes, collapsed).map((r) => r.el.name)
     expect(names(new Set())).toEqual(['a', 'b', 'c', 'd'])
     expect(names(new Set(['/a[1]/b[1]']))).toEqual(['a', 'b', 'd'])
+  })
+})
+
+describe('problem messages', () => {
+  it('are written in the reader’s language', () => {
+    const original = getLocale
+    overwriteGetLocale(() => 'fr')
+    try {
+      expect(parseXml('<a/><b/>').errors[0].message).toBe(
+        'Un seul élément racine est permis',
+      )
+      expect(parseJson('[1,]').errors[0].message).toBe('Virgule finale en trop')
+    } finally {
+      overwriteGetLocale(original)
+    }
   })
 })
