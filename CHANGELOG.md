@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.1.1] - 2026-11-04
+
+### Changed
+
+- Split the ZPL label preview into smaller parts so it is easier to change. Nothing visible changes.
+
 ## [1.1.0] - 2026-11-04
 
 ### Changed
