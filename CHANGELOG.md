@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.0.4] - 2026-11-04
+
+### Fixed
+
+- A base64 label opened by dropping it or through the file picker on browsers without disk access now picks its profile from the decoded label, as it already did when opened from disk.
+
 ## [1.0.3] - 2026-11-04
 
 ### Changed

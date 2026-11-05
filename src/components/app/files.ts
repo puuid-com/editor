@@ -109,19 +109,31 @@ export async function closeTabs(
 // New files take the profile of the file in the editor. Opened files take
 // the profile whose files they are shaped like, else that one too.
 
-/** An empty file, typed by what is first pasted into it. */
-export function newFile() {
-  const file = createFile(m.file_untitled(), '', activeProfileId())
+function openNew(name: string, content = '') {
+  const file = createFile(name, content, activeProfileId())
   setActive(file.id)
+  return file.id
 }
 
-export function newJsonFile() {
-  const file = createFile(
-    m.file_untitled_json(),
-    NEW_JSON_CONTENT,
-    activeProfileId(),
-  )
-  setActive(file.id)
+/** An empty file, typed by what is first pasted into it. */
+export const newFile = () => openNew(m.file_untitled())
+
+export const newJsonFile = () =>
+  openNew(m.file_untitled_json(), NEW_JSON_CONTENT)
+
+export const newZplFile = () => openNew(m.file_untitled_zpl(), SAMPLE_LABEL)
+
+/**
+ * Creates tabs for opened files. A base64 label opens decoded, and each file
+ * takes the profile whose files it resembles, else the active one.
+ */
+function fileOpener() {
+  const fallback = activeProfileId()
+  const guess = profileGuesser()
+  return (name: string, raw: string) => {
+    const text = decodeBase64Zpl(raw) ?? raw
+    return createFile(name, text, guess(name, text) ?? fallback)
+  }
 }
 
 /** Whether the browser can open files so that they save back to disk. */
@@ -149,8 +161,7 @@ export async function pickFromDisk() {
 
 /** Opens files on disk in tabs linked to them. */
 async function importHandles(handles: ReadonlyArray<FileSystemFileHandle>) {
-  const fallback = activeProfileId()
-  const guess = profileGuesser()
+  const open = fileOpener()
   let last: string | null = null
   for (const handle of handles) {
     try {
@@ -158,13 +169,11 @@ async function importHandles(handles: ReadonlyArray<FileSystemFileHandle>) {
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       const file = await handle.getFile()
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      const raw = await file.text()
-      const text = decodeBase64Zpl(raw) ?? raw
-      const profileId = guess(file.name, text) ?? fallback
-      last = createFile(file.name, text, profileId).id
+      const opened = open(file.name, await file.text())
+      last = opened.id
       void setDiskLink(last, {
         handle,
-        saved: text,
+        saved: opened.content,
         modified: file.lastModified,
       })
     } catch (error) {
@@ -208,18 +217,12 @@ export function dropFiles(data: DataTransfer) {
 export async function importFiles(list: FileList | Array<File>) {
   const files = Array.from(list)
   const contents = await Promise.allSettled(files.map((file) => file.text()))
-  const fallback = activeProfileId()
-  const guess = profileGuesser()
+  const open = fileOpener()
   let last: string | null = null
   for (const [i, result] of contents.entries()) {
     const { name } = files[i]
     if (result.status === 'fulfilled') {
-      const profileId = guess(name, result.value) ?? fallback
-      last = createFile(
-        name,
-        decodeBase64Zpl(result.value) ?? result.value,
-        profileId,
-      ).id
+      last = open(name, result.value).id
       continue
     }
     notify.error(m.file_import_failed({ name }), {
@@ -228,14 +231,4 @@ export async function importFiles(list: FileList | Array<File>) {
     })
   }
   if (last) setActive(last)
-}
-
-export function newZplFile() {
-  const file = createFile(
-    m.file_untitled_zpl(),
-    SAMPLE_LABEL,
-    activeProfileId(),
-  )
-  setActive(file.id)
-  return file.id
 }

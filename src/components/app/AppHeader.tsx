@@ -122,9 +122,7 @@ export function AppHeader({
             <DropdownMenuItem
               onSelect={() => {
                 focus()
-                newFile()
-                const id = sessionStore.state.activeId
-                if (id) openBeside(id)
+                openBeside(newFile())
               }}
             >
               {m.file_new()}

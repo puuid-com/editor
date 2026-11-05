@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { ACCEPTED_TYPES, TEMPLATE_TYPES, survivor } from './files'
+import { ACCEPTED_TYPES, TEMPLATE_TYPES, importFiles, survivor } from './files'
+import { filesCollection } from '#/lib/store/files'
+import { settleWrites } from '#/lib/store/persist'
+import { sessionStore } from '#/lib/store/session'
+import { workspaceReady } from '#/lib/store/workspace'
+import { encodeBase64 } from '#/lib/zpl/base64'
 
 describe('survivor', () => {
   const open = ['a', 'b', 'c', 'd', 'e']
@@ -31,5 +36,23 @@ describe('file types', () => {
     expect(accepted).toContain('.json')
     expect(accepted).not.toContain('.sql')
     expect(accepted).not.toContain('.txt')
+  })
+})
+
+describe('importFiles', () => {
+  beforeAll(() => workspaceReady())
+  afterEach(() => settleWrites())
+
+  it('opens each file in a tab, a base64 label decoded, and shows the last', async () => {
+    const label = '^XA^FO50,50^FDHello^FS^XZ'
+    await importFiles([
+      new File(['<a/>'], 'a.xml'),
+      new File([encodeBase64(label)], 'label.txt'),
+    ])
+    const byName = (name: string) =>
+      [...filesCollection.values()].find((f) => f.name === name)
+    expect(byName('a.xml')?.content).toBe('<a/>')
+    expect(byName('label.txt')?.content).toBe(label)
+    expect(sessionStore.state.activeId).toBe(byName('label.txt')?.id)
   })
 })
