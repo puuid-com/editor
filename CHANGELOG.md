@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.189.0] - 2026-11-04
+
+### Changed
+
+- The labels on a repeated pinned tag's occurrences now show only where their paths differ, such as ShipmentLine[1] and ShipmentLine[2], without the parents they all share. When shared layers sit between that and the tag, the label ends with [...].
+- In JSON, an occurrence inside an array is labelled with the array's key and index, such as ShipmentLines[0], instead of a bare 0.
+
 ## [0.188.0] - 2026-11-04
 
 ### Changed

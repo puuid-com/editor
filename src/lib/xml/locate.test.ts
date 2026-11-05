@@ -3,14 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { occurrenceLabels } from './locate'
 
 describe('occurrenceLabels', () => {
-  it('names each parent with its position', () => {
+  it('shows only the step that differs', () => {
     expect(
       occurrenceLabels([
-        '/Order[1]/Line[1]/Sku[1]',
-        '/Order[1]/Line[2]/Sku[1]',
-        '/Order[1]/Line[3]/Sku[1]',
+        '/Shipment[1]/ShipmentLines[1]/ShipmentLine[1]/LineNumber[1]',
+        '/Shipment[1]/ShipmentLines[1]/ShipmentLine[2]/LineNumber[1]',
       ]),
-    ).toEqual(['Line[1]', 'Line[2]', 'Line[3]'])
+    ).toEqual(['ShipmentLine[1]', 'ShipmentLine[2]'])
   })
 
   it('drops a [1] no sibling needs', () => {
@@ -22,31 +21,68 @@ describe('occurrenceLabels', () => {
     ).toEqual(['ShipFrom', 'ShipTo'])
   })
 
-  it('goes up to where the paths part', () => {
+  it('marks shared layers before the element', () => {
     expect(
       occurrenceLabels([
-        '/Batch[1]/Order[1]/Line[1]/Sku[1]',
-        '/Batch[1]/Order[2]/Line[1]/Sku[1]',
+        '/Shipment[1]/Line[1]/Detail[1]/LineNumber[1]',
+        '/Shipment[1]/Line[2]/Detail[1]/LineNumber[1]',
       ]),
-    ).toEqual(['Order[1]/Line', 'Order[2]/Line'])
+    ).toEqual(['Line[1]/[...]', 'Line[2]/[...]'])
   })
 
-  it('keeps the parent when depths differ', () => {
+  it('marks shared layers between differences', () => {
     expect(
-      occurrenceLabels(['/Order[1]/Sku[1]', '/Order[1]/Line[1]/Sku[1]']),
-    ).toEqual(['Order', 'Order/Line'])
+      occurrenceLabels([
+        '/Batch[1]/Order[1]/Lines[1]/Line[1]/Sku[1]',
+        '/Batch[1]/Order[2]/Lines[1]/Line[1]/Sku[1]',
+        '/Batch[1]/Order[1]/Lines[1]/Line[2]/Sku[1]',
+      ]),
+    ).toEqual([
+      'Order[1]/[...]/Line[1]',
+      'Order[2]/[...]/Line[1]',
+      'Order[1]/[...]/Line[2]',
+    ])
   })
 
-  it('is empty without paths', () => {
-    expect(occurrenceLabels([])).toEqual([])
+  it('puts a JSON array index on its key', () => {
+    const items = new Set(['/ShipmentLines[1]/0[1]', '/ShipmentLines[1]/1[1]'])
+    expect(
+      occurrenceLabels(
+        [
+          '/ShipmentLines[1]/0[1]/LineNumber[1]',
+          '/ShipmentLines[1]/1[1]/LineNumber[1]',
+        ],
+        (path) => items.has(path),
+      ),
+    ).toEqual(['ShipmentLines[0]', 'ShipmentLines[1]'])
   })
 
-  it('adds the own step when two share a parent', () => {
+  it('skips shared layers under a JSON array entry', () => {
+    const items = new Set(['/lines[1]/0[1]', '/lines[1]/1[1]'])
+    expect(
+      occurrenceLabels(
+        ['/lines[1]/0[1]/item[1]/sku[1]', '/lines[1]/1[1]/item[1]/sku[1]'],
+        (path) => items.has(path),
+      ),
+    ).toEqual(['lines[0]/[...]', 'lines[1]/[...]'])
+  })
+
+  it('shows the own position when two share a parent', () => {
     expect(
       occurrenceLabels([
         '/Order[1]/Line[1]/Sku[1]',
         '/Order[1]/Line[1]/Sku[2]',
       ]),
-    ).toEqual(['Line/Sku[1]', 'Line/Sku[2]'])
+    ).toEqual(['Sku[1]', 'Sku[2]'])
+  })
+
+  it('names the parent of one that sits higher', () => {
+    expect(
+      occurrenceLabels(['/Order[1]/Sku[1]', '/Order[1]/Line[1]/Sku[1]']),
+    ).toEqual(['Order', 'Line'])
+  })
+
+  it('is empty without paths', () => {
+    expect(occurrenceLabels([])).toEqual([])
   })
 })

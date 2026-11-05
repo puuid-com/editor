@@ -1339,17 +1339,22 @@ function PinOccurrenceRevert() {
   )
 }
 
-function PinOccurrenceTree() {
-  const rows = [
+function PinOccurrenceTree({
+  tag = 'Description',
+  rows = [
     ['Line[1]', 'Bolts'],
     ['Line[2]', 'Washers'],
     ['Line[3]', 'Nuts'],
-  ]
+  ],
+}: {
+  tag?: string
+  rows?: Array<[string, string]>
+}) {
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 bg-muted/20 px-3 py-3 font-mono text-[11px]">
-      <span className="font-medium text-syntax-tag">Description</span>
+      <span className="font-medium text-syntax-tag">{tag}</span>
       <span className="px-1.5 font-sans text-muted-foreground">
-        {m.pin_matches_count({ count: 3 })}
+        {m.pin_matches_count({ count: rows.length })}
       </span>
       {rows.map(([parent, value], i) => (
         <Fragment key={parent}>
@@ -1377,6 +1382,31 @@ function PinOccurrenceTree() {
 function PinOccurrenceRail() {
   return (
     <BeforeAfter before={<PinOccurrence />} after={<PinOccurrenceTree />} />
+  )
+}
+
+function PinOccurrenceDiff() {
+  return (
+    <BeforeAfter
+      before={
+        <PinOccurrenceTree
+          tag="LineNumber"
+          rows={[
+            ['ShipmentLine[1]/Detail', '1'],
+            ['ShipmentLine[2]/Detail', '2'],
+          ]}
+        />
+      }
+      after={
+        <PinOccurrenceTree
+          tag="LineNumber"
+          rows={[
+            ['ShipmentLine[1]/[...]', '1'],
+            ['ShipmentLine[2]/[...]', '2'],
+          ]}
+        />
+      }
+    />
   )
 }
 
@@ -2114,6 +2144,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.189.0': figure(PinOccurrenceDiff),
   '0.188.0': figure(PinOccurrenceRail),
   '0.187.0': figure(FlatRecordsRuled),
   '0.186.0': figure(FlatRecordsBelow),

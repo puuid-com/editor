@@ -96,43 +96,102 @@ export function displayPath(path: string): Array<string> {
     .map((part) => decodeSegment(part.replace(/\[1\]$/, '')))
 }
 
+/** Stands for layers a label skips over. */
+const SKIPPED = '[...]'
+
+/** A path step; `items` holds the JSON array indexes on it, like `[0]`. */
+type Step = { name: string; pos: number; items: string }
+
 /**
- * Short labels telling apart elements of the same name by where they sit:
- * the steps from where their paths part down to their parent, such as
- * `Line[2]` or `Order[2]/Line`. A `[1]` stays only when a later position of
- * that name is among them, and two that share a parent add their own step.
+ * Short labels telling apart elements of the same name by showing only where
+ * their paths differ: `ShipmentLine[2]`, `ShipFrom`, or `Line[2]/[...]` when
+ * layers shared by all of them sit between that and the element. A JSON
+ * array entry goes on its key, as in `lines[0]`; `isItem` says which paths
+ * are array entries.
  */
-export function occurrenceLabels(paths: ReadonlyArray<string>): Array<string> {
+export function occurrenceLabels(
+  paths: ReadonlyArray<string>,
+  isItem: (path: string) => boolean = () => false,
+): Array<string> {
   if (paths.length === 0) return []
-  const steps = paths.map((path) => path.split('/').filter(Boolean))
-  const parents = steps.map((parts) => parts.slice(0, -1))
-  const shortest = Math.min(...parents.map((parts) => parts.length))
-  // Keep at least the parent step, even when every parent is the same.
-  let common = 0
-  while (
-    common < shortest - 1 &&
-    parents.every((parts) => parts[common] === parents[0][common])
-  ) {
-    common++
-  }
+  const all = paths.map((path) => pathSteps(path, isItem))
+  const keys = all.map((steps) => steps.map(stepKey))
+  const shortest = Math.min(...keys.map((parts) => parts.length))
+  const same = (at: (parts: Array<string>) => string | undefined) =>
+    keys.every((parts) => at(parts) === at(keys[0]))
+  let prefix = 0
+  while (prefix < shortest && same((parts) => parts[prefix])) prefix++
+  let suffix = 0
+  while (prefix + suffix < shortest && same((parts) => parts.at(-1 - suffix)))
+    suffix++
+  // A name seen at a later position keeps its `[1]` too.
   const later = new Set(
-    steps
+    all
       .flat()
-      .filter((step) => /\[\d+\]$/.test(step) && !step.endsWith('[1]'))
-      .map(stepName),
+      .filter((step) => step.pos > 1)
+      .map((step) => step.name),
   )
-  const show = (step: string) =>
-    decodeSegment(later.has(stepName(step)) ? step : step.replace(/\[1\]$/, ''))
-  const labels = parents.map((parts) => parts.slice(common).map(show).join('/'))
+  const show = (step: Step) =>
+    decodeSegment(step.name) +
+    (step.pos > 1 || (step.pos === 1 && later.has(step.name))
+      ? `[${step.pos}]`
+      : '') +
+    step.items
+  const middles = all.map((steps) => steps.slice(prefix, steps.length - suffix))
+  const aligned = middles.every((middle) => middle.length === middles[0].length)
+
+  const labels = all.map((steps, i) => {
+    const middle = middles[i]
+    const parts: Array<string> = []
+    let last: number
+    if (middle.length === 0) {
+      // Sits higher than the others: name the last step they share.
+      last = Math.max(prefix - 1, 0)
+      parts.push(show(steps[last]))
+    } else {
+      last = prefix + middle.length - 1
+      middle.forEach((step, at) => {
+        const shared =
+          aligned &&
+          middles.every((other) => stepKey(other[at]) === stepKey(step))
+        if (!shared) parts.push(show(step))
+        else if (parts.at(-1) !== SKIPPED) parts.push(SKIPPED)
+      })
+    }
+    if (last < steps.length - 2) parts.push(SKIPPED)
+    return parts.join('/')
+  })
+  // Unusual shapes can still collide; fall back to the whole parent path.
   return labels.map((label, i) =>
     labels.indexOf(label) === labels.lastIndexOf(label)
       ? label
-      : [label, show(steps[i].at(-1) ?? '')].filter(Boolean).join('/'),
+      : displayPath(paths[i]).slice(0, -1).join('/'),
   )
 }
 
-function stepName(step: string) {
-  return step.replace(/\[\d+\]$/, '')
+function pathSteps(
+  path: string,
+  isItem: (path: string) => boolean,
+): Array<Step> {
+  const steps: Array<Step> = []
+  let at = ''
+  for (const segment of path.split('/').filter(Boolean)) {
+    at += `/${segment}`
+    const name = segment.replace(/\[\d+\]$/, '')
+    const prev = steps.at(-1)
+    if (isItem(at)) {
+      if (prev) prev.items += `[${name}]`
+      else steps.push({ name: '', pos: 0, items: `[${name}]` })
+    } else {
+      const pos = Number(/\[(\d+)\]$/.exec(segment)?.[1] ?? 1)
+      steps.push({ name, pos, items: '' })
+    }
+  }
+  return steps
+}
+
+function stepKey(step: Step) {
+  return `${step.name}[${step.pos}]${step.items}`
 }
 
 /** JSON keys can hold `/`, so path segments escape it (and `%`). */

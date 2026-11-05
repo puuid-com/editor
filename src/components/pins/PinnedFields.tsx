@@ -140,9 +140,13 @@ export function PinnedFields() {
     move(drag.from, drag.to > drag.from ? drag.to - 1 : drag.to)
   }
 
-  const leaves = allElements(doc.nodes).filter(
-    (el) => hasName(el) && isTextLeaf(el),
+  const elements = allElements(doc.nodes)
+  const leaves = elements.filter((el) => hasName(el) && isTextLeaf(el))
+  // JSON array entries, whose index the labels put on their key.
+  const items = new Set(
+    elements.filter((el) => el.json?.item).map((el) => el.path),
   )
+  const isItem = (path: string) => items.has(path)
 
   return (
     <section
@@ -152,7 +156,10 @@ export function PinnedFields() {
       <div className="grid min-h-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 overflow-auto py-2 pr-3 pl-1">
         {rows.map(({ pin, group, first, last }, index) => {
           const els = leaves.filter((el) => sameName(el.name, pin.tag))
-          const labels = occurrenceLabels(els.map((el) => el.path))
+          const labels = occurrenceLabels(
+            els.map((el) => el.path),
+            isItem,
+          )
           const matches = els.map((el, i) => ({
             el,
             label: labels[i],
