@@ -1,5 +1,6 @@
 import { EditorView } from '@codemirror/view'
 import { useEffect, useRef } from 'react'
+import type { RefObject } from 'react'
 
 import { notify } from '#/components/app/notice-store'
 import { askPasteChoice } from '#/components/app/paste'
@@ -37,7 +38,7 @@ import { parseDocument } from '#/lib/document'
 import { docLanguage } from './language'
 import { saveContent } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
-import type { EditorState, Extension } from '@codemirror/state'
+import type { EditorState, Extension, StateEffect } from '@codemirror/state'
 import type { DefaultRule } from '#/lib/xml/defaults'
 
 function publishCursorFrom(state: EditorState) {
@@ -99,19 +100,36 @@ export function CodeEditor({ fileId }: { fileId: string }) {
   const active = useSelector(sessionStore, (s) => s.activeId === fileId)
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const highlights = useHighlightMap(fileId)
-  const highlightsRef = useRef(highlights)
-  const defaults = useEnabledDefaults(fileId)
-  const defaultsRef = useRef(defaults)
-  const values = useVariableValues(fileId)
-  const valuesRef = useRef(values)
   const format = useFormatSettings(fileId)
-  const shortenAt = format.shortenValues ? format.shortenAt : 0
-  const shortenAtRef = useRef(shortenAt)
-  const zplTags = format.zplTags
-  const zplTagsRef = useRef(zplTags)
-  const wrap = useSelector(editorPrefs, (s) => s.wordWrap)
-  const wrapRef = useRef(wrap)
+  // The profile's settings, sent to the view as they change and again to
+  // each file it opens.
+  const highlights = useViewSetting(
+    viewRef,
+    useHighlightMap(fileId),
+    setTagHighlights,
+  )
+  const defaults = useViewSetting(
+    viewRef,
+    useEnabledDefaults(fileId),
+    setDefaultRules,
+  )
+  const values = useViewSetting(
+    viewRef,
+    useVariableValues(fileId),
+    setVarValues,
+  )
+  const shortenAt = useViewSetting(
+    viewRef,
+    format.shortenValues ? format.shortenAt : 0,
+    setLongValueLimit,
+  )
+  const zplTags = useViewSetting(viewRef, format.zplTags, setZplTags)
+  const wrap = useViewSetting(
+    viewRef,
+    useSelector(editorPrefs, (s) => s.wordWrap),
+    setWordWrap,
+  )
+  const settings = [highlights, defaults, values, shortenAt, zplTags, wrap]
   const sessionRef = useRef<ReturnType<typeof createEditorSession> | null>(null)
 
   useEffect(() => {
@@ -145,24 +163,15 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     const opened = sessionRef.current?.open(
       fileId,
       sharedExtensions(
-        highlightsRef.current,
-        defaultsRef.current,
-        valuesRef.current,
-        shortenAtRef.current,
+        highlights.value(),
+        defaults.value(),
+        values.value(),
+        shortenAt.value(),
       ),
     )
     if (!opened) return
     registerFileView(fileId, view)
-    view.dispatch({
-      effects: [
-        setTagHighlights(highlightsRef.current),
-        setDefaultRules(defaultsRef.current),
-        setVarValues(valuesRef.current),
-        setLongValueLimit(shortenAtRef.current),
-        setZplTags(zplTagsRef.current),
-        setWordWrap(wrapRef.current),
-      ],
-    })
+    view.dispatch({ effects: settings.map((setting) => setting.effect()) })
     if (sessionStore.state.activeId === fileId) {
       setView(view)
       publishCursorFrom(view.state)
@@ -185,36 +194,6 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     if (active) activate()
   }, [active, fileId])
 
-  useEffect(() => {
-    highlightsRef.current = highlights
-    viewRef.current?.dispatch({ effects: setTagHighlights(highlights) })
-  }, [highlights])
-
-  useEffect(() => {
-    defaultsRef.current = defaults
-    viewRef.current?.dispatch({ effects: setDefaultRules(defaults) })
-  }, [defaults])
-
-  useEffect(() => {
-    valuesRef.current = values
-    viewRef.current?.dispatch({ effects: setVarValues(values) })
-  }, [values])
-
-  useEffect(() => {
-    shortenAtRef.current = shortenAt
-    viewRef.current?.dispatch({ effects: setLongValueLimit(shortenAt) })
-  }, [shortenAt])
-
-  useEffect(() => {
-    zplTagsRef.current = zplTags
-    viewRef.current?.dispatch({ effects: setZplTags(zplTags) })
-  }, [zplTags])
-
-  useEffect(() => {
-    wrapRef.current = wrap
-    viewRef.current?.dispatch({ effects: setWordWrap(wrap) })
-  }, [wrap])
-
   return (
     <TagContextMenu>
       <div
@@ -225,4 +204,24 @@ export function CodeEditor({ fileId }: { fileId: string }) {
       />
     </TagContextMenu>
   )
+}
+
+/**
+ * Dispatches `toEffect(value)` to the view whenever `value` changes. The
+ * latest value stays readable for views that open a file later.
+ */
+function useViewSetting<T>(
+  viewRef: RefObject<EditorView | null>,
+  value: T,
+  toEffect: (value: T) => StateEffect<unknown>,
+) {
+  const ref = useRef(value)
+  useEffect(() => {
+    ref.current = value
+    viewRef.current?.dispatch({ effects: toEffect(value) })
+  }, [value])
+  return {
+    value: () => ref.current,
+    effect: () => toEffect(ref.current),
+  }
 }

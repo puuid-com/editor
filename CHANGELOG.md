@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.1.3] - 2026-11-04
+
+### Changed
+
+- Simplified how the editor receives its profile's settings. Nothing visible changes.
+
 ## [1.1.2] - 2026-11-04
 
 ### Changed
