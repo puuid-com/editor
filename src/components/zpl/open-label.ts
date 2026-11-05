@@ -12,7 +12,7 @@ export function openLabel(text: string, settings?: Record<string, unknown>) {
   const source = decodeBase64Zpl(text) ?? text
   const file = createFile(m.file_untitled_zpl(), source, activeProfileId())
   if (settings) saveZplSettings(file.id, normalizeSettings(settings))
-  if ((sessionStore.state.paneIds?.length ?? 0) < MAX_PANES) openBeside(file.id)
+  if ((sessionStore.state.panes?.length ?? 0) < MAX_PANES) openBeside(file.id)
   else setActive(file.id)
   return file.id
 }

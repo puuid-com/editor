@@ -11,19 +11,14 @@ function currentPanes() {
     .filter((f) => f.deletedAt === null)
     .sort((a, b) => a.order - b.order)
     .map((f) => f.id)
-  return normalizePanes(s.panes, s.paneIds ?? [], openIds, s.activeId)
+  return normalizePanes(s.panes, openIds, s.activeId)
 }
 
 export function savePanes(
   panes: Array<FilePaneGroup>,
   activeId = sessionStore.state.activeId,
 ) {
-  sessionStore.setState((s) => ({
-    ...s,
-    panes,
-    paneIds: panes.map((p) => p.activeId),
-    activeId,
-  }))
+  sessionStore.setState((s) => ({ ...s, panes, activeId }))
 }
 
 /** Split a tab into its own group without duplicating its editor. */

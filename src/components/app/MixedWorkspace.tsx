@@ -45,10 +45,8 @@ export function MixedWorkspace({
 }) {
   const files = useOpenFiles()
   const stored = useSelector(sessionStore, (s) => s.panes)
-  const legacy = useSelector(sessionStore, (s) => s.paneIds)
   const panes = normalizePanes(
     stored,
-    legacy ?? [],
     files.map((f) => f.id),
     fileId,
   )

@@ -7,20 +7,17 @@ export interface FilePaneGroup {
 
 export const MAX_PANES = 4
 
-/** Restore old sessions, discard closed tabs, and place newly opened files. */
+/** Discard closed tabs and place newly opened files in the active pane. */
 export function normalizePanes(
   stored: ReadonlyArray<FilePaneGroup> | undefined,
-  legacy: ReadonlyArray<string>,
   openIds: ReadonlyArray<string>,
   activeId: string | null,
 ): Array<FilePaneGroup> {
+  const open = new Set(openIds)
   const seen = new Set<string>()
-  const source =
-    stored ??
-    [...new Set(legacy)].map((id) => ({ id, fileIds: [id], activeId: id }))
-  const panes = source.slice(0, MAX_PANES).flatMap((pane) => {
+  const panes = (stored ?? []).slice(0, MAX_PANES).flatMap((pane) => {
     const fileIds = pane.fileIds.filter((id) => {
-      if (!openIds.includes(id) || seen.has(id)) return false
+      if (!open.has(id) || seen.has(id)) return false
       seen.add(id)
       return true
     })

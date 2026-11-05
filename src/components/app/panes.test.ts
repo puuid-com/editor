@@ -16,7 +16,6 @@ beforeEach(async () => {
     ...s,
     activeId: null,
     panes: undefined,
-    paneIds: [],
   }))
   await settleWrites()
 })
@@ -28,21 +27,15 @@ const group = (id: string, fileIds: Array<string>, activeId = fileIds[0]) => ({
 })
 
 describe('pane layout restoration', () => {
-  it('migrates the old visible-file list and retains every background tab', () => {
-    expect(
-      normalizePanes(
-        undefined,
-        ['a', 'a', 'closed', 'b'],
-        ['a', 'b', 'c'],
-        'a',
-      ),
-    ).toEqual([group('a', ['a', 'c']), group('b', ['b'])])
+  it('starts with every open file in one pane', () => {
+    expect(normalizePanes(undefined, ['a', 'b', 'c'], 'b')).toEqual([
+      group('b', ['a', 'b', 'c'], 'b'),
+    ])
   })
   it('drops closed and duplicate tabs without losing unassigned files', () => {
     expect(
       normalizePanes(
         [group('left', ['a', 'closed']), group('right', ['a', 'b'])],
-        [],
         ['a', 'b', 'c'],
         'b',
       ),
@@ -51,12 +44,7 @@ describe('pane layout restoration', () => {
   it('restores pane order and selected files unchanged after reload', () => {
     const panes = [group('left', ['c', 'a'], 'a'), group('right', ['b'])]
     expect(
-      normalizePanes(
-        JSON.parse(JSON.stringify(panes)),
-        [],
-        ['a', 'b', 'c'],
-        'b',
-      ),
+      normalizePanes(structuredClone(panes), ['a', 'b', 'c'], 'b'),
     ).toEqual(panes)
   })
   it('moves and reorders tabs, removing an empty source pane', () => {

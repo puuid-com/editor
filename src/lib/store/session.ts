@@ -29,8 +29,6 @@ interface SessionState {
   activeId: string | null
   /** Collapsed tree paths, by file id. */
   collapsed: Record<string, Array<string>>
-  /** Legacy visible files, retained for compatible session restoration. */
-  paneIds?: Array<string>
   panes?: Array<FilePaneGroup>
   panelOpen: boolean
 }
@@ -59,7 +57,7 @@ export function setActive(activeId: string | null) {
           }
         : p,
     )
-    return { ...s, activeId, panes, paneIds: panes.map((p) => p.activeId) }
+    return { ...s, activeId, panes }
   })
 }
 
