@@ -44,12 +44,13 @@ export const LANGUAGE_EXTENSIONS = {
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
   new RegExp(`(${extensions.map((ext) => `\\${ext}`).join('|')})$`, 'i')
 
-const JSON_EXT = extensionPattern(LANGUAGE_EXTENSIONS.json)
-const XML_EXT = extensionPattern(LANGUAGE_EXTENSIONS.xml)
-const SQL_EXT = extensionPattern(LANGUAGE_EXTENSIONS.sql)
-const ZPL_EXT = extensionPattern(LANGUAGE_EXTENSIONS.zpl)
+const EXT = Object.fromEntries(
+  Object.entries(LANGUAGE_EXTENSIONS).map(([language, extensions]) => [
+    language,
+    extensionPattern(extensions),
+  ]),
+) as Record<DocLanguage, RegExp>
 const ZPL_START = /^\s*[\^~][A-Z][A-Z0-9@]/i
-const FLAT_EXT = extensionPattern(LANGUAGE_EXTENSIONS.flat)
 // A statement keyword first, after any leading comments.
 const SQL_START =
   /^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*(select|with|insert|update|delete|merge|create|alter|drop|truncate)\b/i
@@ -58,10 +59,9 @@ const SQL_START =
 export function languageOf(name: string, content: string): DocLanguage {
   // A flat file is never valid XML or JSON, so its content beats the name.
   if (isFlatFile(content)) return 'flat'
-  if (ZPL_EXT.test(name)) return 'zpl'
-  if (JSON_EXT.test(name)) return 'json'
-  if (XML_EXT.test(name)) return 'xml'
-  if (SQL_EXT.test(name)) return 'sql'
+  for (const language of ['zpl', 'json', 'xml', 'sql'] as const) {
+    if (EXT[language].test(name)) return language
+  }
   if (ZPL_START.test(content)) return 'zpl'
   if (SQL_START.test(content)) return 'sql'
   return /^\s*[[{]/.test(content) ? 'json' : 'xml'
@@ -79,30 +79,18 @@ export function detectLanguage(content: string): DocLanguage | null {
 
 /** A file name without the extension that gives its type. */
 export function untypedName(name: string) {
-  for (const ext of [JSON_EXT, XML_EXT, SQL_EXT, FLAT_EXT, ZPL_EXT]) {
+  for (const ext of Object.values(EXT)) {
     const stem = name.replace(ext, '')
     if (stem !== name) return stem || name
   }
   return name
 }
 
-const EXTENSIONS: Record<DocLanguage, string> = {
-  xml: '.xml',
-  json: '.json',
-  flat: '.txt',
-  sql: '.sql',
-  zpl: '.zpl',
-}
-
 /** `name` with the extension of `language`, unless it already reads as one. */
 export function typedName(name: string, language: DocLanguage) {
-  const keep =
-    (language === 'json' && JSON_EXT.test(name)) ||
-    (language === 'xml' && XML_EXT.test(name)) ||
-    (language === 'flat' && FLAT_EXT.test(name)) ||
-    (language === 'sql' && SQL_EXT.test(name)) ||
-    (language === 'zpl' && ZPL_EXT.test(name))
-  return keep ? name : untypedName(name) + EXTENSIONS[language]
+  return EXT[language].test(name)
+    ? name
+    : untypedName(name) + LANGUAGE_EXTENSIONS[language][0]
 }
 
 export function parseDocument(
