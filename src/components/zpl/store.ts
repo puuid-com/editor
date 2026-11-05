@@ -12,15 +12,15 @@ const preferences = persistedStore('zpl-preferences', () => localStorage, {
   explain: true,
   syncZoom: false,
 })
-export const editorStore = new Store({
+export const zplStore = new Store({
   files: [...filesCollection.values()],
   ...preferences.state,
 })
 filesCollection.subscribeChanges(() => {
-  editorStore.setState((s) => ({ ...s, files: [...filesCollection.values()] }))
+  zplStore.setState((s) => ({ ...s, files: [...filesCollection.values()] }))
 })
 preferences.subscribe(() =>
-  editorStore.setState((s) => ({ ...s, ...preferences.state })),
+  zplStore.setState((s) => ({ ...s, ...preferences.state })),
 )
 
 export function selectFile(state: { files: Array<XmlFile> }, id: string) {
@@ -51,8 +51,8 @@ export function setSyncZoom(syncZoom: boolean) {
 export type PreviewZoom = number | 'fit'
 export const zoomStore = new Store<Record<string, PreviewZoom | undefined>>({})
 export function setPreviewZoom(id: string, zoom: PreviewZoom) {
-  const ids = editorStore.state.syncZoom
-    ? editorStore.state.files.map((f) => f.id)
+  const ids = zplStore.state.syncZoom
+    ? zplStore.state.files.map((f) => f.id)
     : [id]
   zoomStore.setState((s) => ({
     ...s,

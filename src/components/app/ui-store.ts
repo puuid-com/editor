@@ -16,7 +16,6 @@ interface UiState {
   archiveOpen: boolean
   /** Choosing what a share link of the active file carries. */
   shareOpen: boolean
-  mobileView: 'editor' | 'structure'
   /** Tag whose colour picker is open next to the editor cursor. */
   quickHighlight: QuickHighlight | null
   /** Defaults waiting for confirmation before they're written to the file. */
@@ -81,7 +80,6 @@ export const uiStore = new Store<UiState>({
   tabListOpen: false,
   archiveOpen: false,
   shareOpen: false,
-  mobileView: 'editor',
   quickHighlight: null,
   defaultsPreview: null,
   varsPreview: null,
@@ -118,10 +116,6 @@ export function setArchiveOpen(archiveOpen: boolean) {
 
 export function setShareOpen(shareOpen: boolean) {
   uiStore.setState((s) => ({ ...s, shareOpen }))
-}
-
-export function setMobileView(mobileView: 'editor' | 'structure') {
-  uiStore.setState((s) => ({ ...s, mobileView }))
 }
 
 export function setQuickHighlight(quickHighlight: QuickHighlight | null) {
@@ -169,11 +163,7 @@ export function askVariableValue(variableName: string | null) {
 
 /** Compares the active file with `compareId`, or closes the comparison. */
 export function setCompareId(compareId: string | null) {
-  uiStore.setState((s) => ({
-    ...s,
-    compareId,
-    mobileView: compareId ? 'editor' : s.mobileView,
-  }))
+  uiStore.setState((s) => ({ ...s, compareId }))
 }
 
 export function setCompareIgnoreFormatting(compareIgnoreFormatting: boolean) {

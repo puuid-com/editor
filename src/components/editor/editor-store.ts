@@ -20,7 +20,6 @@ interface EditorSnapshot {
   revision: number
   pos: number
   line: number
-  col: number
   /** Element under the cursor, selected in the tree. */
   selectedPath: string | null
 }
@@ -38,7 +37,6 @@ const noFile: EditorSnapshot = {
   revision: 0,
   pos: 0,
   line: 1,
-  col: 1,
   selectedPath: null,
 }
 
@@ -75,11 +73,9 @@ export function publishParse(fileId: string, doc: XmlDocument) {
   }))
 }
 
-export function publishCursor(pos: number, line: number, col: number) {
+export function publishCursor(pos: number, line: number) {
   editorStore.setState((s) =>
-    s.pos === pos
-      ? s
-      : { ...s, pos, line, col, selectedPath: pathAt(s.doc, pos) },
+    s.pos === pos ? s : { ...s, pos, line, selectedPath: pathAt(s.doc, pos) },
   )
 }
 

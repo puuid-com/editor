@@ -27,7 +27,7 @@ import { SettingsPopover } from './settings-popover'
 import { useCopyShareLink } from './share-link'
 import {
   compareStore,
-  editorStore,
+  zplStore,
   selectFile,
   setCompareTarget,
   setExplain,
@@ -62,7 +62,7 @@ export function ZplHeaderActions({ fileId }: { fileId: string }) {
 }
 
 function DownloadMenu({ fileId }: { fileId: string }) {
-  const hasSource = useSelector(editorStore, (state) =>
+  const hasSource = useSelector(zplStore, (state) =>
     Boolean(selectFile(state, fileId)?.source.trim()),
   )
   const labelCount = useOtherPanelRender(fileId).render?.labels.length ?? 0
@@ -77,7 +77,7 @@ function DownloadMenu({ fileId }: { fileId: string }) {
     defaultName: DEFAULT_FILE_NAME,
   })
   // Exports read the live source, not the debounced one the preview shows.
-  const livePanel = () => selectFile(editorStore.state, fileId)
+  const livePanel = () => selectFile(zplStore.state, fileId)
   const queryClient = useQueryClient()
 
   const download = async (format: ExportFormat, baseName: string) => {
@@ -167,8 +167,8 @@ function DownloadMenu({ fileId }: { fileId: string }) {
 
 /** ZPL entries for the pane's ⋯ menu: what to compare with and the editor's explanations. */
 export function ZplMenuItems({ fileId }: { fileId: string }) {
-  const explain = useSelector(editorStore, (s) => s.explain)
-  const files = useSelector(editorStore, (s) => s.files)
+  const explain = useSelector(zplStore, (s) => s.explain)
+  const files = useSelector(zplStore, (s) => s.files)
   const candidates = zplCandidates({ files }, fileId)
   const target = useSelector(compareStore, (s) => s[fileId])
   const value = candidates.some((f) => f.id === target) ? target : 'none'

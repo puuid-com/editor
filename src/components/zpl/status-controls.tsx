@@ -8,12 +8,12 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import { m } from '#/paraglide/messages'
-import { editorStore, setSyncZoom, zplCandidates } from './store'
+import { zplStore, setSyncZoom, zplCandidates } from './store'
 
 /** The bottom bar's ZPL entries: who renders the labels, and zoom sync across panes. */
 export function ZplStatusControls({ fileId }: { fileId: string }) {
-  const syncZoom = useSelector(editorStore, (s) => s.syncZoom)
-  const files = useSelector(editorStore, (s) => s.files)
+  const syncZoom = useSelector(zplStore, (s) => s.syncZoom)
+  const files = useSelector(zplStore, (s) => s.files)
   // Syncing zoom needs a second ZPL file.
   const alone = zplCandidates({ files }, fileId).length === 0
 

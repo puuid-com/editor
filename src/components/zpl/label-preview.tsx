@@ -44,7 +44,7 @@ import type { LabelSettings, ZplSize } from '#/lib/zpl/settings'
 import { m } from '#/paraglide/messages'
 import { getLocale } from '#/paraglide/runtime'
 import {
-  editorStore,
+  zplStore,
   selectFile,
   setCompareTarget,
   setPreviewZoom,
@@ -133,14 +133,14 @@ export function LabelPreview({
 }: LabelPreviewProps) {
   const headingId = useId()
   const zoom = useSelector(zoomStore, (zooms) => zooms[panelId] ?? 'fit')
-  const syncZoom = useSelector(editorStore, (state) => state.syncZoom)
+  const syncZoom = useSelector(zplStore, (state) => state.syncZoom)
   const [viewportRef, viewport, viewportElement] =
     useElementSize<HTMLDivElement>()
   const localName = useSelector(
-    editorStore,
+    zplStore,
     (state) => `${selectFile(state, panelId)?.fileName ?? ''}.zpl`,
   )
-  const remoteName = useSelector(editorStore, (state) =>
+  const remoteName = useSelector(zplStore, (state) =>
     target ? `${selectFile(state, target)?.fileName ?? ''}.zpl` : '',
   )
   const [compareMode, setCompareMode] = useState<CompareMode>('side-by-side')
@@ -837,7 +837,7 @@ function StatusLine({
   children?: React.ReactNode
 }) {
   const settings = useSelector(
-    editorStore,
+    zplStore,
     (state) => selectFile(state, panelId)?.settings ?? DEFAULT_SETTINGS,
   )
   const labels = render?.labels ?? []

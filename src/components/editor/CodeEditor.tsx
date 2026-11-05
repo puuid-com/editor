@@ -42,8 +42,7 @@ import type { DefaultRule } from '#/lib/xml/defaults'
 
 function publishCursorFrom(state: EditorState) {
   const pos = state.selection.main.head
-  const line = state.doc.lineAt(pos)
-  publishCursor(pos, line.number, pos - line.from + 1)
+  publishCursor(pos, state.doc.lineAt(pos).number)
 }
 
 let extensions: Extension | null = null

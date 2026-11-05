@@ -33,7 +33,7 @@ import {
 import { useOpenFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { onSaveFailed } from '#/lib/store/persist'
-import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
+import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
@@ -88,9 +88,6 @@ export function EditorApp() {
         panes?.find((p) => p.fileIds.includes(activeId ?? ''))?.fileIds) ||
       files.map((f) => f.id),
     onOpenFromDisk: openFromDisk,
-    onTogglePanel: () => {
-      setPanelOpen(!sessionStore.state.panelOpen)
-    },
   })
 
   const hasFiles = (e: React.DragEvent) =>

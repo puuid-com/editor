@@ -13,7 +13,7 @@ import {
 import { sessionStore } from '#/lib/store/session'
 import { dpiFor } from '#/lib/zpl/settings'
 import { LabelPreview } from './label-preview'
-import { compareStore, editorStore, selectFile, zplCandidates } from './store'
+import { compareStore, zplStore, selectFile, zplCandidates } from './store'
 import { useLabelRender } from './use-label-render'
 import { zplHelp } from './zpl-language'
 
@@ -25,9 +25,9 @@ export function ZplPane({
   sideBySide?: boolean
 }) {
   const { render, isRendering, error, retry } = useLabelRender(fileId)
-  const file = useSelector(editorStore, (s) => selectFile(s, fileId))
-  const files = useSelector(editorStore, (s) => s.files)
-  const explain = useSelector(editorStore, (s) => s.explain)
+  const file = useSelector(zplStore, (s) => selectFile(s, fileId))
+  const files = useSelector(zplStore, (s) => s.files)
+  const explain = useSelector(zplStore, (s) => s.explain)
   const active = useSelector(sessionStore, (s) => s.activeId === fileId)
   const target = useSelector(compareStore, (s) => s[fileId])
   // A target that was closed or stopped being ZPL compares with nothing.

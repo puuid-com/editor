@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.0.3] - 2026-11-04
+
+### Changed
+
+- Removed editor state nothing read: a leftover mobile view switch and the cursor column. The ZPL tools' store is now named for what it holds, so it no longer shares a name with the main editor's.
+
 ## [1.0.2] - 2026-11-04
 
 ### Changed

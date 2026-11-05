@@ -7,7 +7,7 @@ import { LabelaryError, renderWithLabelary } from '#/lib/zpl/labelary'
 import type { LabelaryResult } from '#/lib/zpl/labelary'
 import { DEFAULT_SETTINGS, readZplSize } from '#/lib/zpl/settings'
 import type { LabelSettings, ZplSize } from '#/lib/zpl/settings'
-import { editorStore, selectFile } from './store'
+import { zplStore, selectFile } from './store'
 
 /** Long enough after typing stops to stay under Labelary's rate limit. */
 const RENDER_DELAY_MS = 600
@@ -46,11 +46,11 @@ export function labelRenderQuery(source: string, settings: LabelSettings) {
 
 export function useLabelRender(panelId: string) {
   const source = useSelector(
-    editorStore,
+    zplStore,
     (state) => selectFile(state, panelId)?.source ?? '',
   )
   const settings = useSelector(
-    editorStore,
+    zplStore,
     (state) => selectFile(state, panelId)?.settings ?? DEFAULT_SETTINGS,
   )
   const [debouncedSource] = useDebouncedValue(source, {
@@ -79,10 +79,10 @@ export function useLabelRender(panelId: string) {
  * fills rather than fetched again.
  */
 export function useOtherPanelRender(panelId: string | undefined) {
-  const source = useSelector(editorStore, (state) =>
+  const source = useSelector(zplStore, (state) =>
     panelId === undefined ? '' : (selectFile(state, panelId)?.source ?? ''),
   )
-  const settings = useSelector(editorStore, (state) =>
+  const settings = useSelector(zplStore, (state) =>
     panelId === undefined
       ? DEFAULT_SETTINGS
       : (selectFile(state, panelId)?.settings ?? DEFAULT_SETTINGS),

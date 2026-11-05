@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { notify } from './notice-store'
 import { ToolbarButton } from './ToolbarButton'
-import { setArchiveOpen, setMobileView, uiStore } from './ui-store'
+import { setArchiveOpen, uiStore } from './ui-store'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -45,7 +45,6 @@ export function ArchiveDialog() {
         (restored) => {
           if (restored) {
             setActive(restored)
-            setMobileView('editor')
             setArchiveOpen(false)
             notify.success(m.archive_restored())
           }
