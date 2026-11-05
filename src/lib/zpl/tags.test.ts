@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isZplTag, zplViewerUrl } from './zpl'
+import { isZplTag, zplViewerUrl } from './tags'
 
 describe('zpl', () => {
   it('matches tags without their prefix', () => {

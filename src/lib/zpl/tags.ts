@@ -15,10 +15,3 @@ export function zplViewerUrl(base64: string) {
   if (!data) return null
   return '/#' + new URLSearchParams({ base64: data }).toString()
 }
-
-/** Opens a base64 ZPL label beside the current document. */
-export function openZplLabel(base64: string) {
-  void import('#/components/zpl/open-label').then(({ openLabel }) =>
-    openLabel(base64),
-  )
-}

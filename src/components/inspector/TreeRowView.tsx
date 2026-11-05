@@ -31,7 +31,7 @@ import {
 } from '#/components/ui/context-menu'
 import { setValue } from '#/lib/document'
 import { cn } from '#/lib/utils'
-import { openZplLabel } from '#/lib/zpl'
+import { openZplLabel } from '#/components/zpl/open-label-lazy'
 import {
   attrDiffers,
   isDefaultAttr,

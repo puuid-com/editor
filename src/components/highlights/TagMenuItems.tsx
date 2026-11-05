@@ -28,7 +28,8 @@ import {
   removeFromCustomOrder,
   toggleZplTag,
 } from '#/lib/store/profiles'
-import { isZplTag, openZplLabel } from '#/lib/zpl'
+import { isZplTag } from '#/lib/zpl/tags'
+import { openZplLabel } from '#/components/zpl/open-label-lazy'
 import { m } from '#/paraglide/messages'
 import type { XmlElement } from '#/lib/xml/model'
 
