@@ -174,6 +174,7 @@
   "pin_missing": "not in file",
   "pin_matches_count": "{count} in this file",
   "pin_match_parent": "in {parent}",
+  "pin_occurrence": "<{name}> {index} of {count}, in {parent}",
   "color_blue": "Blue",
   "color_purple": "Purple",
   "color_pink": "Pink",

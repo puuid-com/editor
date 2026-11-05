@@ -96,6 +96,45 @@ export function displayPath(path: string): Array<string> {
     .map((part) => decodeSegment(part.replace(/\[1\]$/, '')))
 }
 
+/**
+ * Short labels telling apart elements of the same name by where they sit:
+ * the steps from where their paths part down to their parent, such as
+ * `Line[2]` or `Order[2]/Line`. A `[1]` stays only when a later position of
+ * that name is among them, and two that share a parent add their own step.
+ */
+export function occurrenceLabels(paths: ReadonlyArray<string>): Array<string> {
+  if (paths.length === 0) return []
+  const steps = paths.map((path) => path.split('/').filter(Boolean))
+  const parents = steps.map((parts) => parts.slice(0, -1))
+  const shortest = Math.min(...parents.map((parts) => parts.length))
+  // Keep at least the parent step, even when every parent is the same.
+  let common = 0
+  while (
+    common < shortest - 1 &&
+    parents.every((parts) => parts[common] === parents[0][common])
+  ) {
+    common++
+  }
+  const later = new Set(
+    steps
+      .flat()
+      .filter((step) => /\[\d+\]$/.test(step) && !step.endsWith('[1]'))
+      .map(stepName),
+  )
+  const show = (step: string) =>
+    decodeSegment(later.has(stepName(step)) ? step : step.replace(/\[1\]$/, ''))
+  const labels = parents.map((parts) => parts.slice(common).map(show).join('/'))
+  return labels.map((label, i) =>
+    labels.indexOf(label) === labels.lastIndexOf(label)
+      ? label
+      : [label, show(steps[i].at(-1) ?? '')].filter(Boolean).join('/'),
+  )
+}
+
+function stepName(step: string) {
+  return step.replace(/\[\d+\]$/, '')
+}
+
 /** JSON keys can hold `/`, so path segments escape it (and `%`). */
 export function encodeSegment(name: string) {
   return name.replaceAll('%', '%25').replaceAll('/', '%2F')

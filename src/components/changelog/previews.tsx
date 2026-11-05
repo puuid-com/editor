@@ -1339,6 +1339,47 @@ function PinOccurrenceRevert() {
   )
 }
 
+function PinOccurrenceTree() {
+  const rows = [
+    ['Line[1]', 'Bolts'],
+    ['Line[2]', 'Washers'],
+    ['Line[3]', 'Nuts'],
+  ]
+  return (
+    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 bg-muted/20 px-3 py-3 font-mono text-[11px]">
+      <span className="font-medium text-syntax-tag">Description</span>
+      <span className="px-1.5 font-sans text-muted-foreground">
+        {m.pin_matches_count({ count: 3 })}
+      </span>
+      {rows.map(([parent, value], i) => (
+        <Fragment key={parent}>
+          <span
+            className={cn(
+              'relative flex h-6 items-center pl-4 text-[10px] text-muted-foreground',
+              'before:absolute before:-top-1 before:left-1 before:w-px before:bg-muted-foreground/40',
+              'after:absolute after:top-1/2 after:left-1 after:h-px after:w-1.5 after:bg-muted-foreground/40',
+              i === rows.length - 1 ? 'before:bottom-1/2' : 'before:bottom-0',
+              i === 1 && 'font-semibold text-foreground',
+            )}
+          >
+            {parent}
+          </span>
+          <span className="flex h-6 min-w-0 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5">
+            <span className="flex-1 truncate">{value}</span>
+            <IconCopy aria-hidden className="size-3 text-muted-foreground" />
+          </span>
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
+function PinOccurrenceRail() {
+  return (
+    <BeforeAfter before={<PinOccurrence />} after={<PinOccurrenceTree />} />
+  )
+}
+
 function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
@@ -2073,6 +2114,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.188.0': figure(PinOccurrenceRail),
   '0.187.0': figure(FlatRecordsRuled),
   '0.186.0': figure(FlatRecordsBelow),
   '0.185.0': figure(PinOccurrenceRevert),
