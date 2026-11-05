@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.0.0] - 2026-11-04
+
+### Changed
+
+- First stable release. Everything up to 0.190.0 is now version 1.0, and from here on stored data, share links and file formats only break with a new major version.
+
 ## [0.190.0] - 2026-11-04
 
 ### Changed
