@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.1.2] - 2026-11-04
+
+### Changed
+
+- Split the command menu's list of actions into one part per group so it is easier to change. Nothing visible changes.
+
 ## [1.1.1] - 2026-11-04
 
 ### Changed

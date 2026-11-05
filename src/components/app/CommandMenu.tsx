@@ -313,6 +313,8 @@ function TypeCommands({
   )
 }
 
+type Run = (fn: () => void) => void
+
 function RootCommands({
   files,
   activeId,
@@ -325,236 +327,295 @@ function RootCommands({
   files: ReturnType<typeof useOpenFiles>
   activeId: string | null
   comparing: boolean
-  run: (fn: () => void) => void
+  run: Run
   onCompare: () => void
   onChangeType: () => void
   onOpenFromDisk: () => void
 }) {
-  const profiles = useProfiles()
-  const activeProfile = useActiveProfile()
-  const writesDisk = useCanWriteDisk()
-  // Read as the menu opens; nothing edits the file while it is open.
-  const [depth] = useState(historyDepth)
-  const activeFile = files.find((f) => f.id === activeId)
-  // SQL files are only formatted.
-  const sql = useSelector(editorStore, (s) =>
-    ['sql', 'zpl'].includes(s.doc.language),
-  )
-  const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
-
   return (
     <>
       {files.length > 0 && (
-        <CommandGroup heading={m.palette_files()}>
-          {files.map((file) => (
-            <CommandItem
-              key={file.id}
-              value={`${file.name} ${file.id}`}
-              onSelect={() => run(() => setActive(file.id))}
-            >
-              <FileIcon file={file} />
-              <span className="truncate font-mono">{file.name}</span>
-              {file.id === activeId && (
-                <IconCheck className="size-3 text-muted-foreground" />
-              )}
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        <OpenFiles files={files} activeId={activeId} run={run} />
       )}
       {activeId && (
         <>
-          <CommandSeparator />
-          <CommandGroup heading={m.palette_current()}>
-            <CommandItem onSelect={() => run(() => askRename(activeId))}>
-              <IconPencil />
-              {m.file_rename()}
+          <CurrentFile
+            activeId={activeId}
+            files={files}
+            comparing={comparing}
+            run={run}
+            onCompare={onCompare}
+            onChangeType={onChangeType}
+          />
+          <Edit run={run} />
+          <Profiles run={run} />
+        </>
+      )}
+      <Workspace run={run} onOpenFromDisk={onOpenFromDisk} />
+    </>
+  )
+}
+
+function OpenFiles({
+  files,
+  activeId,
+  run,
+}: {
+  files: ReturnType<typeof useOpenFiles>
+  activeId: string | null
+  run: Run
+}) {
+  return (
+    <CommandGroup heading={m.palette_files()}>
+      {files.map((file) => (
+        <CommandItem
+          key={file.id}
+          value={`${file.name} ${file.id}`}
+          onSelect={() => run(() => setActive(file.id))}
+        >
+          <FileIcon file={file} />
+          <span className="truncate font-mono">{file.name}</span>
+          {file.id === activeId && (
+            <IconCheck className="size-3 text-muted-foreground" />
+          )}
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  )
+}
+
+/** Actions on the file in the editor. */
+function CurrentFile({
+  activeId,
+  files,
+  comparing,
+  run,
+  onCompare,
+  onChangeType,
+}: {
+  activeId: string
+  files: ReturnType<typeof useOpenFiles>
+  comparing: boolean
+  run: Run
+  onCompare: () => void
+  onChangeType: () => void
+}) {
+  const writesDisk = useCanWriteDisk()
+  const activeFile = files.find((f) => f.id === activeId)
+  return (
+    <>
+      <CommandSeparator />
+      <CommandGroup heading={m.palette_current()}>
+        <CommandItem onSelect={() => run(() => askRename(activeId))}>
+          <IconPencil />
+          {m.file_rename()}
+          <CommandShortcut>{shortcutLabel(shortcuts.rename)}</CommandShortcut>
+        </CommandItem>
+        {activeFile && (
+          <CommandItem onSelect={onChangeType}>
+            <IconFileSettings />
+            {m.file_change_type()}
+          </CommandItem>
+        )}
+        <CommandItem onSelect={() => run(() => downloadFile(activeId))}>
+          <IconDownload />
+          {m.file_download()}
+        </CommandItem>
+        {writesDisk && (
+          <CommandItem onSelect={() => run(() => void saveAs(activeId))}>
+            <IconDeviceFloppy />
+            {m.file_save_disk()}
+            <CommandShortcut>{shortcutLabel(shortcuts.saveAs)}</CommandShortcut>
+          </CommandItem>
+        )}
+        <CommandItem onSelect={() => run(() => void copyActive())}>
+          <IconClipboard />
+          {m.file_copy()}
+        </CommandItem>
+        <CommandItem
+          keywords={[m.share_keywords()]}
+          onSelect={() => run(() => setShareOpen(true))}
+        >
+          <IconLink />
+          <div className="flex flex-col">
+            {m.share_copy()}
+            <span className="text-xs text-muted-foreground">
+              {m.share_copy_hint()}
+            </span>
+          </div>
+        </CommandItem>
+        {files.length > 1 && (
+          <CommandItem onSelect={onCompare}>
+            <IconGitCompare />
+            {m.compare_with()}
+          </CommandItem>
+        )}
+        {comparing && (
+          <CommandItem onSelect={() => run(() => setCompareId(null))}>
+            <IconGitCompare />
+            {m.compare_close()}
+            <CommandShortcut>Esc</CommandShortcut>
+          </CommandItem>
+        )}
+      </CommandGroup>
+    </>
+  )
+}
+
+function Edit({ run }: { run: Run }) {
+  // Read as the menu opens; nothing edits the file while it is open.
+  const [depth] = useState(historyDepth)
+  // SQL and ZPL files have no tags, defaults or variables to act on.
+  const formatOnly = useSelector(editorStore, (s) =>
+    ['sql', 'zpl'].includes(s.doc.language),
+  )
+  return (
+    <>
+      <CommandSeparator />
+      <CommandGroup heading={m.palette_edit()}>
+        <CommandItem
+          disabled={depth.undo === 0}
+          onSelect={() => run(undoActive)}
+        >
+          <IconArrowBackUp />
+          {m.edit_undo()}
+          <CommandShortcut>{shortcutLabel(shortcuts.undo)}</CommandShortcut>
+        </CommandItem>
+        <CommandItem
+          disabled={depth.redo === 0}
+          onSelect={() => run(redoActive)}
+        >
+          <IconArrowForwardUp />
+          {m.edit_redo()}
+          <CommandShortcut>{shortcutLabel(shortcuts.redo)}</CommandShortcut>
+        </CommandItem>
+        {!formatOnly && (
+          <>
+            <CommandItem onSelect={() => run(() => void highlightAtCursor())}>
+              <IconHighlight />
+              {m.highlight_at_cursor()}
               <CommandShortcut>
-                {shortcutLabel(shortcuts.rename)}
+                {shortcutLabel(shortcuts.highlight)}
               </CommandShortcut>
             </CommandItem>
-            {activeFile && (
-              <CommandItem onSelect={onChangeType}>
-                <IconFileSettings />
-                {m.file_change_type()}
-              </CommandItem>
+            <CommandItem onSelect={() => run(() => void applyDefaultsActive())}>
+              <IconReplace />
+              {m.defaults_apply()}
+              <CommandShortcut>
+                {shortcutLabel(shortcuts.applyDefaults)}
+              </CommandShortcut>
+            </CommandItem>
+            <CommandItem onSelect={() => run(resolveVarsActive)}>
+              <IconVariable />
+              {m.vars_resolve()}
+              <CommandShortcut>
+                {shortcutLabel(shortcuts.resolveVars)}
+              </CommandShortcut>
+            </CommandItem>
+          </>
+        )}
+      </CommandGroup>
+    </>
+  )
+}
+
+function Profiles({ run }: { run: Run }) {
+  const profiles = useProfiles()
+  const activeProfile = useActiveProfile()
+  if (!activeProfile) return null
+  return (
+    <>
+      <CommandSeparator />
+      <CommandGroup heading={m.profiles_title()}>
+        {profiles.map((profile, index) => (
+          <CommandItem
+            key={profile.id}
+            value={`profile ${profile.name} ${profile.id}`}
+            onSelect={() => run(() => void switchProfile(profile.id))}
+          >
+            <IconUserCircle />
+            <ProfileTag profile={profile} className="max-w-60" />
+            {profile.id === activeProfile.id && (
+              <IconCheck className="size-3 text-muted-foreground" />
             )}
-            <CommandItem onSelect={() => run(() => downloadFile(activeId))}>
-              <IconDownload />
-              {m.file_download()}
-            </CommandItem>
-            {writesDisk && (
-              <CommandItem onSelect={() => run(() => void saveAs(activeId))}>
-                <IconDeviceFloppy />
-                {m.file_save_disk()}
-                <CommandShortcut>
-                  {shortcutLabel(shortcuts.saveAs)}
-                </CommandShortcut>
-              </CommandItem>
+            {profileShortcuts[index] && (
+              <CommandShortcut>
+                {shortcutLabel(profileShortcuts[index])}
+              </CommandShortcut>
             )}
-            <CommandItem onSelect={() => run(() => void copyActive())}>
-              <IconClipboard />
-              {m.file_copy()}
-            </CommandItem>
-            <CommandItem
-              keywords={[m.share_keywords()]}
-              onSelect={() => run(() => setShareOpen(true))}
-            >
-              <IconLink />
-              <div className="flex flex-col">
-                {m.share_copy()}
-                <span className="text-xs text-muted-foreground">
-                  {m.share_copy_hint()}
-                </span>
-              </div>
-            </CommandItem>
-            {files.length > 1 && (
-              <CommandItem onSelect={onCompare}>
-                <IconGitCompare />
-                {m.compare_with()}
-              </CommandItem>
-            )}
-            {comparing && (
-              <CommandItem onSelect={() => run(() => setCompareId(null))}>
-                <IconGitCompare />
-                {m.compare_close()}
-                <CommandShortcut>Esc</CommandShortcut>
-              </CommandItem>
-            )}
-          </CommandGroup>
-        </>
-      )}
-      {activeId && (
-        <>
-          <CommandSeparator />
-          <CommandGroup heading={m.palette_edit()}>
-            <CommandItem
-              disabled={depth.undo === 0}
-              onSelect={() => run(undoActive)}
-            >
-              <IconArrowBackUp />
-              {m.edit_undo()}
-              <CommandShortcut>{shortcutLabel(shortcuts.undo)}</CommandShortcut>
-            </CommandItem>
-            <CommandItem
-              disabled={depth.redo === 0}
-              onSelect={() => run(redoActive)}
-            >
-              <IconArrowForwardUp />
-              {m.edit_redo()}
-              <CommandShortcut>{shortcutLabel(shortcuts.redo)}</CommandShortcut>
-            </CommandItem>
-            {!sql && (
-              <>
-                <CommandItem
-                  onSelect={() => run(() => void highlightAtCursor())}
-                >
-                  <IconHighlight />
-                  {m.highlight_at_cursor()}
-                  <CommandShortcut>
-                    {shortcutLabel(shortcuts.highlight)}
-                  </CommandShortcut>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => run(() => void applyDefaultsActive())}
-                >
-                  <IconReplace />
-                  {m.defaults_apply()}
-                  <CommandShortcut>
-                    {shortcutLabel(shortcuts.applyDefaults)}
-                  </CommandShortcut>
-                </CommandItem>
-                <CommandItem onSelect={() => run(resolveVarsActive)}>
-                  <IconVariable />
-                  {m.vars_resolve()}
-                  <CommandShortcut>
-                    {shortcutLabel(shortcuts.resolveVars)}
-                  </CommandShortcut>
-                </CommandItem>
-              </>
-            )}
-          </CommandGroup>
-        </>
-      )}
-      {activeId && activeProfile && (
-        <>
-          <CommandSeparator />
-          <CommandGroup heading={m.profiles_title()}>
-            {profiles.map((profile, index) => (
-              <CommandItem
-                key={profile.id}
-                value={`profile ${profile.name} ${profile.id}`}
-                onSelect={() => run(() => void switchProfile(profile.id))}
-              >
-                <IconUserCircle />
-                <ProfileTag profile={profile} className="max-w-60" />
-                {profile.id === activeProfile.id && (
-                  <IconCheck className="size-3 text-muted-foreground" />
-                )}
-                {profileShortcuts[index] && (
-                  <CommandShortcut>
-                    {shortcutLabel(profileShortcuts[index])}
-                  </CommandShortcut>
-                )}
-              </CommandItem>
-            ))}
-            {profiles.length > 1 && (
-              <CommandItem onSelect={() => run(switchToNextProfile)}>
-                <IconUserCircle />
-                {m.profile_next()}
-                <CommandShortcut>
-                  {shortcutLabel(shortcuts.nextProfile)}
-                </CommandShortcut>
-              </CommandItem>
-            )}
-            <CommandItem
-              onSelect={() => run(() => setProfileDialog({ mode: 'create' }))}
-            >
-              <IconPlus />
-              {m.profile_new()}
-            </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                run(() =>
-                  setProfileDialog({
-                    mode: 'clone',
-                    profileId: activeProfile.id,
-                  }),
-                )
-              }
-            >
-              <IconCopy />
-              <span className="truncate">
-                {m.profile_clone({ name: activeProfile.name })}
-              </span>
-            </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                run(() =>
-                  setProfileDialog({
-                    mode: 'edit',
-                    profileId: activeProfile.id,
-                  }),
-                )
-              }
-            >
-              <IconPencil />
-              <span className="truncate">
-                {m.profile_edit({ name: activeProfile.name })}
-              </span>
-            </CommandItem>
-            {profiles.length > 1 && (
-              <CommandItem
-                onSelect={() => run(() => askDeleteProfile(activeProfile.id))}
-              >
-                <IconTrash />
-                <span className="truncate">
-                  {m.profile_delete({ name: activeProfile.name })}
-                </span>
-              </CommandItem>
-            )}
-          </CommandGroup>
-        </>
-      )}
+          </CommandItem>
+        ))}
+        {profiles.length > 1 && (
+          <CommandItem onSelect={() => run(switchToNextProfile)}>
+            <IconUserCircle />
+            {m.profile_next()}
+            <CommandShortcut>
+              {shortcutLabel(shortcuts.nextProfile)}
+            </CommandShortcut>
+          </CommandItem>
+        )}
+        <CommandItem
+          onSelect={() => run(() => setProfileDialog({ mode: 'create' }))}
+        >
+          <IconPlus />
+          {m.profile_new()}
+        </CommandItem>
+        <CommandItem
+          onSelect={() =>
+            run(() =>
+              setProfileDialog({
+                mode: 'clone',
+                profileId: activeProfile.id,
+              }),
+            )
+          }
+        >
+          <IconCopy />
+          <span className="truncate">
+            {m.profile_clone({ name: activeProfile.name })}
+          </span>
+        </CommandItem>
+        <CommandItem
+          onSelect={() =>
+            run(() =>
+              setProfileDialog({
+                mode: 'edit',
+                profileId: activeProfile.id,
+              }),
+            )
+          }
+        >
+          <IconPencil />
+          <span className="truncate">
+            {m.profile_edit({ name: activeProfile.name })}
+          </span>
+        </CommandItem>
+        {profiles.length > 1 && (
+          <CommandItem
+            onSelect={() => run(() => askDeleteProfile(activeProfile.id))}
+          >
+            <IconTrash />
+            <span className="truncate">
+              {m.profile_delete({ name: activeProfile.name })}
+            </span>
+          </CommandItem>
+        )}
+      </CommandGroup>
+    </>
+  )
+}
+
+/** New and opened files, workspace data and preferences. */
+function Workspace({
+  run,
+  onOpenFromDisk,
+}: {
+  run: Run
+  onOpenFromDisk: () => void
+}) {
+  const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
+  return (
+    <>
       <CommandSeparator />
       <CommandGroup heading={m.palette_file()}>
         {split && (
