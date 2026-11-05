@@ -1,5 +1,4 @@
 // Site-wide identity used by the SEO helper, sitemap, robots.txt and manifest.
-// `bun run init` rewrites these values when starting a new site.
 interface Site {
   name: string
   description: string

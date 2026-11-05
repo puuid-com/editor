@@ -1,14 +1,13 @@
 {
   "name": "xml",
   "private": true,
-  "version": "1.1.5",
+  "version": "1.1.6",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "imports": {
     "#/*": "./src/*"
   },
   "scripts": {
-    "init": "bun scripts/init.ts",
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",

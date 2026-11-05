@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.1.6] - 2026-11-04
+
+### Changed
+
+- Removed the starter template's site setup script, which would have overwritten this site's name and address.
+
 ## [1.1.5] - 2026-11-04
 
 ### Changed

@@ -112,6 +112,4 @@ bunx wrangler login
 bun run deploy
 ```
 
-The inherited `bun run init` script rewrites site identity when creating a separate site; it is not required for normal development.
-
 `public/sw.js` removes the old offline service worker and its caches. Keep it until older installs have had time to update.
