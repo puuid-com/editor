@@ -41,19 +41,29 @@ Content edits update optimistically and persist after a 400 ms typing pause. Col
 ```text
 src/
   components/
-    app/                  Workspace layout, dialogs, commands, notices
+    app/                  Workspace layout, panes, tabs, dialogs, commands, notices
     editor/               CodeMirror setup, sessions, actions, disk saves
-    inspector/            Tree search/navigation and separate row rendering
+    inspector/            Structure tree: search, navigation, row rendering
+    pins/                 Pinned fields above the tree
+    flat/                 Records table for fixed-width text files
+    highlights/           Tag highlight colours and menus
+    defaults/, variables/ Default-value rules and variable values
     profiles/             Profile controls and dialogs
     compare/              Document comparisons
+    zpl/                  ZPL label previews, settings, exports
     changelog/            Before/after pictures shown on the changelog page
+    showcase/             About page feature grid (vendored stageshow kit)
+    layout/               Public site header and footer
     ui/                   shadcn/ui components
   hooks/                  TanStack live queries and shared React hooks
   lib/
     store/                Collections, persistence, migration, backups
     xml/                  XML parsing, formatting, editing, variables
     json/                 JSON parsing, formatting, editing
-    document.ts           Shared XML/JSON operations
+    sql/                  SQL formatting and token roles
+    flat/                 Fixed-width record parsing
+    zpl/                  ZPL rendering, explanations, sharing, export
+    document.ts           One entry point per language: detect, parse, format
   routes/                 Editor and public routes
   site.ts                 Site identity and SEO configuration
   server.ts               Paraglide middleware around TanStack Start
@@ -72,6 +82,7 @@ public/                   Icons and static assets
 | `bun run test:watch`      | Watch tests                                                 |
 | `bun run typecheck`       | TypeScript validation                                       |
 | `bun run lint`            | ESLint                                                      |
+| `bun run knip`            | Unused files, exports and dependencies                      |
 | `bun run check`           | Prettier validation                                         |
 | `bun run format`          | Apply Prettier and ESLint fixes                             |
 | `bun run doctor`          | Additional React diagnostics; inspect findings individually |
@@ -80,7 +91,7 @@ public/                   Icons and static assets
 | `bun run cf-typegen`      | Regenerate Cloudflare binding types                         |
 | `bun run icons`           | Render PNG app icons from `public/favicon.svg`              |
 
-CI runs formatting, lint, type checking, tests, and the production build. Tests use `fake-indexeddb`; editor-session tests exercise independent database connections, remote edits, undo history, and restore rollback. Browser checks still need a reproducible harness.
+CI runs formatting, lint, unused-code checks, type checking, tests, and the production build. Tests use `fake-indexeddb`; editor-session tests exercise independent database connections, remote edits, undo history, and restore rollback. Browser checks still need a reproducible harness.
 
 ## Conventions
 

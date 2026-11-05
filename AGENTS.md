@@ -25,7 +25,7 @@ Website template: TanStack Start on Cloudflare Workers, shadcn/ui, Tailwind v4, 
 
 ## Checks
 
-Before committing, run `bun run check`, `bun run lint`, `bun run typecheck` and `bun run test`. CI runs the same checks plus `bun run build`.
+Before committing, run `bun run check`, `bun run lint`, `bun run knip`, `bun run typecheck` and `bun run test`. CI runs the same checks plus `bun run build`. Knip fails on unused files, exports and dependencies: delete dead code rather than silencing it, and only add to `knip.json` for files used outside the import graph.
 
 ## Git
 
@@ -37,7 +37,7 @@ A task is not done until every step below is complete. Do them yourself, without
 
 1. Bump `version` in `package.json` (major/minor/patch as above).
 2. Add the matching `## [x.y.z] - YYYY-MM-DD` entry at the top of `CHANGELOG.md`, with today's date. If the change is visible, add its changelog preview (see Versioning) and check it in light and dark.
-3. Run `bun run check`, `bun run lint`, `bun run typecheck` and `bun run test`; fix anything that fails.
+3. Run `bun run check`, `bun run lint`, `bun run knip`, `bun run typecheck` and `bun run test`; fix anything that fails.
 4. Commit only the files for this task with a concise imperative subject (≤72 chars) and a body explaining what changed and why.
 5. `git push origin main`. If the pre-push hook fails, fix the cause, amend or add a commit (with its own version and changelog entry), and push again.
 6. In your final message, report the new version, the commit hash and whether the push and deploy succeeded.

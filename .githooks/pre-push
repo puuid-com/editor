@@ -17,7 +17,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   fi
 
   echo "pre-push: running CI checks..."
-  for task in check lint typecheck test; do
+  for task in check lint knip typecheck test; do
     bun run "$task" || { echo "pre-push: $task failed, push aborted." >&2; exit 1; }
   done
 
