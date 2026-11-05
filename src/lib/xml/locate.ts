@@ -103,11 +103,13 @@ const SKIPPED = '[...]'
 type Step = { name: string; pos: number; items: string }
 
 /**
- * Short labels telling apart elements of the same name by showing only where
- * their paths differ: `ShipmentLine[2]`, `ShipFrom`, or `Line[2]/[...]` when
- * layers shared by all of them sit between that and the element. A JSON
- * array entry goes on its key, as in `lines[0]`; `isItem` says which paths
- * are array entries.
+ * Short labels telling apart elements of the same name. Each names only the
+ * steps where its path branches off from the others, such as
+ * `ShipmentLine[2]` or `ShipFrom`, then drops unindexed ones (containers like
+ * `ShipmentLines`) the label doesn't need, so a repeated element's index
+ * wins. `[...]` stands for layers skipped between steps or before the
+ * element. A JSON array entry goes on its key, as in `lines[0]`; `isItem`
+ * says which paths are array entries.
  */
 export function occurrenceLabels(
   paths: ReadonlyArray<string>,
@@ -116,49 +118,59 @@ export function occurrenceLabels(
   if (paths.length === 0) return []
   const all = paths.map((path) => pathSteps(path, isItem))
   const keys = all.map((steps) => steps.map(stepKey))
-  const shortest = Math.min(...keys.map((parts) => parts.length))
-  const same = (at: (parts: Array<string>) => string | undefined) =>
-    keys.every((parts) => at(parts) === at(keys[0]))
-  let prefix = 0
-  while (prefix < shortest && same((parts) => parts[prefix])) prefix++
-  let suffix = 0
-  while (prefix + suffix < shortest && same((parts) => parts.at(-1 - suffix)))
-    suffix++
-  // A name seen at a later position keeps its `[1]` too.
+  // A name seen at a later position is repeated, so its `[1]` counts too.
   const later = new Set(
     all
       .flat()
       .filter((step) => step.pos > 1)
       .map((step) => step.name),
   )
+  const indexed = (step: Step) =>
+    step.items !== '' ||
+    step.pos > 1 ||
+    (step.pos === 1 && later.has(step.name))
   const show = (step: Step) =>
     decodeSegment(step.name) +
-    (step.pos > 1 || (step.pos === 1 && later.has(step.name))
+    (step.pos > 0 && indexed(step) && step.items === ''
       ? `[${step.pos}]`
       : '') +
     step.items
-  const middles = all.map((steps) => steps.slice(prefix, steps.length - suffix))
-  const aligned = middles.every((middle) => middle.length === middles[0].length)
+  // Whether no other path holds these steps of path `i`, in order.
+  const unique = (i: number, shown: Array<number>) =>
+    keys.every(
+      (other, j) =>
+        j === i ||
+        !holdsInOrder(
+          other,
+          shown.map((at) => keys[i][at]),
+        ),
+    )
 
   const labels = all.map((steps, i) => {
-    const middle = middles[i]
-    const parts: Array<string> = []
-    let last: number
-    if (middle.length === 0) {
-      // Sits higher than the others: name the last step they share.
-      last = Math.max(prefix - 1, 0)
-      parts.push(show(steps[last]))
-    } else {
-      last = prefix + middle.length - 1
-      middle.forEach((step, at) => {
-        const shared =
-          aligned &&
-          middles.every((other) => stepKey(other[at]) === stepKey(step))
-        if (!shared) parts.push(show(step))
-        else if (parts.at(-1) !== SKIPPED) parts.push(SKIPPED)
-      })
+    const own = keys[i]
+    const leaf = own.length - 1
+    // Where this path branches off from the others that share its start.
+    let shown: Array<number> = []
+    let group = keys
+    own.forEach((key, at) => {
+      if (new Set(group.map((other) => other[at])).size > 1) shown.push(at)
+      group = group.filter((other) => other[at] === key)
+    })
+    // The element's own name says nothing unless it has a position.
+    if (shown.at(-1) === leaf && !indexed(steps[leaf]) && leaf > 0) {
+      shown = [...new Set([...shown.slice(0, -1), leaf - 1])]
     }
-    if (last < steps.length - 2) parts.push(SKIPPED)
+    for (const at of [...shown]) {
+      if (indexed(steps[at])) continue
+      const rest = shown.filter((other) => other !== at)
+      if (rest.length > 0 && unique(i, rest)) shown = rest
+    }
+    const parts: Array<string> = []
+    shown.forEach((at, n) => {
+      if (n > 0 && at > shown[n - 1] + 1) parts.push(SKIPPED)
+      parts.push(show(steps[at]))
+    })
+    if ((shown.at(-1) ?? leaf) < leaf - 1) parts.push(SKIPPED)
     return parts.join('/')
   })
   // Unusual shapes can still collide; fall back to the whole parent path.
@@ -167,6 +179,16 @@ export function occurrenceLabels(
       ? label
       : displayPath(paths[i]).slice(0, -1).join('/'),
   )
+}
+
+function holdsInOrder(path: Array<string>, wanted: Array<string>) {
+  let from = 0
+  for (const key of wanted) {
+    const found = path.indexOf(key, from)
+    if (found < 0) return false
+    from = found + 1
+  }
+  return true
 }
 
 function pathSteps(

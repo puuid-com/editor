@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [0.190.0] - 2026-11-04
+
+### Changed
+
+- A repeated pinned tag's occurrences are now labelled by the nearest repeated element above them, such as ShipmentLine[2] or Carton[1]/[...], even when they sit at different depths. Containers like ShipmentLines and Cartons are left out unless they're needed to tell occurrences apart.
+
 ## [0.189.0] - 2026-11-04
 
 ### Changed

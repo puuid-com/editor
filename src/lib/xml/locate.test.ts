@@ -39,9 +39,44 @@ describe('occurrenceLabels', () => {
       ]),
     ).toEqual([
       'Order[1]/[...]/Line[1]',
-      'Order[2]/[...]/Line[1]',
+      'Order[2]/[...]',
       'Order[1]/[...]/Line[2]',
     ])
+  })
+
+  it('names the nearest repeated element, not its container', () => {
+    expect(
+      occurrenceLabels([
+        '/ManifestShipment[1]/ShipmentLines[1]/ShipmentLine[1]/ItemNumber[1]',
+        '/ManifestShipment[1]/ShipmentLines[1]/ShipmentLine[2]/ItemNumber[1]',
+        '/ManifestShipment[1]/Cartons[1]/Carton[1]/Contents[1]/Item[1]/ItemNumber[1]',
+        '/ManifestShipment[1]/Cartons[1]/Carton[2]/Contents[1]/Item[1]/ItemNumber[1]',
+      ]),
+    ).toEqual([
+      'ShipmentLine[1]',
+      'ShipmentLine[2]',
+      'Carton[1]/[...]',
+      'Carton[2]/[...]',
+    ])
+  })
+
+  it('keeps a container when the index alone would match another', () => {
+    expect(
+      occurrenceLabels([
+        '/Root[1]/Lines[1]/Line[1]/Sku[1]',
+        '/Root[1]/Lines[1]/Line[2]/Sku[1]',
+        '/Root[1]/Credits[1]/Line[1]/Sku[1]',
+      ]),
+    ).toEqual(['Lines/Line[1]', 'Line[2]', 'Credits/[...]'])
+  })
+
+  it('names an unindexed branch when nothing below repeats', () => {
+    expect(
+      occurrenceLabels([
+        '/Root[1]/Lines[1]/Line[1]/Sku[1]',
+        '/Root[1]/Header[1]/Sku[1]',
+      ]),
+    ).toEqual(['Lines/[...]', 'Header'])
   })
 
   it('puts a JSON array index on its key', () => {

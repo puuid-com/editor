@@ -1353,21 +1353,21 @@ function PinOccurrenceTree({
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 bg-muted/20 px-3 py-3 font-mono text-[11px]">
       <span className="font-medium text-syntax-tag">{tag}</span>
-      <span className="px-1.5 font-sans text-muted-foreground">
+      <span className="px-1.5 font-sans whitespace-nowrap text-muted-foreground">
         {m.pin_matches_count({ count: rows.length })}
       </span>
       {rows.map(([parent, value], i) => (
         <Fragment key={parent}>
           <span
             className={cn(
-              'relative flex h-6 items-center pl-4 text-[10px] text-muted-foreground',
+              'relative flex h-6 max-w-36 min-w-0 items-center pl-4 text-[10px] text-muted-foreground',
               'before:absolute before:-top-1 before:left-1 before:w-px before:bg-muted-foreground/40',
               'after:absolute after:top-1/2 after:left-1 after:h-px after:w-1.5 after:bg-muted-foreground/40',
               i === rows.length - 1 ? 'before:bottom-1/2' : 'before:bottom-0',
               i === 1 && 'font-semibold text-foreground',
             )}
           >
-            {parent}
+            <span className="truncate">{parent}</span>
           </span>
           <span className="flex h-6 min-w-0 items-center gap-1 rounded-md border bg-background pr-1 pl-1.5">
             <span className="flex-1 truncate">{value}</span>
@@ -1382,6 +1382,35 @@ function PinOccurrenceTree({
 function PinOccurrenceRail() {
   return (
     <BeforeAfter before={<PinOccurrence />} after={<PinOccurrenceTree />} />
+  )
+}
+
+function PinOccurrenceRepeated() {
+  return (
+    <BeforeAfter
+      before={
+        <PinOccurrenceTree
+          tag="ItemNumber"
+          rows={[
+            ['ShipmentLines/ShipmentLine[1]', 'SKU-10001'],
+            ['ShipmentLines/ShipmentLine[2]', 'SKU-10002'],
+            ['Cartons/Carton[1]/Contents/Item', 'SKU-10001'],
+            ['Cartons/Carton[2]/Contents/Item', 'SKU-10002'],
+          ]}
+        />
+      }
+      after={
+        <PinOccurrenceTree
+          tag="ItemNumber"
+          rows={[
+            ['ShipmentLine[1]', 'SKU-10001'],
+            ['ShipmentLine[2]', 'SKU-10002'],
+            ['Carton[1]/[...]', 'SKU-10001'],
+            ['Carton[2]/[...]', 'SKU-10002'],
+          ]}
+        />
+      }
+    />
   )
 }
 
@@ -2144,6 +2173,7 @@ function NoticeSlot() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '0.190.0': figure(PinOccurrenceRepeated),
   '0.189.0': figure(PinOccurrenceDiff),
   '0.188.0': figure(PinOccurrenceRail),
   '0.187.0': figure(FlatRecordsRuled),
