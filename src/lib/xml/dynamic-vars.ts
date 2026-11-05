@@ -6,7 +6,7 @@ import type { Faker } from '@faker-js/faker'
 // numbers and colors groups are supported so far.
 // https://learning.postman.com/docs/tests-and-scripts/write-scripts/variables-list
 
-export interface DynamicVarContext {
+interface DynamicVarContext {
   faker: Faker
   /** One clock for the whole run, so every timestamp agrees. */
   now: Date

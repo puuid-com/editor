@@ -45,7 +45,7 @@ export function pickBackup() {
   pickFile('.json,application/json', (file) => void readBackup(file))
 }
 
-export async function readBackup(file: File) {
+async function readBackup(file: File) {
   const { name } = file
   let text: string
   try {

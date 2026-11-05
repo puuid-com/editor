@@ -9,14 +9,13 @@ import { pinSchema, pinsCollection } from './pins'
 import { profileSchema, profilesCollection } from './profiles'
 import { claimWriter } from './session'
 import { variableSchema, variablesCollection } from './variables'
-import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Collection, IndexedDBCollectionUtils } from '@tanstack/react-db'
 
 // One JSON file with everything the editor keeps in IndexedDB, so a
 // workspace can move to another browser. Session state (active tab,
 // collapsed nodes) stays out: it belongs to a browser tab, not the workspace.
 
-export const BACKUP_APP = 'xml-editor'
+const BACKUP_APP = 'xml-editor'
 export const BACKUP_VERSION = 1
 
 const uniqueIds = <T extends { id: string }>(items: ReadonlyArray<T>) =>
@@ -103,14 +102,14 @@ export function backupCounts(backup: Backup) {
 
 type WorkspaceCollection<
   T extends { id: string },
-  TSchema extends StandardSchemaV1,
+  TSchema extends z.ZodType,
   TInput extends object,
 > = Collection<T, string, IndexedDBCollectionUtils<T>, TSchema, TInput>
 
 /** Makes `collection` hold exactly `items`, in one storage write. */
 async function replaceAll<
   T extends { id: string },
-  TSchema extends StandardSchemaV1,
+  TSchema extends z.ZodType,
   TInput extends object,
 >(
   collection: WorkspaceCollection<T, TSchema, TInput>,
@@ -150,7 +149,7 @@ async function replaceAll<
  */
 function replacement<
   T extends { id: string },
-  TSchema extends StandardSchemaV1,
+  TSchema extends z.ZodType,
   TInput extends object,
 >(
   collection: WorkspaceCollection<T, TSchema, TInput>,

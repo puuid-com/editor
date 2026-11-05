@@ -28,9 +28,9 @@ const KIND_WEIGHTS: Record<string, number> = {
 }
 
 /** Lowest score that counts as a match. */
-export const MIN_SCORE = 0.35
+const MIN_SCORE = 0.35
 /** How far the best profile has to lead the next one to be picked. */
-export const MIN_LEAD = 0.1
+const MIN_LEAD = 0.1
 
 function prefixOf(name: string) {
   const colon = name.indexOf(':')

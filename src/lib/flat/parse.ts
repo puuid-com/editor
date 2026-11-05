@@ -2,7 +2,7 @@
 // whose first field names its type (`SH|…`, `PC|…`), and fields are padded
 // with spaces to fixed widths. Offsets match CodeMirror's, like the XML model.
 
-export interface FlatField {
+interface FlatField {
   /** Without the padding. */
   value: string
   /** The value's range, or an empty range where a blank field starts. */

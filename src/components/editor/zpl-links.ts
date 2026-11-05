@@ -72,7 +72,7 @@ function elementText(state: EditorState, element: SyntaxNode) {
   return state.sliceDoc(open.to, close.from).replace(/<!\[CDATA\[|\]\]>/g, '')
 }
 
-export interface ZplLink {
+interface ZplLink {
   name: string
   url: string
   /** Where the link sits: after the opening tag, or before the JSON string. */

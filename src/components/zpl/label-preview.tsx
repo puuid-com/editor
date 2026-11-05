@@ -14,7 +14,7 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
-import { cn } from 'cn'
+import { cn } from '#/lib/utils'
 
 import { Button } from '#/components/ui/button'
 import {

@@ -13,7 +13,7 @@ import type { DecorationSet } from '@codemirror/view'
 // the document, search and save still see the full text.
 
 /** Characters kept visible at each end of a shortened value. */
-export const LONG_VALUE_EDGE = 16
+const LONG_VALUE_EDGE = 16
 
 /** Shortest value that is shortened, or 0 to show every value in full. */
 const limitFacet = Facet.define<number, number>({
@@ -32,7 +32,7 @@ const toggleValue = StateEffect.define<{ from: number; open: boolean }>({
   map: (value, changes) => ({ ...value, from: changes.mapPos(value.from) }),
 })
 
-export interface LongValue {
+interface LongValue {
   /** The value without surrounding whitespace, or the JSON string's quotes. */
   from: number
   to: number

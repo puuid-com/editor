@@ -85,7 +85,7 @@ export function Syn({ k, children }: { k: SyntaxTone; children: ReactNode }) {
   return <span style={{ color: `var(--syntax-${k})` }}>{children}</span>
 }
 
-export function VarChip({ children }: { children: ReactNode }) {
+function VarChip({ children }: { children: ReactNode }) {
   return <span className="var-chip">{children}</span>
 }
 
@@ -103,7 +103,7 @@ function text(value: string, key: number): ReactNode {
 }
 
 /** A one-line XML tokenizer coloured with the editor's syntax tokens. */
-export function xml(line: string): ReactNode[] {
+function xml(line: string): ReactNode[] {
   const out: ReactNode[] = []
   let rest = line
   let inTag = false

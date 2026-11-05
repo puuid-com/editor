@@ -15,7 +15,7 @@ export interface DefaultRule {
   value: string
 }
 
-export function isAttrKey(key: string) {
+function isAttrKey(key: string) {
   return key.startsWith('@')
 }
 
@@ -37,7 +37,7 @@ export function defaultIndex(rules: ReadonlyArray<DefaultRule>): DefaultIndex {
 }
 
 /** The default an element's value should have, if a rule covers it. */
-export function leafDefault(index: DefaultIndex, el: XmlElement) {
+function leafDefault(index: DefaultIndex, el: XmlElement) {
   if (!hasName(el) || !isLeaf(el)) return undefined
   return index.elements.get(localName(el.name))
 }

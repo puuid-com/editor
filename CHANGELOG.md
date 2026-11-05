@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.0.1] - 2026-11-04
+
+### Changed
+
+- Removed unused code: the parts of the vendored showcase kit the About page never used (brand logos, phone frames, charts and most motion components), an unused dev dependency, and exports nothing imported. Nothing visible changes.
+
 ## [1.0.0] - 2026-11-04
 
 ### Changed

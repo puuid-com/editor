@@ -148,9 +148,7 @@ export async function pickFromDisk() {
 }
 
 /** Opens files on disk in tabs linked to them. */
-export async function importHandles(
-  handles: ReadonlyArray<FileSystemFileHandle>,
-) {
+async function importHandles(handles: ReadonlyArray<FileSystemFileHandle>) {
   const fallback = activeProfileId()
   const guess = profileGuesser()
   let last: string | null = null

@@ -8,7 +8,7 @@ const VAR_OPEN = ''
 const VAR_CLOSE = ''
 
 /** Longest variable name accepted; keeps masking windows bounded. */
-export const VAR_MAX_NAME = 64
+const VAR_MAX_NAME = 64
 /** Longest possible `<<$name>>`, `{{$name}}` or `${$name}` sequence. */
 export const VAR_MAX_LENGTH = VAR_MAX_NAME + 5
 

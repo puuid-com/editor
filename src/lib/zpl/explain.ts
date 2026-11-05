@@ -13,7 +13,7 @@ export interface ExplainContext {
   dpi: number
 }
 
-export interface ParameterExplanation {
+interface ParameterExplanation {
   name: string
   /** As written, or null when left out. */
   value: string | null

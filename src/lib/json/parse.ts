@@ -35,7 +35,7 @@ export type JsonValue =
       value: string
     }
 
-export interface JsonMember {
+interface JsonMember {
   key: string
   /** The key with its quotes. */
   keyFrom: number

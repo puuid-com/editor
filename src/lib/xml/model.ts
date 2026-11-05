@@ -17,7 +17,7 @@ export type JsonType =
   | 'missing'
 
 /** Extra detail on elements that come from a JSON document. */
-export interface JsonInfo {
+interface JsonInfo {
   type: JsonType
   valueFrom: number
   valueTo: number
@@ -75,7 +75,7 @@ export interface XmlText {
   value: string
 }
 
-export interface XmlOther {
+interface XmlOther {
   kind: 'comment' | 'cdata' | 'pi' | 'doctype'
   from: number
   to: number

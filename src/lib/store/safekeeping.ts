@@ -14,7 +14,7 @@ interface SafekeepingState {
   lastReminderAt: number | null
 }
 
-export const safekeepingStore = persistedStore<SafekeepingState>(
+const safekeepingStore = persistedStore<SafekeepingState>(
   'safekeeping',
   () => localStorage,
   { firstUseAt: null, lastBackupAt: null, lastReminderAt: null },
@@ -46,7 +46,7 @@ export function daysSinceBackup(state: SafekeepingState, now: number) {
  * Asks the browser not to clear the workspace under storage pressure.
  * Chromium decides on its own; Firefox asks the person.
  */
-export async function persistStorage() {
+async function persistStorage() {
   try {
     if (await navigator.storage.persisted()) return true
     return await navigator.storage.persist()
