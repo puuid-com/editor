@@ -1347,13 +1347,23 @@ function PinOccurrenceTree({
     ['Line[2]', 'Washers'],
     ['Line[3]', 'Nuts'],
   ],
+  goTo,
 }: {
   tag?: string
   rows?: Array<[string, string]>
+  /** The tag name jumps to its occurrences; only its icon copies it. */
+  goTo?: boolean
 }) {
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 bg-muted/20 px-3 py-3 font-mono text-[11px]">
-      <span className="font-medium text-syntax-tag">{tag}</span>
+      {goTo ? (
+        <span className="flex items-center gap-1 font-medium text-syntax-tag">
+          <IconTag aria-hidden className="size-3 opacity-60" />
+          <span className="underline">{tag}</span>
+        </span>
+      ) : (
+        <span className="font-medium text-syntax-tag">{tag}</span>
+      )}
       <span className="px-1.5 font-sans whitespace-nowrap text-muted-foreground">
         {m.pin_matches_count({ count: rows.length })}
       </span>
@@ -1377,6 +1387,15 @@ function PinOccurrenceTree({
         </Fragment>
       ))}
     </div>
+  )
+}
+
+function PinTagGoTo() {
+  return (
+    <BeforeAfter
+      before={<PinOccurrenceTree />}
+      after={<PinOccurrenceTree goTo />}
+    />
   )
 }
 
@@ -2208,6 +2227,7 @@ function ProblemLanguage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.2.0': figure(PinTagGoTo),
   '1.1.0': figure(ProblemLanguage),
   '0.190.0': figure(PinOccurrenceRepeated),
   '0.189.0': figure(PinOccurrenceDiff),

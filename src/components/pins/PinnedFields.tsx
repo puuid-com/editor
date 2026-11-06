@@ -317,22 +317,36 @@ function PinnedField({
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={m.pin_copy_name({ name: tag })}
+          <div
             className={cn(
-              'group/tag flex min-h-11 max-w-44 min-w-0 cursor-pointer items-center gap-1 px-1 text-left font-mono text-xs font-medium focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:min-h-0',
+              'flex max-w-44 min-w-0 items-center font-mono text-xs font-medium',
               color ? 'hl-tag hl-ink' : 'text-syntax-tag',
             )}
             style={hlStyle(color)}
-            onClick={() => void copyText(tag, tag)}
           >
-            <IconTag
-              aria-hidden
-              className="size-3 shrink-0 opacity-60 group-hover/tag:opacity-100 group-focus-visible/tag:opacity-100"
-            />
-            <span className="truncate">{tag}</span>
-          </button>
+            <button
+              type="button"
+              aria-label={m.pin_copy_name({ name: tag })}
+              title={m.pin_copy_name({ name: tag })}
+              className="grid min-h-11 w-6 shrink-0 cursor-pointer place-items-center opacity-60 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:min-h-0 md:w-5"
+              onClick={() => void copyText(tag, tag)}
+            >
+              <IconTag aria-hidden className="size-3" />
+            </button>
+            <button
+              type="button"
+              aria-label={m.pin_reveal({ name: tag })}
+              disabled={matches.length === 0}
+              className="flex min-h-11 min-w-0 cursor-pointer items-center pr-1 text-left hover:underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-default disabled:no-underline md:min-h-0"
+              onClick={() => {
+                // Each click steps to the next occurrence, wrapping around.
+                const next = matches.at((current + 1) % matches.length)
+                if (next) revealElement(next.el)
+              }}
+            >
+              <span className="truncate">{tag}</span>
+            </button>
+          </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56">
           <TagMenuHeader tag={tag} />

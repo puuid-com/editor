@@ -158,6 +158,7 @@
   "pin_remove": "Désépingler <{name}>",
   "pin_copy": "Copier la valeur de <{name}>",
   "pin_copy_name": "Copier le nom de balise <{name}>",
+  "pin_reveal": "Aller à <{name}>",
   "zpl_mark": "Traiter <{name}> comme une étiquette ZPL",
   "zpl_unmark": "Ne plus traiter <{name}> comme une étiquette ZPL",
   "zpl_open": "Ouvrir l’étiquette côte à côte",

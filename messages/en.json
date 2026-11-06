@@ -158,6 +158,7 @@
   "pin_remove": "Unpin <{name}>",
   "pin_copy": "Copy <{name}> value",
   "pin_copy_name": "Copy the tag name <{name}>",
+  "pin_reveal": "Go to <{name}>",
   "zpl_mark": "Treat <{name}> as a ZPL label",
   "zpl_unmark": "Stop treating <{name}> as a ZPL label",
   "zpl_open": "Open label side by side",

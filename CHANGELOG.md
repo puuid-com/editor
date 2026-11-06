@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.2.0] - 2026-11-05
+
+### Changed
+
+- Clicking a pinned tag's name now jumps to it in the editor. When it appears more than once, each click moves to the next one, wrapping back to the first.
+- Only the tag icon next to a pinned tag's name copies the name now.
+
 ## [1.1.6] - 2026-11-04
 
 ### Changed
