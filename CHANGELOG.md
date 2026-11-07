@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.4.0] - 2026-11-07
+
+### Added
+
+- Markdown files (`.md`, `.markdown`). The side panel shows a live preview that follows the editor as you type and scroll, with highlighted code blocks, tables, task lists and Mermaid diagrams.
+- "New Markdown file" in the command menu and on the welcome screen. Pasting text that starts with a `#` heading into an empty file makes it Markdown.
+
 ## [1.3.0] - 2026-11-06
 
 ### Added

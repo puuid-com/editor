@@ -63,7 +63,7 @@ import { namesParent, treeChanged } from './syntax'
 import { tagHighlights } from './tag-highlights'
 import { wordWrap } from './word-wrap'
 import { editorTheme } from './theme'
-import { parseDocument } from '#/lib/document'
+import { isPlain, parseDocument } from '#/lib/document'
 import { defaultMatches } from '#/lib/xml/defaults'
 import { varName, varRegExp } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
@@ -99,9 +99,9 @@ const varDecorator = new MatchDecorator({
   },
 })
 
-// SQL is only formatted, so `<<` there is just an operator.
+// SQL, ZPL and Markdown have no variables, so `<<` there is just text.
 function varMarks(view: EditorView) {
-  return ['sql', 'zpl'].includes(view.state.facet(docLanguage))
+  return isPlain(view.state.facet(docLanguage))
     ? Decoration.none
     : varDecorator.createDeco(view)
 }
@@ -114,7 +114,7 @@ const varHighlighter = ViewPlugin.fromClass(
     }
     update(update: ViewUpdate) {
       const language = update.state.facet(docLanguage)
-      this.decorations = ['sql', 'zpl'].includes(language)
+      this.decorations = isPlain(language)
         ? Decoration.none
         : update.startState.facet(varValuesFacet) ===
               update.state.facet(varValuesFacet) &&

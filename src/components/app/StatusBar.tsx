@@ -26,6 +26,7 @@ import { Separator } from '#/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { useFileEmpty } from '#/hooks/use-files'
 import { useActiveProfile } from '#/hooks/use-profiles'
+import { isPlain } from '#/lib/document'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
 
@@ -41,13 +42,15 @@ export function StatusBar() {
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
-  // SQL is only formatted: no highlights, profiles, defaults or variables.
+  // SQL, ZPL and Markdown have no highlights, profiles, defaults or
+  // variables; SQL can still be formatted.
+  const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
   const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
   const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
-      {typed && !sql && !zpl && <HighlightsBar />}
+      {typed && !plain && <HighlightsBar />}
       <StatusNotice />
       {typed && sql && (
         <>
@@ -60,7 +63,7 @@ export function StatusBar() {
           />
         </>
       )}
-      {typed && !sql && !zpl && (
+      {typed && !plain && (
         <>
           <ActionBar />
           <SettingsPopover />

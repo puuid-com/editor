@@ -24,6 +24,7 @@ import {
   IconSearch,
   IconTrash,
   IconUserCircle,
+  IconMarkdown,
   IconVariable,
 } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
@@ -32,7 +33,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { FileIcon } from './FileIcon'
-import { newFile, newJsonFile, newZplFile } from './files'
+import { newFile, newJsonFile, newMarkdownFile, newZplFile } from './files'
 import { readLastCommand, saveLastCommand } from './last-command'
 import {
   askDeleteProfile,
@@ -89,6 +90,7 @@ import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
 import { toggleWordWrap } from '#/components/editor/word-wrap'
 import { m } from '#/paraglide/messages'
+import { isPlain } from '#/lib/document'
 import type { DocLanguage } from '#/lib/document'
 
 /** Centered palette of files and actions, opened with ⌘K or the logo. */
@@ -465,10 +467,8 @@ function CurrentFile({
 function Edit({ run }: { run: Run }) {
   // Read as the menu opens; nothing edits the file while it is open.
   const [depth] = useState(historyDepth)
-  // SQL and ZPL files have no tags, defaults or variables to act on.
-  const formatOnly = useSelector(editorStore, (s) =>
-    ['sql', 'zpl'].includes(s.doc.language),
-  )
+  // SQL, ZPL and Markdown files have no tags, defaults or variables to act on.
+  const formatOnly = useSelector(editorStore, (s) => isPlain(s.doc.language))
   return (
     <>
       <CommandSeparator />
@@ -638,6 +638,10 @@ function Workspace({
           <CommandShortcut>
             {shortcutLabel(shortcuts.newJsonFile)}
           </CommandShortcut>
+        </CommandItem>
+        <CommandItem onSelect={() => run(newMarkdownFile)}>
+          <IconMarkdown />
+          {m.file_new_md()}
         </CommandItem>
         <CommandItem onSelect={() => run(onOpenFromDisk)}>
           <IconFolderOpen />

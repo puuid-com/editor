@@ -885,5 +885,11 @@
   "parse_json_expected_colon": "« : » attendu",
   "parse_json_not_closed": "« {bracket} » n’est pas fermé",
   "parse_json_trailing_comma": "Virgule finale en trop",
-  "parse_json_expected_separator": "« , » ou « {end} » attendu"
+  "parse_json_expected_separator": "« , » ou « {end} » attendu",
+  "paste_type_md": "Markdown",
+  "file_new_md": "Nouveau fichier Markdown",
+  "file_untitled_md": "sans-titre.md",
+  "md_preview": "Aperçu Markdown",
+  "md_diagram": "Diagramme",
+  "md_diagram_error": "Erreur de diagramme : {message}"
 }

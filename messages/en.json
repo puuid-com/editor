@@ -885,5 +885,11 @@
   "parse_json_expected_colon": "Expected \":\"",
   "parse_json_not_closed": "\"{bracket}\" is not closed",
   "parse_json_trailing_comma": "Trailing comma",
-  "parse_json_expected_separator": "Expected \",\" or \"{end}\""
+  "parse_json_expected_separator": "Expected \",\" or \"{end}\"",
+  "paste_type_md": "Markdown",
+  "file_new_md": "New Markdown file",
+  "file_untitled_md": "untitled.md",
+  "md_preview": "Markdown preview",
+  "md_diagram": "Diagram",
+  "md_diagram_error": "Diagram error: {message}"
 }

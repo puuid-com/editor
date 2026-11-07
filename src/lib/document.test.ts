@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { detectLanguage, typedName, untypedName } from './document'
+import {
+  detectLanguage,
+  isPlain,
+  languageOf,
+  typedName,
+  untypedName,
+} from './document'
 
 describe('detectLanguage', () => {
   it('reads XML, JSON and flat files from their content', () => {
@@ -17,6 +23,12 @@ describe('detectLanguage', () => {
     expect(detectLanguage('selection')).toBeNull()
   })
 
+  it('reads Markdown from a leading heading', () => {
+    expect(detectLanguage('# Notes\n\nSome text')).toBe('md')
+    expect(detectLanguage('\n### Setup')).toBe('md')
+    expect(detectLanguage('#hashtag')).toBeNull()
+  })
+
   it('gives up on content with nothing to go by', () => {
     expect(detectLanguage('hello')).toBeNull()
     expect(detectLanguage('')).toBeNull()
@@ -28,11 +40,12 @@ describe('untypedName', () => {
     expect(untypedName('invoice.xml')).toBe('invoice')
     expect(untypedName('data.JSON')).toBe('data')
     expect(untypedName('records.txt')).toBe('records')
+    expect(untypedName('notes.md')).toBe('notes')
   })
 
   it('keeps names without a type extension', () => {
     expect(untypedName('untitled')).toBe('untitled')
-    expect(untypedName('notes.md')).toBe('notes.md')
+    expect(untypedName('notes.txt.bak')).toBe('notes.txt.bak')
     expect(untypedName('.xml')).toBe('.xml')
   })
 })
@@ -42,11 +55,34 @@ describe('typedName', () => {
     expect(typedName('untitled', 'xml')).toBe('untitled.xml')
     expect(typedName('invoice.xml', 'json')).toBe('invoice.json')
     expect(typedName('data.json', 'flat')).toBe('data.txt')
+    expect(typedName('untitled', 'md')).toBe('untitled.md')
   })
 
   it('keeps an extension that already reads as the type', () => {
     expect(typedName('icon.svg', 'xml')).toBe('icon.svg')
     expect(typedName('site.webmanifest', 'json')).toBe('site.webmanifest')
     expect(typedName('batch.dat', 'flat')).toBe('batch.dat')
+  })
+})
+
+describe('languageOf', () => {
+  it('reads Markdown by extension, whatever the content', () => {
+    expect(languageOf('README.md', '<div>hi</div>')).toBe('md')
+    expect(languageOf('guide.markdown', '')).toBe('md')
+  })
+
+  it('reads an untitled file that starts with a heading as Markdown', () => {
+    expect(languageOf('untitled', '# Title')).toBe('md')
+  })
+})
+
+describe('isPlain', () => {
+  it('marks the types with no elements to act on', () => {
+    expect(isPlain('md')).toBe(true)
+    expect(isPlain('sql')).toBe(true)
+    expect(isPlain('zpl')).toBe(true)
+    expect(isPlain('xml')).toBe(false)
+    expect(isPlain('json')).toBe(false)
+    expect(isPlain('flat')).toBe(false)
   })
 })

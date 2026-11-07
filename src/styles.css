@@ -346,6 +346,53 @@
   color: oklch(from var(--hl) var(--hl-ink-l) c h);
 }
 
+/*
+ * Code in the Markdown preview, coloured by the same roles as the SQL editor
+ * so every code block reads alike. Classes come from TanStack Highlight.
+ */
+.md-preview pre code {
+  font-size: 12px;
+  line-height: 1.6;
+}
+/* A task list item shows its checkbox, not a bullet as well. */
+.md-preview li:has(> input[type='checkbox']) {
+  list-style: none;
+}
+.md-preview :is(.th-keyword, .th-command) {
+  color: var(--sql-keyword);
+}
+.md-preview :is(.th-function, .th-selector) {
+  color: var(--sql-function);
+}
+.md-preview .th-string {
+  color: var(--sql-string);
+}
+.md-preview :is(.th-number, .th-literal) {
+  color: var(--sql-number);
+}
+.md-preview .th-comment {
+  color: var(--sql-comment);
+  font-style: italic;
+}
+.md-preview :is(.th-type, .th-tag) {
+  color: var(--sql-table);
+}
+.md-preview :is(.th-attr, .th-property, .th-variable) {
+  color: var(--sql-alias);
+}
+.md-preview :is(.th-operator, .th-meta) {
+  color: var(--sql-operator);
+}
+.md-preview .th-inserted {
+  color: var(--sql-comment);
+}
+.md-preview .th-deleted {
+  color: var(--destructive);
+}
+.md-preview .th-heading {
+  font-weight: 600;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

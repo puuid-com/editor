@@ -1,6 +1,11 @@
-import { IconFilePlus, IconFolderOpen, IconJson } from '@tabler/icons-react'
+import {
+  IconFilePlus,
+  IconFolderOpen,
+  IconJson,
+  IconMarkdown,
+} from '@tabler/icons-react'
 
-import { newFile, newJsonFile, newZplFile } from './files'
+import { newFile, newJsonFile, newMarkdownFile, newZplFile } from './files'
 import { Button } from '#/components/ui/button'
 import {
   Empty,
@@ -99,6 +104,10 @@ export function Welcome({ onOpenFromDisk }: { onOpenFromDisk: () => void }) {
           <Button variant="outline" onClick={newJsonFile}>
             <IconJson />
             {m.file_new_json()}
+          </Button>
+          <Button variant="outline" onClick={newMarkdownFile}>
+            <IconMarkdown />
+            {m.file_new_md()}
           </Button>
           <Button variant="outline" onClick={onOpenFromDisk}>
             <IconFolderOpen />

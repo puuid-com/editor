@@ -1427,6 +1427,71 @@ function DollarWrappedVars() {
   )
 }
 
+const NOTES = [
+  '# Release',
+  '',
+  'Ships **today**.',
+  '',
+  '```mermaid',
+  'graph LR',
+  '  Edit --> Ship',
+  '```',
+]
+
+/** A Markdown line as the editor colours it: markup steps back. */
+function markdownLine(line: string): ReactNode {
+  const heading = /^(#+ )(.*)$/.exec(line)
+  if (heading)
+    return (
+      <>
+        <Syn k="comment">{heading[1]}</Syn>
+        <span className="font-semibold text-(--syntax-tag)">{heading[2]}</span>
+      </>
+    )
+  const strong = /^(.*)\*\*(.+)\*\*(.*)$/.exec(line)
+  if (strong)
+    return (
+      <>
+        {strong[1]}
+        <Syn k="comment">**</Syn>
+        <span className="font-semibold">{strong[2]}</span>
+        <Syn k="comment">**</Syn>
+        {strong[3]}
+      </>
+    )
+  return line.startsWith('```') ? <Syn k="comment">{line}</Syn> : line
+}
+
+function DiagramBox({ children }: { children: ReactNode }) {
+  return (
+    <span className="border bg-muted/40 px-2 py-1 text-[10px]">{children}</span>
+  )
+}
+
+function MarkdownPreview() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab name="release.md" active />
+      </Tabs>
+      <div className="grid grid-cols-2 divide-x">
+        <Code lines={NOTES} format={markdownLine} />
+        <div className="grid content-start gap-2 p-3">
+          <span className="text-sm font-semibold tracking-tight">Release</span>
+          <span>
+            Ships <strong className="font-semibold">today</strong>.
+          </span>
+          <div className="flex items-center justify-center gap-1.5 border p-3 text-muted-foreground">
+            <DiagramBox>Edit</DiagramBox>
+            <span aria-hidden>→</span>
+            <DiagramBox>Ship</DiagramBox>
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 function PinTagGoTo() {
   return (
     <BeforeAfter
@@ -2264,6 +2329,7 @@ function ProblemLanguage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.4.0': figure(MarkdownPreview),
   '1.3.0': figure(DollarWrappedVars),
   '1.2.0': figure(PinTagGoTo),
   '1.1.0': figure(ProblemLanguage),

@@ -34,6 +34,7 @@ import {
   MIME_TYPES,
   documentDefaults,
   formatDocument,
+  isPlain,
   languageOf,
   typedName,
 } from '#/lib/document'
@@ -118,7 +119,7 @@ export function formatActive() {
 /** Asks to confirm the enabled default values that would change the active file. */
 export function applyDefaultsActive() {
   const view = getView()
-  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return true
+  if (!view || isPlain(activeLanguage())) return true
   const rules = enabledDefaults()
   if (rules.length === 0) {
     notify.info(m.defaults_none())
@@ -150,7 +151,7 @@ export function commitDefaultsActive() {
  * confirm before the file is changed.
  */
 export function resolveVarsActive() {
-  if (!getView() || ['sql', 'zpl'].includes(activeLanguage())) return true
+  if (!getView() || isPlain(activeLanguage())) return true
   // Faker is large and only needed here, so it loads on first use.
   void import('@faker-js/faker').then(({ faker }) => {
     const { fileId } = editorStore.state
@@ -215,7 +216,7 @@ export function commitVarsPreview({
 /** Rewrites every variable in the active file in `style`, as one undo step. */
 export function convertVarsActive(style: VarStyle) {
   const view = getView()
-  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return
+  if (!view || isPlain(activeLanguage())) return
   const text = view.state.doc.toString()
   const result = convertVars(text, style)
   if (result.count === 0) {
@@ -264,7 +265,7 @@ function tagAtCursor(view: EditorView) {
 /** Opens the colour picker for the tag at the cursor. */
 export function highlightAtCursor() {
   const view = getView()
-  if (!view || ['sql', 'zpl'].includes(activeLanguage())) return true
+  if (!view || isPlain(activeLanguage())) return true
   const tag = tagAtCursor(view)
   const coords = tag && view.coordsAtPos(tag.at)
   if (!tag || !coords) {

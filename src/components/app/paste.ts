@@ -13,8 +13,9 @@ export function askPasteChoice(fileId: string, text: string) {
   const file = filesCollection.get(fileId)
   if (!file) return
   const detected = detectLanguage(text)
-  if (detected === 'zpl') {
-    void setFileType(fileId, 'zpl')
+  // Labels and Markdown have no profile to pick, so nothing to ask.
+  if (detected === 'zpl' || detected === 'md') {
+    void setFileType(fileId, detected)
     return
   }
   const language = detected ?? languageOf(file.name, text)

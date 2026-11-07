@@ -5,6 +5,7 @@ import { Language, LanguageSupport } from '@codemirror/language'
 import { Compartment, Facet } from '@codemirror/state'
 import { Parser } from '@lezer/common'
 
+import { markdownSupport } from '#/components/markdown/md-language'
 import { zplHelpCompartment } from '#/components/zpl/editor-support'
 import { zpl, zplHelp } from '#/components/zpl/zpl-language'
 import { sqlHighlight } from './sql-highlight'
@@ -95,6 +96,7 @@ const SUPPORT: Record<DocLanguage, Extension> = {
   flat: [],
   sql: sqlSupport,
   zpl: [zpl(), zplHelpCompartment.of(zplHelp({ dpi: 203, explain: true }))],
+  md: markdownSupport(),
 }
 
 /** The language of the file in this editor state. */

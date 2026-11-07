@@ -42,7 +42,7 @@ export function AppHeader({
   first,
   last,
   wide,
-  structured,
+  hasPanel,
   actions,
   menuItems,
 }: {
@@ -57,7 +57,8 @@ export function AppHeader({
   /** The rightmost pane on screen. */
   last: boolean
   wide: boolean
-  structured: boolean
+  /** Whether the file type has a side panel to toggle. */
+  hasPanel: boolean
   /** The file type's own actions, before the split and ⋯ buttons. */
   actions?: React.ReactNode
   /** The file type's own entries at the end of the ⋯ menu. */
@@ -162,7 +163,7 @@ export function AppHeader({
           <DropdownMenuItem onSelect={() => askRename(fileId)}>
             {m.file_rename()}
           </DropdownMenuItem>
-          {structured && (
+          {hasPanel && (
             <DropdownMenuCheckboxItem
               checked={panelOpen}
               onCheckedChange={setPanelOpen}

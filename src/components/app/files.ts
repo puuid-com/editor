@@ -12,7 +12,7 @@ import { SAMPLE_LABEL } from '#/components/zpl/sample-label'
 
 const NEW_JSON_CONTENT = '{\n  \n}\n'
 
-const { xml, json, flat, sql, zpl } = LANGUAGE_EXTENSIONS
+const { xml, json, flat, sql, zpl, md } = LANGUAGE_EXTENSIONS
 
 const STRUCTURED_TYPES = [
   ...xml,
@@ -32,17 +32,20 @@ export const ACCEPTED_TYPES = [
   ...sql,
   ...zpl,
   'application/sql',
+  ...md,
+  'text/markdown',
 ].join(',')
 
 /** File types for the open picker, as the File System Access API wants them. */
 const PICKER_TYPES: Array<FilePickerAcceptType> = [
   {
-    description: 'XML, JSON, TXT, SQL, ZPL',
+    description: 'XML, JSON, TXT, SQL, ZPL, MD',
     accept: {
       'application/xml': [...xml],
       'application/json': [...json],
       'text/plain': [...flat, ...zpl],
       'application/sql': [...sql],
+      'text/markdown': [...md],
     },
   },
 ]
@@ -122,6 +125,8 @@ export const newJsonFile = () =>
   openNew(m.file_untitled_json(), NEW_JSON_CONTENT)
 
 export const newZplFile = () => openNew(m.file_untitled_zpl(), SAMPLE_LABEL)
+
+export const newMarkdownFile = () => openNew(m.file_untitled_md())
 
 /**
  * Creates tabs for opened files. A base64 label opens decoded, and each file

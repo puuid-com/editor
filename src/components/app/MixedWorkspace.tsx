@@ -28,6 +28,11 @@ const ZplMenuItems = lazy(() =>
     default: mod.ZplMenuItems,
   })),
 )
+const MarkdownPreview = lazy(() =>
+  import('#/components/markdown/MarkdownPreview').then((mod) => ({
+    default: mod.MarkdownPreview,
+  })),
+)
 const CompareView = lazy(() =>
   import('#/components/compare/CompareView').then((mod) => ({
     default: mod.CompareView,
@@ -101,12 +106,10 @@ function FilePane({
   const language = languageOf(file?.name ?? '', file?.content ?? '')
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const files = useOpenFiles()
-  const showStructure =
-    active &&
-    panelOpen &&
-    language !== 'zpl' &&
-    language !== 'sql' &&
-    !!file?.content
+  // ZPL has its own label preview and SQL has nothing to show beside it.
+  const hasPanel = language !== 'zpl' && language !== 'sql'
+  const showPanel = active && panelOpen && hasPanel && !!file?.content
+  const markdown = language === 'md'
   return (
     <section
       aria-label={file?.name}
@@ -135,7 +138,7 @@ function FilePane({
         first={first}
         last={last}
         wide={wide}
-        structured={language !== 'zpl' && language !== 'sql'}
+        hasPanel={hasPanel}
         actions={
           language === 'zpl' && (
             <Suspense>
@@ -179,17 +182,27 @@ function FilePane({
               )}
             </Suspense>
           </ResizablePanel>
-          {showStructure && (
+          {showPanel && (
             <>
               <ResizableHandle />
-              <ResizablePanel
-                id="structure"
-                defaultSize="36%"
-                minSize="20%"
-                className="bg-muted/20"
-              >
-                <SidePanel />
-              </ResizablePanel>
+              {/* Markdown gets a live preview, every other type its
+                  structure. */}
+              {markdown ? (
+                <ResizablePanel id="preview" defaultSize="50%" minSize="20%">
+                  <Suspense>
+                    <MarkdownPreview fileId={fileId} />
+                  </Suspense>
+                </ResizablePanel>
+              ) : (
+                <ResizablePanel
+                  id="structure"
+                  defaultSize="36%"
+                  minSize="20%"
+                  className="bg-muted/20"
+                >
+                  <SidePanel />
+                </ResizablePanel>
+              )}
             </>
           )}
         </ResizablePanelGroup>

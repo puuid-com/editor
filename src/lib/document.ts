@@ -39,6 +39,7 @@ export const LANGUAGE_EXTENSIONS = {
   flat: ['.txt', '.dat'],
   sql: ['.sql', '.ddl', '.dml'],
   zpl: ['.zpl'],
+  md: ['.md', '.markdown'],
 } as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
 
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
@@ -51,6 +52,8 @@ const EXT = Object.fromEntries(
   ]),
 ) as Record<DocLanguage, RegExp>
 const ZPL_START = /^\s*[\^~][A-Z][A-Z0-9@]/i
+// A heading on the first line that has text.
+const MD_START = /^\s*#{1,6}[ \t]+\S/
 // A statement keyword first, after any leading comments.
 const SQL_START =
   /^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*(select|with|insert|update|delete|merge|create|alter|drop|truncate)\b/i
@@ -59,11 +62,12 @@ const SQL_START =
 export function languageOf(name: string, content: string): DocLanguage {
   // A flat file is never valid XML or JSON, so its content beats the name.
   if (isFlatFile(content)) return 'flat'
-  for (const language of ['zpl', 'json', 'xml', 'sql'] as const) {
+  for (const language of ['zpl', 'json', 'xml', 'sql', 'md'] as const) {
     if (EXT[language].test(name)) return language
   }
   if (ZPL_START.test(content)) return 'zpl'
   if (SQL_START.test(content)) return 'sql'
+  if (MD_START.test(content)) return 'md'
   return /^\s*[[{]/.test(content) ? 'json' : 'xml'
 }
 
@@ -74,6 +78,7 @@ export function detectLanguage(content: string): DocLanguage | null {
   if (/^\s*</.test(content)) return 'xml'
   if (ZPL_START.test(content)) return 'zpl'
   if (SQL_START.test(content)) return 'sql'
+  if (MD_START.test(content)) return 'md'
   return null
 }
 
@@ -93,11 +98,19 @@ export function typedName(name: string, language: DocLanguage) {
     : untypedName(name) + LANGUAGE_EXTENSIONS[language][0]
 }
 
+/**
+ * Languages with no elements: nothing to pin, highlight, fill in or give
+ * default values, so no profile settings apply either.
+ */
+export function isPlain(language: DocLanguage) {
+  return language === 'sql' || language === 'zpl' || language === 'md'
+}
+
 export function parseDocument(
   text: string,
   language: DocLanguage,
 ): XmlDocument {
-  if (language === 'flat' || language === 'sql' || language === 'zpl') {
+  if (language === 'flat' || isPlain(language)) {
     return {
       language,
       nodes: [],
@@ -114,8 +127,9 @@ export function formatDocument(
   language: DocLanguage,
   options: FormatOptions,
 ): FormatResult {
-  // Fixed-width fields are already aligned.
-  if (language === 'flat' || language === 'zpl') return { ok: true, text }
+  // Fixed-width fields are already aligned; Markdown is written as meant.
+  if (language === 'flat' || language === 'zpl' || language === 'md')
+    return { ok: true, text }
   if (language === 'sql') return { ok: true, text: formatSql(text) }
   return language === 'json'
     ? formatJson(text, options)
@@ -139,4 +153,5 @@ export const MIME_TYPES: Record<DocLanguage, string> = {
   flat: 'text/plain',
   sql: 'application/sql',
   zpl: 'application/octet-stream',
+  md: 'text/markdown',
 }

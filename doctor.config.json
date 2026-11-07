@@ -2,7 +2,11 @@
   "ignore": {
     "overrides": [
       {
-        "files": ["src/components/editor/**", "src/components/compare/**"],
+        "files": [
+          "src/components/editor/**",
+          "src/components/compare/**",
+          "src/components/markdown/md-language.ts"
+        ],
         "rules": ["react-doctor/prefer-dynamic-import"]
       }
     ]
