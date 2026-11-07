@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.6.2] - 2026-11-07
+
+### Fixed
+
+- The header no longer shows "Editor" twice. The site name already links to the editor, so the separate Editor link is gone.
+
 ## [1.6.1] - 2026-11-07
 
 ### Changed

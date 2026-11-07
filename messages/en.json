@@ -16,7 +16,6 @@
   "app_version": "v{version}",
   "app_version_label": "Version {version}, see the changelog",
   "changelog_title": "Changelog",
-  "nav_editor": "Editor",
   "file_new": "New file",
   "file_new_json": "New JSON file",
   "file_untitled": "untitled",
