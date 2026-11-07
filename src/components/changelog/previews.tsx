@@ -1390,6 +1390,43 @@ function PinOccurrenceTree({
   )
 }
 
+const DOLLAR_VARS = [
+  '<Order>',
+  '\t<Id>${$guid}</Id>',
+  '\t<Ref>${$stuff$}</Ref>',
+  '</Order>',
+]
+
+function DollarWrappedVars() {
+  return (
+    <BeforeAfter
+      before={
+        <Code
+          lines={DOLLAR_VARS.map((line, i) =>
+            i === 2 ? (
+              <>
+                {'\t'}
+                <Syn k="punct">{'<'}</Syn>
+                <Syn k="tag">Ref</Syn>
+                <Syn k="punct">{'>'}</Syn>
+                <span className="text-(--syntax-value) underline decoration-(--hl-red) decoration-wavy">
+                  {'${$stuff$}'}
+                </span>
+                <Syn k="punct">{'</'}</Syn>
+                <Syn k="tag">Ref</Syn>
+                <Syn k="punct">{'>'}</Syn>
+              </>
+            ) : (
+              line
+            ),
+          )}
+        />
+      }
+      after={<Code lines={DOLLAR_VARS} />}
+    />
+  )
+}
+
 function PinTagGoTo() {
   return (
     <BeforeAfter
@@ -2227,6 +2264,7 @@ function ProblemLanguage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.3.0': figure(DollarWrappedVars),
   '1.2.0': figure(PinTagGoTo),
   '1.1.0': figure(ProblemLanguage),
   '0.190.0': figure(PinOccurrenceRepeated),

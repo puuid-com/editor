@@ -89,10 +89,10 @@ function VarChip({ children }: { children: ReactNode }) {
   return <span className="var-chip">{children}</span>
 }
 
-/** A `<<name>>` variable or plain text, as the editor shows text content. */
+/** A `<<name>>` or `${name}` variable or plain text, as the editor shows it. */
 function text(value: string, key: number): ReactNode {
-  return value.split(/(<<[\w$]+>>)/).map((part, i) =>
-    /^<<[\w$]+>>$/.test(part) ? (
+  return value.split(/(<<[\w$]+>>|\$\{[\w$]+\})/).map((part, i) =>
+    /^(?:<<[\w$]+>>|\$\{[\w$]+\})$/.test(part) ? (
       <VarChip key={`${key}-${i}`}>{part}</VarChip>
     ) : (
       <Syn key={`${key}-${i}`} k="value">

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.3.0] - 2026-11-06
+
+### Added
+
+- `${…}` variables also accept a name wrapped in dollars, such as `${$stuff$}`. They're highlighted, filled from the profile and no longer flagged as invalid. Switching to `<<…>>` or `{{…}}` leaves them as written.
+
 ## [1.2.0] - 2026-11-05
 
 ### Changed

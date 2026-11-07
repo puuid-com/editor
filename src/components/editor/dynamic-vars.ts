@@ -116,7 +116,9 @@ function varCompletions(context: CompletionContext): CompletionResult | null {
   const from = before.from + 2 + before.text.slice(2).search(/[$\w]|$/)
   // Completing inside an existing `<<$name>>` replaces the rest of the name.
   const after = context.state.sliceDoc(context.pos, context.pos + 80)
-  const tail = /^[\w.-]*/.exec(after)?.[0] ?? ''
+  // In `${…}` that includes the closing `$` of a `${$name$}`.
+  const tail =
+    (closing === '}' ? /^[\w.-]*\$?/ : /^[\w.-]*/).exec(after)?.[0] ?? ''
   const close = new RegExp(`^\\s*${closing.replace(/[{}]/g, '\\$&')}`).exec(
     after.slice(tail.length),
   )

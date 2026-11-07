@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { convertVars, findVars, trimVar, varStyleOf, varStyles } from './vars'
+import {
+  convertVars,
+  findVarProblems,
+  findVars,
+  trimVar,
+  varStyleOf,
+  varStyles,
+} from './vars'
 
 describe('vars', () => {
   it('finds ${name} variables alongside the other styles', () => {
@@ -10,6 +17,23 @@ describe('vars', () => {
       'c',
       '$guid',
     ])
+  })
+
+  it('accepts ${$name$} only in the ${…} style', () => {
+    expect(findVars('<a>${$stuff$}</a><b>${ $x$ }</b>')).toEqual([
+      { name: '$stuff$', from: 3, to: 13 },
+      { name: '$x$', from: 20, to: 28 },
+    ])
+    expect(findVarProblems('<a>${$stuff$}</a>')).toEqual([])
+    expect(findVars('{{$stuff$}} <<$stuff$>>')).toEqual([])
+    expect(findVarProblems('<a>{{$stuff$}}</a>')).toHaveLength(1)
+  })
+
+  it('keeps ${$name$} as written when switching to another style', () => {
+    expect(convertVars('${$a$} ${b}', 'curly')).toEqual({
+      text: '${$a$} {{b}}',
+      count: 1,
+    })
   })
 
   it('trims ${ name } keeping its brackets', () => {

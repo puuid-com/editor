@@ -11,15 +11,17 @@ const VAR_CLOSE = ''
 
 /** Longest variable name accepted; keeps masking windows bounded. */
 const VAR_MAX_NAME = 64
-/** Longest possible `<<$name>>`, `{{$name}}` or `${$name}` sequence. */
+/** Longest possible `<<$name>>`, `{{$name}}` or `${$name$}` sequence. */
 export const VAR_MAX_LENGTH = VAR_MAX_NAME + 5
 
 // A leading `$` marks Postman's dynamic variables, such as `<<$randomInt>>`.
 const NAME = `\\$?[A-Za-z_][\\w.-]{0,${VAR_MAX_NAME - 1}}`
+// `${…}` also takes a name wrapped in dollars, such as `${$stuff$}`.
+const DOLLAR_NAME = `\\$[A-Za-z_][\\w.-]{0,${VAR_MAX_NAME - 1}}\\$|${NAME}`
 
 // The name is in group 1 for `<<name>>`, group 2 for `{{name}}` and group 3
 // for `${name}`.
-export const VAR_PATTERN = `<<\\s*(${NAME})\\s*>>|\\{\\{\\s*(${NAME})\\s*\\}\\}|\\$\\{\\s*(${NAME})\\s*\\}`
+export const VAR_PATTERN = `<<\\s*(${NAME})\\s*>>|\\{\\{\\s*(${NAME})\\s*\\}\\}|\\$\\{\\s*(${DOLLAR_NAME})\\s*\\}`
 
 export type VarStyle = 'angle' | 'curly' | 'dollar'
 
@@ -79,7 +81,8 @@ export function trimVar(whole: string): string {
 
 /**
  * Rewrites every variable in `style`, such as `{{host}}` as `<<host>>`.
- * Returns the new text and how many variables changed.
+ * Returns the new text and how many variables changed. `${$name$}` only
+ * exists in the `${…}` style, so it stays as written.
  */
 export function convertVars(
   text: string,
@@ -88,7 +91,9 @@ export function convertVars(
   let count = 0
   const converted = text.replace(varRegExp(), (...args) => {
     const whole: string = args[0]
-    const next = writeVar(varName(args as RegExpMatchArray), style)
+    const name = varName(args as RegExpMatchArray)
+    if (name.endsWith('$') && style !== 'dollar') return whole
+    const next = writeVar(name, style)
     if (next !== whole) count++
     return next
   })
