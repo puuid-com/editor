@@ -1,6 +1,8 @@
 import { useForm } from '@tanstack/react-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSelector } from '@tanstack/react-store'
 
+import { renameDiskFile } from './disk-workspace'
 import { askRename, uiStore } from './ui-store'
 import { Button } from '#/components/ui/button'
 import {
@@ -35,9 +37,19 @@ export function RenameDialog() {
 }
 
 function RenameForm({ id, name }: { id: string; name: string }) {
+  const queryClient = useQueryClient()
   const form = useForm({
     defaultValues: { name },
-    onSubmit: ({ value }) => {
+    onSubmit: async ({ value }) => {
+      // A file of a folder on disk is renamed there too.
+      if (filesCollection.get(id)?.location) {
+        if (await renameDiskFile(id, value.name)) {
+          askRename(null)
+          // The explorer lists the folder as read from disk.
+          await queryClient.invalidateQueries({ queryKey: ['disk'] })
+        }
+        return
+      }
       return renameFile(id, value.name)?.isPersisted.promise.then(
         () => askRename(null),
         () => {

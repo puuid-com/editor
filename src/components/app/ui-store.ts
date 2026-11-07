@@ -1,5 +1,9 @@
 import { Store } from '@tanstack/store'
 
+import { allOnDisk, closeTabs, openFileIds } from './files'
+import { notify } from './notice-store'
+import { m } from '#/paraglide/messages'
+
 import type { DocLanguage } from '#/lib/document'
 import type { Backup } from '#/lib/store/backup'
 import type { DefaultSummary } from '#/lib/xml/defaults'
@@ -103,6 +107,12 @@ export function askRename(renameId: string | null) {
 /** Asks before closing one tab, or several at once. */
 export function askClose(ids: string | Array<string> | null) {
   const closeIds = typeof ids === 'string' ? [ids] : ids?.length ? ids : null
+  if (closeIds && allOnDisk(closeIds)) {
+    void closeTabs(closeIds, openFileIds()).catch(() =>
+      notify.error(m.archive_delete_failed()),
+    )
+    return
+  }
   uiStore.setState((s) => ({ ...s, closeIds }))
 }
 

@@ -6,6 +6,7 @@ import { FileExplorer } from './FileExplorer'
 import { ArchiveDialog } from './ArchiveDialog'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
 import { CommandMenu } from './CommandMenu'
+import { startDiskSync } from './disk-workspace'
 import { DefaultsConfirmDialog, VarsConfirmDialog } from './ChangesDialogs'
 import { CloseDialog } from './CloseDialog'
 import {
@@ -56,6 +57,8 @@ export function EditorApp() {
   }, [activeId, storedActive])
 
   useEffect(() => onSaveFailed(reportSaveFailed), [])
+  // Tabs of folders opened from disk save there as they're edited.
+  useEffect(() => startDiskSync(), [])
 
   const inUse = files.length > 0
   useEffect(() => {

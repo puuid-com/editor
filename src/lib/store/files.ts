@@ -29,9 +29,18 @@ export const fileSchema = z.object({
   /** Profile whose settings apply while this file is open. */
   profileId: z.string().default(DEFAULT_PROFILE_ID),
   zplSettings: labelSettingsSchema.optional(),
+  /** Where the file lives in a folder opened from disk, if it does. */
+  location: z
+    .object({
+      rootId: z.string(),
+      /** From the folder, with `/` between names. */
+      path: z.string(),
+    })
+    .optional(),
 })
 
 export type XmlFile = z.infer<typeof fileSchema>
+export type FileLocation = NonNullable<XmlFile['location']>
 export const ARCHIVE_LIMIT = 10
 
 export const filesCollection = localCollection('files', fileSchema, {
@@ -53,11 +62,14 @@ function nextOrder() {
   return max + 1
 }
 
-/** Picks `untitled.xml`, `untitled-2.xml`… avoiding names of open tabs. */
+/**
+ * Picks `untitled.xml`, `untitled-2.xml`… avoiding names of open tabs kept
+ * in the browser. Files of a folder on disk keep the name they have there.
+ */
 export function uniqueName(base: string) {
   const taken = new Set(
     [...filesCollection.values()]
-      .filter((file) => file.deletedAt === null)
+      .filter((file) => file.deletedAt === null && !file.location)
       .map((file) => file.name),
   )
   if (!taken.has(base)) return base
@@ -87,6 +99,69 @@ export function createFile(
   }
   filesCollection.insert(file)
   return file
+}
+
+/** Opens a file of a folder on disk in a tab, under its name there. */
+export function createDiskFile(
+  location: FileLocation,
+  content: string,
+  profileId: string,
+): XmlFile {
+  const file: XmlFile = {
+    id: newId(),
+    name: location.path.split('/').at(-1) ?? location.path,
+    folderId: null,
+    content,
+    order: nextOrder(),
+    writer: writerId,
+    deletedAt: null,
+    profileId,
+    location,
+  }
+  filesCollection.insert(file)
+  return file
+}
+
+/** The open tab of a file in a folder on disk, if there is one. */
+export function fileAt(rootId: string, path: string) {
+  for (const file of filesCollection.values()) {
+    if (
+      file.deletedAt === null &&
+      file.location?.rootId === rootId &&
+      file.location.path === path
+    )
+      return file
+  }
+}
+
+/**
+ * Moves a tab to where its file now is on disk, such as after a rename, or
+ * with no location, keeps it in the browser only.
+ */
+export async function relocateFile(
+  id: string,
+  location: FileLocation | undefined,
+) {
+  // Like closeFile: a pending content save would write the old place back.
+  await drainContentSaves()
+  if (!filesCollection.has(id)) return
+  await filesCollection.update(id, (draft) => {
+    if (!location) {
+      delete draft.location
+      return
+    }
+    draft.location = location
+    draft.name = location.path.split('/').at(-1) ?? draft.name
+  }).isPersisted.promise
+}
+
+/**
+ * Drops a tab without archiving it, for a file whose text is safe on disk.
+ */
+export async function forgetFile(id: string) {
+  await drainContentSaves()
+  if (!filesCollection.has(id)) return
+  await filesCollection.delete(id).isPersisted.promise
 }
 
 /** Archive and evict in one storage write, so failure rolls back both changes. */

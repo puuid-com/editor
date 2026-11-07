@@ -12,6 +12,7 @@ import {
   IconFilePlus,
   IconFileSettings,
   IconFolderOpen,
+  IconFolderRoot,
   IconGitCompare,
   IconHighlight,
   IconLink,
@@ -41,6 +42,7 @@ import {
   newTextFile,
   newZplFile,
 } from './files'
+import { openFolder } from './disk-workspace'
 import { readLastCommand, saveLastCommand } from './last-command'
 import {
   askDeleteProfile,
@@ -88,6 +90,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { Kbd } from '#/components/ui/kbd'
+import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
 import { useCanWriteDisk } from '#/hooks/use-can-write-disk'
 import { useOpenFiles } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
@@ -621,6 +624,7 @@ function Workspace({
   onOpenFromDisk: () => void
 }) {
   const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
+  const canOpenFolders = useCanOpenFolders()
   return (
     <>
       <CommandSeparator />
@@ -659,6 +663,12 @@ function Workspace({
           {m.file_open_disk()}
           <CommandShortcut>{shortcutLabel(shortcuts.openFile)}</CommandShortcut>
         </CommandItem>
+        {canOpenFolders && (
+          <CommandItem onSelect={() => run(() => void openFolder())}>
+            <IconFolderRoot />
+            {m.folder_open_menu()}
+          </CommandItem>
+        )}
       </CommandGroup>
       <CommandSeparator />
       <CommandGroup heading={m.palette_data()}>

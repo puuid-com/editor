@@ -1,7 +1,8 @@
 import { foldersCollection, saveFolder, moveFile } from '#/lib/store/folders'
 import { notify } from './notice-store'
-import { setDiskLink } from '#/lib/store/disk'
+import { diskRoot, setDiskLink } from '#/lib/store/disk'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
+import { closeDiskFile } from './disk-workspace'
 import { dropEditorState } from '#/components/editor/editor-session'
 import { closeFile, createFile, filesCollection } from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
@@ -99,8 +100,13 @@ export async function closeTabs(
   try {
     // One at a time, so the archive keeps them in the order they were open.
     for (const id of ids) {
+      // A file on disk just closes once saved there; the archive is for the rest.
+      const saved =
+        !!filesCollection.get(id)?.location &&
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop
+        (await closeDiskFile(id))
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      await closeFile(id)
+      if (!saved) await closeFile(id)
       dropEditorState(id)
     }
   } catch (error) {
@@ -108,6 +114,26 @@ export async function closeTabs(
       setActive(activeId)
     throw error
   }
+}
+
+/** Ids of the open tabs, in tab order. */
+export function openFileIds() {
+  return [...filesCollection.values()]
+    .filter((file) => file.deletedAt === null)
+    .sort((a, b) => a.order - b.order)
+    .map((file) => file.id)
+}
+
+/**
+ * Whether every one of `ids` is a tab of a file in a folder on disk. Those
+ * close without asking: their text is saved there first, or, if it can't
+ * be, kept in the archive.
+ */
+export function allOnDisk(ids: ReadonlyArray<string>) {
+  return ids.every((id) => {
+    const location = filesCollection.get(id)?.location
+    return !!location && !!diskRoot(location.rootId)
+  })
 }
 
 // New files take the profile of the file in the editor. Opened files take
@@ -142,6 +168,11 @@ function fileOpener() {
     const text = decodeBase64Zpl(raw) ?? raw
     return createFile(name, text, guess(name, text) ?? fallback)
   }
+}
+
+/** The profile for an opened file: the one its files look like, else the active one. */
+export function profileFor(name: string, text: string) {
+  return profileGuesser()(name, text) ?? activeProfileId()
 }
 
 /** Whether the browser can open files so that they save back to disk. */

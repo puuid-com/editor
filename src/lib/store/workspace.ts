@@ -1,4 +1,4 @@
-import { loadDiskLinks } from './disk'
+import { loadDiskLinks, loadDiskRoots } from './disk'
 import { filesCollection } from './files'
 import { workspaceReady as collectionsReady } from './persist'
 // Each collection registers itself when its module loads, so load them all
@@ -10,8 +10,14 @@ import './pins'
 import './profiles'
 import './variables'
 
-/** Resolves once the stored files, settings and links to disk are loaded. */
+/**
+ * Resolves once the stored files, settings, links to disk and folders opened
+ * from disk are loaded.
+ */
 export async function workspaceReady() {
   await collectionsReady()
-  await loadDiskLinks(new Set(filesCollection.keys()))
+  await Promise.all([
+    loadDiskLinks(new Set(filesCollection.keys())),
+    loadDiskRoots(),
+  ])
 }

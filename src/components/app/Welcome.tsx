@@ -1,6 +1,7 @@
 import {
   IconFilePlus,
   IconFolderOpen,
+  IconFolderRoot,
   IconJson,
   IconMarkdown,
   IconTxt,
@@ -13,6 +14,7 @@ import {
   newTextFile,
   newZplFile,
 } from './files'
+import { openFolder } from './disk-workspace'
 import { Button } from '#/components/ui/button'
 import {
   Empty,
@@ -23,6 +25,7 @@ import {
   EmptyTitle,
 } from '#/components/ui/empty'
 import { Kbd } from '#/components/ui/kbd'
+import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { m } from '#/paraglide/messages'
 
@@ -88,6 +91,7 @@ function WelcomeSnippet() {
 }
 
 export function Welcome({ onOpenFromDisk }: { onOpenFromDisk: () => void }) {
+  const canOpenFolders = useCanOpenFolders()
   return (
     <Empty className="h-full gap-8 overflow-y-auto">
       <EmptyMedia className="mb-0">
@@ -124,6 +128,12 @@ export function Welcome({ onOpenFromDisk }: { onOpenFromDisk: () => void }) {
             <IconFolderOpen />
             {m.file_open_disk()}
           </Button>
+          {canOpenFolders && (
+            <Button variant="outline" onClick={() => void openFolder()}>
+              <IconFolderRoot />
+              {m.folder_open_menu()}
+            </Button>
+          )}
         </div>
         <p className="text-xs text-muted-foreground">
           {m.welcome_hint_prefix()}{' '}

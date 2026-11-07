@@ -8,6 +8,15 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.8.0] - 2026-11-07
+
+### Added
+
+- Open folders from your device as workspaces, in Chrome, Edge and other Chromium browsers. Each one shows in the explorer under its own folder icon, next to the browser's own workspace, and you can open several at once.
+- Files in an open folder save back to it as you type. Changes made in other apps show up when you return to the editor, and a file edited on both sides asks before anything is overwritten.
+- Create, rename and delete files and folders on disk from the explorer, and search across every open folder. Closing a folder only removes it from the editor; nothing on disk changes.
+- After a reload, the browser may ask once to allow the folder again: use Reconnect on its row.
+
 ## [1.7.2] - 2026-11-07
 
 ### Fixed

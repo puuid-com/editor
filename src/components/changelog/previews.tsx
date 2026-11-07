@@ -2,6 +2,7 @@ import {
   IconAdjustmentsHorizontal,
   IconAlertTriangle,
   IconBraces,
+  IconBrowser,
   IconCheck,
   IconCopy,
   IconChevronDown,
@@ -12,7 +13,9 @@ import {
   IconFileCode,
   IconFileDots,
   IconFilePlus,
+  IconFolder,
   IconFolderOpen,
+  IconFolderRoot,
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebarRight,
@@ -2449,7 +2452,73 @@ function ExplorerHover() {
   )
 }
 
+function FolderWorkspaces() {
+  const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
+  const nested = 'ml-3 border-l pl-1 text-muted-foreground'
+  return (
+    <Shot>
+      <div className="flex">
+        <div className="min-w-0 flex-1">
+          <Tabs>
+            <Tab name="order.xml" active />
+            <Tab name="rates.json" />
+          </Tabs>
+          <Code lines={ORDER} />
+        </div>
+        <div className="w-44 shrink-0 border-l">
+          <div className="border-b px-3 py-2 font-medium">
+            {m.explorer_title()}
+          </div>
+          <div className="p-2">
+            <div className={cn(row, 'font-medium')}>
+              <IconChevronDown />
+              <IconBrowser />
+              {m.explorer_browser()}
+            </div>
+            <div className={nested}>
+              <div className={row}>
+                <IconFileCode />
+                notes.xml
+              </div>
+            </div>
+            <div className={cn(row, 'mt-2 font-medium')}>
+              <IconChevronDown />
+              <IconFolderRoot />
+              invoices
+            </div>
+            <div className={nested}>
+              <div className={row}>
+                <IconChevronDown />
+                <IconFolder />
+                2026
+              </div>
+              <div className={nested}>
+                <div
+                  className={cn(row, 'bg-muted font-medium text-foreground')}
+                >
+                  <IconFileCode />
+                  order.xml
+                </div>
+              </div>
+              <div className={row}>
+                <IconJson />
+                rates.json
+              </div>
+            </div>
+            <div className={cn(row, 'mt-2 font-medium')}>
+              <IconChevronRight />
+              <IconFolderRoot />
+              labels
+            </div>
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.8.0': figure(FolderWorkspaces),
   '1.7.2': figure(ExplorerHover),
   '1.6.2': figure(HeaderWithoutRepeat),
   '1.6.0': figure(RenamedSite),

@@ -1,8 +1,15 @@
 import { downloadFile, formatActive } from './actions'
 import { editorStore, getText, getView } from './editor-store'
 import { notify } from '#/components/app/notice-store'
-import { canWriteDisk, diskStore, setDiskLink } from '#/lib/store/disk'
-import { filesCollection, renameFile } from '#/lib/store/files'
+import { writeFile } from '#/lib/disk-tree'
+import {
+  canWriteDisk,
+  diskRoot,
+  diskStore,
+  requestRootAccess,
+  setDiskLink,
+} from '#/lib/store/disk'
+import { filesCollection, relocateFile, renameFile } from '#/lib/store/files'
 import { activeFormat } from '#/lib/store/profiles'
 import { m } from '#/paraglide/messages'
 
@@ -27,40 +34,57 @@ async function canWrite(handle: FileSystemFileHandle) {
   return (await handle.requestPermission(mode)) === 'granted'
 }
 
-async function write(id: string, handle: FileSystemFileHandle) {
+async function write(id: string, handle: FileSystemFileHandle, quiet = false) {
   const text = textOf(id)
   // The file can disappear while a picker or permission prompt is open.
   if (text === undefined) return false
-  const stream = await handle.createWritable()
-  try {
-    await stream.write(text)
-    await stream.close()
-  } catch (error) {
-    // Discard the temporary write without hiding the original failure if the
-    // stream has already errored and aborting also rejects.
-    await stream.abort(error).catch(() => undefined)
-    throw error
-  }
+  await writeFile(handle, text)
   const { lastModified } = await handle.getFile()
   await setDiskLink(id, { handle, saved: text, modified: lastModified })
-  notify.success(m.saved_to_disk({ name: handle.name }))
+  if (!quiet) notify.success(m.saved_to_disk({ name: handle.name }))
   return true
+}
+
+/**
+ * Whether the file changed on disk since it was last read or written here.
+ * A newer time with the same text, such as another page of the site saving
+ * the same edit, doesn't count.
+ */
+async function changedOnDisk(id: string) {
+  const link = diskStore.state[id]
+  if (!link) return false
+  const file = await link.handle.getFile()
+  if (file.lastModified === link.modified) return false
+  const text = await file.text()
+  if (text !== link.saved && text !== textOf(id)) return true
+  await setDiskLink(id, { ...link, saved: text, modified: file.lastModified })
+  return false
+}
+
+/**
+ * A tab of a folder opened from disk asks for the whole folder again, so its
+ * other files save too.
+ */
+async function canWriteFolder(id: string) {
+  const root = diskRoot(filesCollection.get(id)?.location?.rootId)
+  return !root || root.access === 'granted' || requestRootAccess(root)
 }
 
 /**
  * Writes a tab to the file on disk it is linked to. Unless `force`, it
  * stops when the file changed since it was last read or written here.
+ * `quiet` skips the notice of success, for saves made while typing.
  */
-export async function saveToDisk(id: string, force = false) {
+export async function saveToDisk(id: string, force = false, quiet = false) {
   const link = diskStore.state[id]
   if (!link) return
   const { handle } = link
   try {
-    if (!(await canWrite(handle))) {
+    if (!(await canWriteFolder(id)) || !(await canWrite(handle))) {
       notify.error(m.disk_permission_denied({ name: handle.name }))
       return
     }
-    if (!force && (await handle.getFile()).lastModified !== link.modified) {
+    if (!force && (await changedOnDisk(id))) {
       notify.error(m.disk_changed({ name: handle.name }), {
         action: {
           label: m.disk_overwrite(),
@@ -69,7 +93,7 @@ export async function saveToDisk(id: string, force = false) {
       })
       return
     }
-    await write(id, handle)
+    await write(id, handle, quiet)
   } catch (error) {
     notify.error(m.disk_save_failed({ name: handle.name }), {
       detail: error instanceof Error ? error.message : undefined,
@@ -105,6 +129,8 @@ export async function saveAs(id: string) {
   }
   try {
     const saved = await write(id, handle)
+    // Saved elsewhere, it no longer belongs to the folder it came from.
+    if (saved && file.location) await relocateFile(id, undefined)
     if (saved && handle.name !== file.name) renameFile(id, handle.name)
   } catch (error) {
     notify.error(m.disk_save_failed({ name: handle.name }), {

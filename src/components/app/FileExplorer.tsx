@@ -1,18 +1,30 @@
 import {
+  IconBrowser,
   IconChevronRight,
   IconFolder,
+  IconFolderRoot,
   IconFolderPlus,
   IconFilePlus,
-  IconDots,
   IconLayoutSidebarRight,
   IconUpload,
   IconChevronDown,
   IconFolderUp,
 } from '@tabler/icons-react'
 import { useLiveQuery } from '@tanstack/react-db'
-import { useForm } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-store'
 import { useRef, useState } from 'react'
 import { useMediaQuery } from '#/hooks/use-media-query'
+import { openFolder } from './disk-workspace'
+import { DiskWorkspace } from './DiskWorkspace'
+import {
+  NameDialog,
+  RowMenu,
+  WorkspaceHeader,
+  activeRowClass,
+  rowButtonClass,
+  rowClass,
+} from './explorer-parts'
+import type { NameRequest } from './explorer-parts'
 import { importFiles, closeTabs } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
@@ -21,16 +33,12 @@ import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
-import { Label } from '#/components/ui/label'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -44,6 +52,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '#/components/ui/dialog'
+import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
 import { useOpenFiles } from '#/hooks/use-files'
 import { createFile, filesCollection, renameFile } from '#/lib/store/files'
 import {
@@ -53,25 +62,43 @@ import {
   deleteFolder,
   canMoveFolder,
   folderPath,
-  validEntryName,
 } from '#/lib/store/folders'
+import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
-/** A tree row owns its hover and selected colors; the buttons inside stay flat. */
-const rowClass =
-  'group/row flex min-w-0 items-center text-muted-foreground hover:bg-muted/60 hover:text-foreground has-[[aria-haspopup=menu][aria-expanded=true]]:bg-muted/60 has-[[aria-haspopup=menu][aria-expanded=true]]:text-foreground'
-const rowButtonClass =
-  'h-8 min-w-0 flex-1 justify-start px-2 font-normal hover:bg-transparent hover:text-inherit aria-expanded:bg-transparent aria-expanded:text-inherit dark:hover:bg-transparent'
-
 type Edit = {
   kind: 'file' | 'folder'
   id?: string
   parentId: string | null
   name: string
+}
+
+/** The name dialog for a new or renamed entry of the browser's workspace. */
+function browserRequest(edit: Edit): NameRequest {
+  return {
+    key: `${edit.kind}:${edit.id ?? edit.parentId}`,
+    title: edit.id
+      ? m.file_rename()
+      : edit.kind === 'folder'
+        ? m.explorer_new_folder()
+        : m.file_new(),
+    name: edit.name,
+    submit: async (name) => {
+      if (edit.kind === 'folder')
+        return saveFolder(name, edit.parentId, edit.id)
+      if (edit.id) await renameFile(edit.id, name)?.isPersisted.promise
+      else {
+        const file = createFile(name.trim(), '', activeProfileId())
+        await moveFile(file.id, edit.parentId)
+        setActive(file.id)
+      }
+      return true
+    },
+  }
 }
 
 export function FileExplorer({
@@ -81,7 +108,23 @@ export function FileExplorer({
   activeId: string | null
   onImport: () => void
 }) {
-  const files = useOpenFiles()
+  const allFiles = useOpenFiles()
+  const roots = useSelector(rootsStore, (state) => state)
+  const canOpenFolders = useCanOpenFolders()
+  // Tabs of open folders show in their own workspace, the rest in the browser's.
+  const files = allFiles.filter(
+    (file) =>
+      !file.location ||
+      !roots.some((root) => root.id === file.location?.rootId),
+  )
+  // Open tab ids of each folder's files, by path.
+  const tabsByPath = new Map<string, Map<string, string>>()
+  for (const file of allFiles) {
+    if (!file.location) continue
+    const tabs = tabsByPath.get(file.location.rootId) ?? new Map()
+    tabs.set(file.location.path, file.id)
+    tabsByPath.set(file.location.rootId, tabs)
+  }
   const { data: folders } = useLiveQuery((q) =>
     q
       .from({ folder: foldersCollection })
@@ -90,8 +133,24 @@ export function FileExplorer({
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [search, setSearch] = useState('')
-  const [edit, setEdit] = useState<Edit | null>(null)
+  const [nameRequest, setNameRequest] = useState<NameRequest | null>(null)
+  const setEdit = (edit: Edit) => {
+    const request = browserRequest(edit)
+    setNameRequest({
+      ...request,
+      submit: async (name) => {
+        const done = await request.submit(name)
+        // Show where the new or renamed entry is.
+        if (done) {
+          setBrowserOpen(true)
+          setCollapsed(new Set())
+        }
+        return done
+      },
+    })
+  }
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [browserOpen, setBrowserOpen] = useState(true)
   const [expanded, setVisible] = useState<boolean | null>(null)
   const wide = useMediaQuery('(min-width: 768px)')
   const visible = expanded ?? wide
@@ -131,7 +190,7 @@ export function FileExplorer({
           disabled={!parentId}
           onSelect={() => move(id, folder, null)}
         >
-          {m.explorer_root()}
+          {m.explorer_browser()}
         </DropdownMenuItem>
         {folders
           .filter((f) => !folder || canMoveFolder(id, f.id))
@@ -148,90 +207,78 @@ export function FileExplorer({
     </DropdownMenuSub>
   )
   const menu = (entry: Edit & { id: string }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <ToolbarButton
-          label={
-            entry.kind === 'folder'
-              ? m.explorer_folder_actions()
-              : m.explorer_actions()
-          }
-          className="mr-1 shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10 dark:hover:bg-foreground/10 md:opacity-0 md:group-hover/row:opacity-100 md:group-focus-within/row:opacity-100 md:aria-expanded:opacity-100"
-        >
-          <IconDots />
-        </ToolbarButton>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => setEdit(entry)}>
-          {m.file_rename()}
-        </DropdownMenuItem>
-        {destinations(entry.id, entry.kind === 'folder', entry.parentId)}
-        {entry.kind === 'folder' ? (
-          <>
-            <DropdownMenuItem
-              onSelect={() =>
-                setEdit({
-                  kind: 'file',
-                  parentId: entry.id,
-                  name: m.file_untitled(),
-                })
-              }
-            >
-              {m.file_new()}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() =>
-                setEdit({ kind: 'folder', parentId: entry.id, name: '' })
-              }
-            >
-              {m.explorer_new_folder()}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setDeleteId(entry.id)}>
-              {m.explorer_delete_folder()}
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            <DropdownMenuItem
-              onSelect={() =>
-                run(async () => {
-                  const file = filesCollection.get(entry.id)
-                  if (!file) return
-                  const copy = createFile(
-                    file.name,
-                    file.content,
-                    file.profileId,
-                  )
-                  if (file.zplSettings)
-                    await filesCollection.update(copy.id, (draft) => {
-                      draft.zplSettings = file.zplSettings
-                    }).isPersisted.promise
-                  await moveFile(copy.id, entry.parentId)
-                  setActive(copy.id)
-                })
-              }
-            >
-              {m.explorer_duplicate()}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => {
+    <RowMenu
+      label={
+        entry.kind === 'folder'
+          ? m.explorer_folder_actions()
+          : m.explorer_actions()
+      }
+    >
+      <DropdownMenuItem onSelect={() => setEdit(entry)}>
+        {m.file_rename()}
+      </DropdownMenuItem>
+      {destinations(entry.id, entry.kind === 'folder', entry.parentId)}
+      {entry.kind === 'folder' ? (
+        <>
+          <DropdownMenuItem
+            onSelect={() =>
+              setEdit({
+                kind: 'file',
+                parentId: entry.id,
+                name: m.file_untitled(),
+              })
+            }
+          >
+            {m.file_new()}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              setEdit({ kind: 'folder', parentId: entry.id, name: '' })
+            }
+          >
+            {m.explorer_new_folder()}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setDeleteId(entry.id)}>
+            {m.explorer_delete_folder()}
+          </DropdownMenuItem>
+        </>
+      ) : (
+        <>
+          <DropdownMenuItem
+            onSelect={() =>
+              run(async () => {
                 const file = filesCollection.get(entry.id)
-                if (file)
-                  downloadBlob(
-                    new Blob([file.content], { type: 'text/plain' }),
-                    file.name,
-                  )
-              }}
-            >
-              {m.explorer_download()}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => askClose(entry.id)}>
-              {m.close_confirm()}
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+                if (!file) return
+                const copy = createFile(file.name, file.content, file.profileId)
+                if (file.zplSettings)
+                  await filesCollection.update(copy.id, (draft) => {
+                    draft.zplSettings = file.zplSettings
+                  }).isPersisted.promise
+                await moveFile(copy.id, entry.parentId)
+                setActive(copy.id)
+              })
+            }
+          >
+            {m.explorer_duplicate()}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => {
+              const file = filesCollection.get(entry.id)
+              if (file)
+                downloadBlob(
+                  new Blob([file.content], { type: 'text/plain' }),
+                  file.name,
+                )
+            }}
+          >
+            {m.explorer_download()}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => askClose(entry.id)}>
+            {m.close_confirm()}
+          </DropdownMenuItem>
+        </>
+      )}
+    </RowMenu>
   )
   const dropProps = (parentId: string | null) => ({
     onDragOver: (event: React.DragEvent) => {
@@ -257,10 +304,7 @@ export function FileExplorer({
   const fileRow = (file: (typeof files)[number]) => (
     <div
       key={file.id}
-      className={cn(
-        rowClass,
-        file.id === activeId && 'bg-muted text-foreground hover:bg-muted',
-      )}
+      className={cn(rowClass, file.id === activeId && activeRowClass)}
       draggable
       onDragStart={(e) => drag(e, 'file', file.id)}
     >
@@ -447,6 +491,14 @@ export function FileExplorer({
             >
               <IconFolderUp />
             </ToolbarButton>
+            {canOpenFolders && (
+              <ToolbarButton
+                label={m.folder_open()}
+                onClick={() => run(openFolder)}
+              >
+                <IconFolderRoot />
+              </ToolbarButton>
+            )}
           </>
         )}
       </div>
@@ -464,34 +516,67 @@ export function FileExplorer({
             className="min-h-0 flex-1 overflow-auto px-2 pb-4"
             {...dropProps(null)}
           >
-            <Button
-              variant="ghost"
-              className="mb-1 w-full justify-start text-xs text-muted-foreground"
-              onClick={() =>
-                setCollapsed(
-                  collapsed.size
-                    ? new Set()
-                    : new Set(folders.map((f) => f.id)),
-                )
-              }
-            >
-              {m.explorer_root()}
-              <span className="ml-auto tabular-nums">{files.length}</span>
-            </Button>
-            {search
-              ? files
-                  .filter((f) =>
-                    `${folderPath(f.folderId)}/${f.name}`
-                      .toLowerCase()
-                      .includes(search.toLowerCase()),
-                  )
-                  .map(fileRow)
-              : tree(null)}
-            {files.length === 0 && folders.length === 0 && (
-              <p className="p-2 text-xs text-muted-foreground">
-                {m.explorer_empty()}
-              </p>
-            )}
+            <Collapsible open={browserOpen} onOpenChange={setBrowserOpen}>
+              <WorkspaceHeader
+                icon={<IconBrowser />}
+                name={m.explorer_browser()}
+                title={m.explorer_browser_hint()}
+                open={browserOpen}
+              >
+                <span className="mr-1 shrink-0 px-1 text-xs text-muted-foreground tabular-nums">
+                  {files.length}
+                </span>
+                <RowMenu label={m.folder_actions()}>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      setEdit({
+                        kind: 'file',
+                        parentId: null,
+                        name: m.file_untitled(),
+                      })
+                    }
+                  >
+                    {m.file_new()}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      setEdit({ kind: 'folder', parentId: null, name: '' })
+                    }
+                  >
+                    {m.explorer_new_folder()}
+                  </DropdownMenuItem>
+                </RowMenu>
+              </WorkspaceHeader>
+              <CollapsibleContent className="ml-3 border-l pl-1">
+                {search
+                  ? files
+                      .filter((f) =>
+                        `${folderPath(f.folderId)}/${f.name}`
+                          .toLowerCase()
+                          .includes(search.toLowerCase()),
+                      )
+                      .map(fileRow)
+                  : tree(null)}
+                {files.length === 0 && folders.length === 0 && (
+                  <p className="p-2 text-xs text-muted-foreground">
+                    {m.explorer_empty()}
+                  </p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+            {roots.map((root) => (
+              <DiskWorkspace
+                key={root.id}
+                root={root}
+                tabs={tabsByPath.get(root.id) ?? new Map()}
+                activeId={activeId}
+                search={search}
+                askName={setNameRequest}
+                onOpened={() => {
+                  if (!wide) setVisible(false)
+                }}
+              />
+            ))}
           </div>
         </>
       )}
@@ -526,114 +611,7 @@ export function FileExplorer({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog
-        open={!!edit}
-        onOpenChange={(open) => {
-          if (!open) setEdit(null)
-        }}
-      >
-        <DialogContent className="sm:max-w-sm">
-          {edit && (
-            <EntryForm
-              key={`${edit.kind}:${edit.id ?? edit.parentId}`}
-              edit={edit}
-              done={() => {
-                setEdit(null)
-                setCollapsed(new Set())
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <NameDialog request={nameRequest} onClose={() => setNameRequest(null)} />
     </aside>
-  )
-}
-
-function EntryForm({ edit, done }: { edit: Edit; done: () => void }) {
-  const [error, setError] = useState(false)
-  const form = useForm({
-    defaultValues: { name: edit.name },
-    onSubmit: async ({ value }) => {
-      setError(false)
-      try {
-        if (edit.kind === 'folder') {
-          if (!(await saveFolder(value.name, edit.parentId, edit.id))) {
-            setError(true)
-            return
-          }
-        } else if (edit.id)
-          await renameFile(edit.id, value.name)?.isPersisted.promise
-        else {
-          const file = createFile(value.name.trim(), '', activeProfileId())
-          await moveFile(file.id, edit.parentId)
-          setActive(file.id)
-        }
-        done()
-      } catch {
-        setError(true)
-      }
-    },
-  })
-  return (
-    <form
-      className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault()
-        void form.handleSubmit()
-      }}
-    >
-      <DialogHeader>
-        <DialogTitle>
-          {edit.id
-            ? m.file_rename()
-            : edit.kind === 'folder'
-              ? m.explorer_new_folder()
-              : m.file_new()}
-        </DialogTitle>
-        <DialogDescription>{m.explorer_name_hint()}</DialogDescription>
-      </DialogHeader>
-      <form.Field
-        name="name"
-        validators={{
-          onChange: ({ value }) =>
-            validEntryName(value) ? undefined : m.explorer_invalid(),
-        }}
-      >
-        {(field) => (
-          <div className="grid gap-2">
-            <Label htmlFor="entry-name">{m.rename_label()}</Label>
-            <Input
-              id="entry-name"
-              autoFocus
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              aria-invalid={!!field.state.meta.errors.length}
-            />
-            {field.state.meta.errors.map((message) => (
-              <p key={message} className="text-xs text-destructive">
-                {message}
-              </p>
-            ))}
-          </div>
-        )}
-      </form.Field>
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {m.explorer_invalid()}
-        </p>
-      )}
-      <DialogFooter>
-        <Button variant="outline" type="button" onClick={done}>
-          {m.cancel()}
-        </Button>
-        <form.Subscribe selector={(s) => s.canSubmit && !s.isSubmitting}>
-          {(enabled) => (
-            <Button type="submit" disabled={!enabled}>
-              {m.explorer_save()}
-            </Button>
-          )}
-        </form.Subscribe>
-      </DialogFooter>
-    </form>
   )
 }

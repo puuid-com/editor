@@ -15,6 +15,7 @@ export function useOpenFiles() {
         folderId: file.folderId,
         order: file.order,
         profileId: file.profileId,
+        location: file.location,
         // An empty file has no type until something is pasted or typed.
         empty: eq(length(file.content), 0),
       })),
