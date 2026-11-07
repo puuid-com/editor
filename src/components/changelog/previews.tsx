@@ -2412,7 +2412,45 @@ function ExplorerPreview() {
   )
 }
 
+function ExplorerRows({ after }: { after?: boolean }) {
+  return (
+    <div className="w-48 space-y-0.5 p-2">
+      <div
+        className={
+          after ? 'bg-muted/60 px-2 py-1 text-foreground' : 'flex bg-muted'
+        }
+      >
+        {after ? (
+          'order.xml'
+        ) : (
+          <>
+            <span className="flex-1 bg-background/70 px-2 py-1">order.xml</span>
+            <span className="px-2 py-1">…</span>
+          </>
+        )}
+      </div>
+      <div
+        className={
+          after
+            ? 'bg-muted px-2 py-1 font-medium text-foreground'
+            : 'bg-accent px-2 py-1 text-accent-foreground'
+        }
+      >
+        query.sql
+      </div>
+      <div className="px-2 py-1 text-muted-foreground">notes.md</div>
+    </div>
+  )
+}
+
+function ExplorerHover() {
+  return (
+    <BeforeAfter before={<ExplorerRows />} after={<ExplorerRows after />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.7.2': figure(ExplorerHover),
   '1.6.2': figure(HeaderWithoutRepeat),
   '1.6.0': figure(RenamedSite),
   '1.7.0': figure(ExplorerPreview),

@@ -61,7 +61,7 @@ export function HighlightsBar() {
   const total = present.reduce((sum, r) => sum + countOf(r), 0)
 
   return (
-    <div className="flex min-w-0 shrink items-center gap-2">
+    <div className="contents">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -116,7 +116,7 @@ export function HighlightsBar() {
         </PopoverContent>
       </Popover>
       {rules.length === 0 && (
-        <span className="hidden truncate text-muted-foreground lg:inline">
+        <span className="ml-1 hidden min-w-0 truncate text-muted-foreground lg:inline">
           {m.highlights_hint_prefix()}{' '}
           <Kbd>{shortcutLabel(shortcuts.highlight)}</Kbd>{' '}
           {m.highlights_hint_suffix()}

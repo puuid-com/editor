@@ -899,6 +899,7 @@
   "explorer_move": "Move to",
   "explorer_root": "Workspace",
   "explorer_actions": "File actions",
+  "explorer_folder_actions": "Folder actions",
   "explorer_delete_folder": "Delete folder",
   "explorer_duplicate": "Duplicate",
   "explorer_download": "Download",

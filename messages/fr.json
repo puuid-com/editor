@@ -899,6 +899,7 @@
   "explorer_move": "Déplacer vers",
   "explorer_root": "Espace de travail",
   "explorer_actions": "Actions du fichier",
+  "explorer_folder_actions": "Actions du dossier",
   "explorer_delete_folder": "Supprimer le dossier",
   "explorer_duplicate": "Dupliquer",
   "explorer_download": "Télécharger",

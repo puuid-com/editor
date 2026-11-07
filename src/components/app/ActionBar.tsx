@@ -73,12 +73,12 @@ export function ActionBar() {
   )
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+    <div className="flex shrink-0 items-center gap-1.5 text-muted-foreground">
       <ProfileSwitch />
       {vars.count > 0 && (
         <>
           <Divider />
-          <span className="max-lg:hidden">{m.variables_tab()}</span>
+          <span className="max-xl:hidden">{m.variables_tab()}</span>
           <VarStyleSwitch style={vars.style} />
         </>
       )}
@@ -99,7 +99,7 @@ export function ActionBar() {
           onClick={applyDefaultsActive}
         >
           <IconReplace />
-          {m.defaults_apply()}
+          <span className="max-xl:hidden">{m.defaults_apply()}</span>
           <Count value={defaults} />
         </ActionButton>
         <ActionButton
@@ -114,7 +114,7 @@ export function ActionBar() {
           onClick={resolveVarsActive}
         >
           <IconVariable />
-          {m.vars_resolve_short()}
+          <span className="max-xl:hidden">{m.vars_resolve_short()}</span>
           <Count value={vars.count} />
         </ActionButton>
       </div>
@@ -134,7 +134,7 @@ export function FormatButton() {
       onClick={formatActive}
     >
       <IconWand />
-      {m.action_format()}
+      <span className="max-xl:hidden">{m.action_format()}</span>
     </ActionButton>
   )
 }
@@ -167,7 +167,7 @@ function ProfileSwitch() {
           style={hlStyle(profileCss(active))}
           className="max-w-40 min-w-0 shrink-0 gap-1.5 px-1.5 text-[11px] font-normal max-md:h-11"
         >
-          <span className="max-lg:hidden">{m.status_profile()}</span>
+          <span className="max-xl:hidden">{m.status_profile()}</span>
           <ProfileDot />
           <span className="hl-ink truncate font-medium">{active.name}</span>
           <IconChevronUp />

@@ -7,13 +7,13 @@ import {
   IconLayoutSidebarRight,
   IconUpload,
   IconChevronDown,
+  IconFolderUp,
 } from '@tabler/icons-react'
 import { useLiveQuery } from '@tanstack/react-db'
 import { useForm } from '@tanstack/react-form'
 import { useRef, useState } from 'react'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { importFiles, closeTabs } from './files'
-import { ArchiveButton } from './ArchiveDialog'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
 import { askClose } from './ui-store'
@@ -60,6 +60,12 @@ import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
+
+/** A tree row owns its hover and selected colors; the buttons inside stay flat. */
+const rowClass =
+  'group/row flex min-w-0 items-center text-muted-foreground hover:bg-muted/60 hover:text-foreground has-[[aria-haspopup=menu][aria-expanded=true]]:bg-muted/60 has-[[aria-haspopup=menu][aria-expanded=true]]:text-foreground'
+const rowButtonClass =
+  'h-8 min-w-0 flex-1 justify-start px-2 font-normal hover:bg-transparent hover:text-inherit aria-expanded:bg-transparent aria-expanded:text-inherit dark:hover:bg-transparent'
 
 type Edit = {
   kind: 'file' | 'folder'
@@ -113,11 +119,18 @@ export function FileExplorer({
         return next
       })
     })
-  const destinations = (id: string, folder: boolean) => (
+  const destinations = (
+    id: string,
+    folder: boolean,
+    parentId: string | null,
+  ) => (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>{m.explorer_move()}</DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-        <DropdownMenuItem onSelect={() => move(id, folder, null)}>
+        <DropdownMenuItem
+          disabled={!parentId}
+          onSelect={() => move(id, folder, null)}
+        >
           {m.explorer_root()}
         </DropdownMenuItem>
         {folders
@@ -125,6 +138,7 @@ export function FileExplorer({
           .map((f) => (
             <DropdownMenuItem
               key={f.id}
+              disabled={f.id === parentId}
               onSelect={() => move(id, folder, f.id)}
             >
               {folderPath(f.id)}
@@ -136,7 +150,14 @@ export function FileExplorer({
   const menu = (entry: Edit & { id: string }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton label={m.explorer_actions()} className="shrink-0">
+        <ToolbarButton
+          label={
+            entry.kind === 'folder'
+              ? m.explorer_folder_actions()
+              : m.explorer_actions()
+          }
+          className="mr-1 shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10 dark:hover:bg-foreground/10 md:opacity-0 md:group-hover/row:opacity-100 md:group-focus-within/row:opacity-100 md:aria-expanded:opacity-100"
+        >
           <IconDots />
         </ToolbarButton>
       </DropdownMenuTrigger>
@@ -144,7 +165,7 @@ export function FileExplorer({
         <DropdownMenuItem onSelect={() => setEdit(entry)}>
           {m.file_rename()}
         </DropdownMenuItem>
-        {destinations(entry.id, entry.kind === 'folder')}
+        {destinations(entry.id, entry.kind === 'folder', entry.parentId)}
         {entry.kind === 'folder' ? (
           <>
             <DropdownMenuItem
@@ -237,18 +258,21 @@ export function FileExplorer({
     <div
       key={file.id}
       className={cn(
-        'group flex min-w-0 items-center rounded-sm hover:bg-muted',
-        file.id === activeId && 'bg-accent text-accent-foreground',
+        rowClass,
+        file.id === activeId && 'bg-muted text-foreground hover:bg-muted',
       )}
       draggable
       onDragStart={(e) => drag(e, 'file', file.id)}
     >
       <Button
         variant="ghost"
-        className="h-8 min-w-0 flex-1 justify-start px-2 font-normal"
+        className={cn(rowButtonClass, file.id === activeId && 'font-medium')}
         aria-current={file.id === activeId ? 'page' : undefined}
         title={`${folderPath(file.folderId)} / ${file.name}`}
-        onClick={() => setActive(file.id)}
+        onClick={() => {
+          setActive(file.id)
+          if (!wide) setVisible(false)
+        }}
         onDoubleClick={() =>
           setEdit({
             kind: 'file',
@@ -284,16 +308,13 @@ export function FileExplorer({
             onOpenChange={() => toggle(folder.id)}
           >
             <div
-              className="flex items-center rounded-sm hover:bg-muted"
+              className={rowClass}
               {...dropProps(folder.id)}
               draggable
               onDragStart={(e) => drag(e, 'folder', folder.id)}
             >
               <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-8 min-w-0 flex-1 justify-start px-2 font-normal"
-                >
+                <Button variant="ghost" className={rowButtonClass}>
                   {collapsed.has(folder.id) ? (
                     <IconChevronRight />
                   ) : (
@@ -420,23 +441,17 @@ export function FileExplorer({
             <ToolbarButton label={m.explorer_import()} onClick={onImport}>
               <IconUpload />
             </ToolbarButton>
+            <ToolbarButton
+              label={m.explorer_import_folder()}
+              onClick={() => directoryInput.current?.click()}
+            >
+              <IconFolderUp />
+            </ToolbarButton>
           </>
         )}
       </div>
       {visible && (
         <>
-          <div className="flex items-center gap-1 border-b px-2 py-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 justify-start"
-              onClick={() => directoryInput.current?.click()}
-            >
-              <IconFolder />
-              {m.explorer_import_folder()}
-            </Button>
-            <ArchiveButton />
-          </div>
           <div className="p-2">
             <Input
               aria-label={m.explorer_search()}
@@ -506,7 +521,7 @@ export function FileExplorer({
               disabled={deleting}
               onClick={() => void removeFolderTree()}
             >
-              {m.close_confirm()}
+              {m.explorer_delete_folder()}
             </Button>
           </DialogFooter>
         </DialogContent>

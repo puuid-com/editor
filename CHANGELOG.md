@@ -8,6 +8,17 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.7.2] - 2026-11-07
+
+### Fixed
+
+- Hovering a file in the explorer highlights the whole row in one colour, and the open file is marked with a soft grey instead of a solid block, in light and dark themes.
+- Open folders no longer stay highlighted, and the "…" menu only appears on hover. The folder menu is now called "Folder actions".
+- "Move to" greys out the folder the item is already in, and deleting a folder now asks "Delete folder" instead of "Close and delete".
+- On phones, opening a file closes the explorer. "Import folder" moved into the explorer header, and the duplicate "Deleted files" button is gone.
+- Status bar actions no longer overlap Settings when variables are shown; on narrower screens they collapse to icons.
+- Hovering a background tab no longer makes it look like the active tab.
+
 ## [1.7.1] - 2026-11-07
 
 ### Added

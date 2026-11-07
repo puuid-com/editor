@@ -160,7 +160,7 @@ export function TabStrip({
                         'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
                       file.id === activeId
                         ? 'z-10 border-border bg-(--sheet,var(--background))'
-                        : 'hover:bg-background/60',
+                        : 'hover:bg-foreground/5',
                       overId === file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',
                     )}
