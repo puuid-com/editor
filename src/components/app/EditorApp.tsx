@@ -2,6 +2,7 @@ import { IconFileUpload } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
+import { FileExplorer } from './FileExplorer'
 import { ArchiveDialog } from './ArchiveDialog'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
 import { CommandMenu } from './CommandMenu'
@@ -123,12 +124,19 @@ export function EditorApp() {
           e.target.value = ''
         }}
       />
-      <main id="main" className="min-h-0 flex-1">
-        {activeId ? (
-          <MixedWorkspace fileId={activeId} compareId={compareId} wide={wide} />
-        ) : (
-          <Welcome onOpenFromDisk={openFromDisk} />
-        )}
+      <main id="main" className="relative flex min-h-0 flex-1">
+        <div className="min-w-0 flex-1">
+          {activeId ? (
+            <MixedWorkspace
+              fileId={activeId}
+              compareId={compareId}
+              wide={wide}
+            />
+          ) : (
+            <Welcome onOpenFromDisk={openFromDisk} />
+          )}
+        </div>
+        <FileExplorer activeId={activeId} onImport={openFromDisk} />
       </main>
       <StatusBar />
 

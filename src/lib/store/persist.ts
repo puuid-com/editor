@@ -16,6 +16,7 @@ const STORAGE_PREFIX = 'xml-editor:'
 const DATABASE_NAME = 'xml-editor'
 const STORES = [
   'files',
+  'folders',
   'profiles',
   'highlights',
   'pins',
@@ -30,7 +31,7 @@ const database =
   typeof indexedDB === 'undefined'
     ? null
     : await singleton('database', () =>
-        createIndexedDB({ name: DATABASE_NAME, version: 1, stores: STORES }),
+        createIndexedDB({ name: DATABASE_NAME, version: 2, stores: STORES }),
       )
 
 export function newId() {

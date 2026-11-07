@@ -2370,9 +2370,52 @@ function ProblemLanguage() {
   )
 }
 
+function ExplorerPreview() {
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Tabs>
+            <Tab name="order.xml" active />
+            <Tab name="query.sql" />
+          </Tabs>
+          <Code lines={ORDER} />
+        </>
+      }
+      after={
+        <div className="flex">
+          <div className="min-w-0 flex-1">
+            <Tabs>
+              <Tab name="order.xml" active />
+            </Tabs>
+            <Code lines={ORDER} />
+          </div>
+          <div className="w-36 shrink-0 border-l">
+            <div className="border-b px-3 py-2 font-medium">
+              {m.explorer_title()}
+            </div>
+            <div className="space-y-2 p-3">
+              <div className="flex items-center gap-1">
+                <IconChevronDown className="size-3" />
+                <IconFolderOpen className="size-3" />
+                {m.explorer_root()}
+              </div>
+              <div className="bg-accent py-1 pl-4 text-accent-foreground">
+                order.xml
+              </div>
+              <div className="pl-4">query.sql</div>
+            </div>
+          </div>
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
   '1.6.2': figure(HeaderWithoutRepeat),
   '1.6.0': figure(RenamedSite),
+  '1.7.0': figure(ExplorerPreview),
   '1.5.0': figure(PlainTextFile),
   '1.4.0': figure(MarkdownPreview),
   '1.3.0': figure(DollarWrappedVars),

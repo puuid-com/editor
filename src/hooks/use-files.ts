@@ -12,6 +12,7 @@ export function useOpenFiles() {
       .select(({ file }) => ({
         id: file.id,
         name: file.name,
+        folderId: file.folderId,
         order: file.order,
         profileId: file.profileId,
         // An empty file has no type until something is pasted or typed.

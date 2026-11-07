@@ -526,7 +526,7 @@ describe('variables', () => {
     // Another tab: its own connection and collection on the same database.
     const db = await createIndexedDB({
       name: 'xml-editor',
-      version: 1,
+      version: 2,
       stores: ['variables'],
     })
     const other = createCollection(

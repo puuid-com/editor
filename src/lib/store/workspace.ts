@@ -3,6 +3,7 @@ import { filesCollection } from './files'
 import { workspaceReady as collectionsReady } from './persist'
 // Each collection registers itself when its module loads, so load them all
 // before waiting on them.
+import './folders'
 import './defaults'
 import './highlights'
 import './pins'

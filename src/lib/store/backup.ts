@@ -1,6 +1,7 @@
 import { createTransaction } from '@tanstack/react-db'
 import { z } from 'zod'
 
+import { folderSchema, foldersCollection } from './folders'
 import { defaultValueSchema, defaultsCollection } from './defaults'
 import { fileSchema, filesCollection, settleContentSave } from './files'
 import { highlightSchema, highlightsCollection } from './highlights'
@@ -26,6 +27,7 @@ const backupSchema = z.object({
   version: z.literal(BACKUP_VERSION),
   exportedAt: z.iso.datetime(),
   files: z.array(fileSchema).refine(uniqueIds),
+  folders: z.array(folderSchema).refine(uniqueIds).default([]),
   profiles: z.array(profileSchema).min(1).refine(uniqueIds),
   highlights: z.array(highlightSchema).refine(uniqueIds),
   pins: z.array(pinSchema).refine(uniqueIds),
@@ -58,6 +60,7 @@ export function createBackup(
       ...file,
       content: content.get(file.id) ?? file.content,
     })),
+    folders: rows(folderSchema, foldersCollection.values()),
     profiles: rows(profileSchema, profilesCollection.values()),
     highlights: rows(highlightSchema, highlightsCollection.values()),
     pins: rows(pinSchema, pinsCollection.values()),
@@ -186,6 +189,7 @@ export async function restoreBackup(backup: Backup) {
   // Only variables of restored profiles, so none points at a missing one.
   const profileIds = new Set(backup.profiles.map((p) => p.id))
   const writes = [
+    replacement(foldersCollection, backup.folders),
     replacement(profilesCollection, backup.profiles),
     replacement(highlightsCollection, backup.highlights),
     replacement(pinsCollection, backup.pins),

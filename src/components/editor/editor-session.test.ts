@@ -79,7 +79,7 @@ describe('editor session', () => {
     const { file, view, onLocalChange, onRemoteChange } = await open()
     const db = await createIndexedDB({
       name: 'xml-editor',
-      version: 1,
+      version: 2,
       stores: ['files'],
     })
     const other = createCollection(

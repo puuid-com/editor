@@ -1,3 +1,4 @@
+import { foldersCollection, saveFolder, moveFile } from '#/lib/store/folders'
 import { notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
@@ -230,6 +231,25 @@ export async function importFiles(list: FileList | Array<File>) {
     const { name } = files[i]
     if (result.status === 'fulfilled') {
       last = open(name, result.value).id
+      const segments = (files[i].webkitRelativePath || '')
+        .split('/')
+        .slice(0, -1)
+      let parentId: string | null = null
+      for (const segment of segments) {
+        let folder = [...foldersCollection.values()].find(
+          (f) => f.parentId === parentId && f.name === segment,
+        )
+        if (!folder) {
+          // Preserve the directory picker’s relative paths in the workspace.
+          await saveFolder(segment, parentId)
+          folder = [...foldersCollection.values()].find(
+            (f) => f.parentId === parentId && f.name === segment,
+          )
+        }
+        if (!folder) break
+        parentId = folder.id
+      }
+      if (parentId) await moveFile(last, parentId)
       continue
     }
     notify.error(m.file_import_failed({ name }), {

@@ -18,6 +18,7 @@ import { labelSettingsSchema } from '#/lib/zpl/schema'
 export const fileSchema = z.object({
   id: z.string(),
   name: z.string(),
+  folderId: z.string().nullable().default(null),
   content: z.string(),
   /** Tab order. */
   order: z.number(),
@@ -77,6 +78,7 @@ export function createFile(
   const file: XmlFile = {
     id: newId(),
     name: uniqueName(name),
+    folderId: null,
     content,
     order: nextOrder(),
     writer: writerId,
