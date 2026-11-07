@@ -276,7 +276,7 @@
   "profile_delete_failed": "Impossible de supprimer le profil.",
   "backup_create": "Sauvegarder l’espace de travail",
   "backup_restore": "Restaurer une sauvegarde…",
-  "backup_file_name": "xml-editor-sauvegarde-{date}.json",
+  "backup_file_name": "editor-sauvegarde-{date}.json",
   "backup_downloaded": "Sauvegarde téléchargée",
   "backup_reminder": "Dernière sauvegarde il y a {days} jours",
   "backup_reminder_never": "Aucune sauvegarde : vos fichiers n’existent que dans ce navigateur",

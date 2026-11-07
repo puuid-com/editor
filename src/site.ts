@@ -11,11 +11,11 @@ interface Site {
 }
 
 export const site: Site = {
-  name: 'XML Editor',
+  name: 'Editor',
   description:
     'A fast XML editor with a synced tree view, tag highlighting and <<variable>> support.',
   /** Production origin, no trailing slash. Used for canonical and sitemap URLs. */
-  url: 'https://xml.puuid.com',
+  url: 'https://editor.puuid.com',
   /** Default social preview image (1200x630), e.g. '/og.png'. Empty to omit. */
   ogImage: '',
   /** Twitter/X handle including the @, or empty. */

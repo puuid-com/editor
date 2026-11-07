@@ -1,4 +1,4 @@
-# XML Editor
+# Editor
 
 A browser-based XML, JSON, TXT, SQL and ZPL editor with a synchronized structure tree, file tabs, formatting, comparisons, and reusable profiles. Files and settings are saved in the browser; ZPL previews send label content to Labelary; there are no accounts or server-side document storage.
 

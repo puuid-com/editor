@@ -523,7 +523,7 @@ function Share() {
               <Switch on={false} />
             </div>
             <div className="xb-link">
-              xml.puuid.com/#share=eNqNkMFqwzAMhl9F6NxD0mZt6W1sl8EGg-
+              editor.puuid.com/#share=eNqNkMFqwzAMhl9F6NxD0mZt6W1sl8EGg-
             </div>
             <div className="xb-actions">
               <span className="xb-button">{m.cancel()}</span>

@@ -276,7 +276,7 @@
   "profile_delete_failed": "Could not delete the profile.",
   "backup_create": "Back up workspace",
   "backup_restore": "Restore from backup…",
-  "backup_file_name": "xml-editor-backup-{date}.json",
+  "backup_file_name": "editor-backup-{date}.json",
   "backup_downloaded": "Backup downloaded",
   "backup_reminder": "Last backup {days} days ago",
   "backup_reminder_never": "No backup yet: your files only live in this browser",

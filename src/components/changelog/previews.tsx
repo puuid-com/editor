@@ -1494,6 +1494,25 @@ function MarkdownPreview() {
 
 const TODO = ['Call the carrier', 'Reprint <label> 42', '', 'Ship by Friday']
 
+function SiteMark({ name }: { name: string }) {
+  return (
+    <div className="flex h-10 items-center gap-4 px-3 text-xs">
+      <span className="font-semibold">{name}</span>
+      <span className="text-muted-foreground">{m.nav_about()}</span>
+      <span className="text-muted-foreground">{m.nav_changelog()}</span>
+    </div>
+  )
+}
+
+function RenamedSite() {
+  return (
+    <BeforeAfter
+      before={<SiteMark name="XML Editor" />}
+      after={<SiteMark name="Editor" />}
+    />
+  )
+}
+
 function PlainTextFile() {
   return (
     <Shot>
@@ -2342,6 +2361,7 @@ function ProblemLanguage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.6.0': figure(RenamedSite),
   '1.5.0': figure(PlainTextFile),
   '1.4.0': figure(MarkdownPreview),
   '1.3.0': figure(DollarWrappedVars),

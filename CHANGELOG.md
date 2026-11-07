@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.6.0] - 2026-11-07
+
+### Changed
+
+- The site is now called Editor and lives at editor.puuid.com. Links to xml.puuid.com, including share links, redirect to the new address.
+- Backup files are named `editor-backup-<date>.json`. Older backups still restore.
+
 ## [1.5.0] - 2026-11-07
 
 ### Added
