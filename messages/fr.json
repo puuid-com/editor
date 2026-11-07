@@ -891,5 +891,8 @@
   "file_untitled_md": "sans-titre.md",
   "md_preview": "Aperçu Markdown",
   "md_diagram": "Diagramme",
-  "md_diagram_error": "Erreur de diagramme : {message}"
+  "md_diagram_error": "Erreur de diagramme : {message}",
+  "paste_type_txt": "Texte brut",
+  "file_new_txt": "Nouveau fichier texte",
+  "file_untitled_txt": "sans-titre.txt"
 }

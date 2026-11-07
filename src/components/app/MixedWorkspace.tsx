@@ -106,8 +106,10 @@ function FilePane({
   const language = languageOf(file?.name ?? '', file?.content ?? '')
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const files = useOpenFiles()
-  // ZPL has its own label preview and SQL has nothing to show beside it.
-  const hasPanel = language !== 'zpl' && language !== 'sql'
+  // ZPL has its own label preview; SQL and plain text have nothing to show
+  // beside them.
+  const hasPanel =
+    language !== 'zpl' && language !== 'sql' && language !== 'txt'
   const showPanel = active && panelOpen && hasPanel && !!file?.content
   const markdown = language === 'md'
   return (

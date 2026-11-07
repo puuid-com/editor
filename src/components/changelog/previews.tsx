@@ -1492,6 +1492,19 @@ function MarkdownPreview() {
   )
 }
 
+const TODO = ['Call the carrier', 'Reprint <label> 42', '', 'Ship by Friday']
+
+function PlainTextFile() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab name="todo.txt" active />
+      </Tabs>
+      <Code lines={TODO} format={(line) => line} />
+    </Shot>
+  )
+}
+
 function PinTagGoTo() {
   return (
     <BeforeAfter
@@ -2329,6 +2342,7 @@ function ProblemLanguage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.5.0': figure(PlainTextFile),
   '1.4.0': figure(MarkdownPreview),
   '1.3.0': figure(DollarWrappedVars),
   '1.2.0': figure(PinTagGoTo),

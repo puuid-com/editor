@@ -42,7 +42,7 @@ export function StatusBar() {
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
-  // SQL, ZPL and Markdown have no highlights, profiles, defaults or
+  // SQL, ZPL, Markdown and text have no highlights, profiles, defaults or
   // variables; SQL can still be formatted.
   const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
   const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')

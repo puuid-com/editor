@@ -40,6 +40,7 @@ export const LANGUAGE_EXTENSIONS = {
   sql: ['.sql', '.ddl', '.dml'],
   zpl: ['.zpl'],
   md: ['.md', '.markdown'],
+  txt: ['.txt', '.text', '.log'],
 } as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
 
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
@@ -66,6 +67,8 @@ export function languageOf(name: string, content: string): DocLanguage {
     if (EXT[language].test(name)) return language
   }
   if (ZPL_START.test(content)) return 'zpl'
+  // Labels are often saved as .txt; any other .txt file is plain text.
+  if (EXT.txt.test(name)) return 'txt'
   if (SQL_START.test(content)) return 'sql'
   if (MD_START.test(content)) return 'md'
   return /^\s*[[{]/.test(content) ? 'json' : 'xml'
@@ -103,7 +106,12 @@ export function typedName(name: string, language: DocLanguage) {
  * default values, so no profile settings apply either.
  */
 export function isPlain(language: DocLanguage) {
-  return language === 'sql' || language === 'zpl' || language === 'md'
+  return (
+    language === 'sql' ||
+    language === 'zpl' ||
+    language === 'md' ||
+    language === 'txt'
+  )
 }
 
 export function parseDocument(
@@ -127,10 +135,10 @@ export function formatDocument(
   language: DocLanguage,
   options: FormatOptions,
 ): FormatResult {
-  // Fixed-width fields are already aligned; Markdown is written as meant.
-  if (language === 'flat' || language === 'zpl' || language === 'md')
-    return { ok: true, text }
+  // Fixed-width fields are already aligned; Markdown and text are written
+  // as meant.
   if (language === 'sql') return { ok: true, text: formatSql(text) }
+  if (language === 'flat' || isPlain(language)) return { ok: true, text }
   return language === 'json'
     ? formatJson(text, options)
     : formatXml(text, options)
@@ -154,4 +162,5 @@ export const MIME_TYPES: Record<DocLanguage, string> = {
   sql: 'application/sql',
   zpl: 'application/octet-stream',
   md: 'text/markdown',
+  txt: 'text/plain',
 }

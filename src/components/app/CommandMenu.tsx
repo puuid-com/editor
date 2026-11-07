@@ -25,6 +25,7 @@ import {
   IconTrash,
   IconUserCircle,
   IconMarkdown,
+  IconTxt,
   IconVariable,
 } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
@@ -33,7 +34,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { FileIcon } from './FileIcon'
-import { newFile, newJsonFile, newMarkdownFile, newZplFile } from './files'
+import {
+  newFile,
+  newJsonFile,
+  newMarkdownFile,
+  newTextFile,
+  newZplFile,
+} from './files'
 import { readLastCommand, saveLastCommand } from './last-command'
 import {
   askDeleteProfile,
@@ -467,7 +474,7 @@ function CurrentFile({
 function Edit({ run }: { run: Run }) {
   // Read as the menu opens; nothing edits the file while it is open.
   const [depth] = useState(historyDepth)
-  // SQL, ZPL and Markdown files have no tags, defaults or variables to act on.
+  // SQL, ZPL, Markdown and text files have no tags, defaults or variables to act on.
   const formatOnly = useSelector(editorStore, (s) => isPlain(s.doc.language))
   return (
     <>
@@ -642,6 +649,10 @@ function Workspace({
         <CommandItem onSelect={() => run(newMarkdownFile)}>
           <IconMarkdown />
           {m.file_new_md()}
+        </CommandItem>
+        <CommandItem onSelect={() => run(newTextFile)}>
+          <IconTxt />
+          {m.file_new_txt()}
         </CommandItem>
         <CommandItem onSelect={() => run(onOpenFromDisk)}>
           <IconFolderOpen />

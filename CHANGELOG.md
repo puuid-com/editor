@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.5.0] - 2026-11-07
+
+### Added
+
+- Plain text files (`.txt`, `.text`, `.log`). They open as written, with no highlighting, structure panel or XML errors. A `.txt` file of pipe-delimited records still opens as fixed-width.
+- "New text file" in the command menu and on the welcome screen, and "Plain text" in the file type menu.
+
 ## [1.4.0] - 2026-11-07
 
 ### Added

@@ -97,6 +97,7 @@ const SUPPORT: Record<DocLanguage, Extension> = {
   sql: sqlSupport,
   zpl: [zpl(), zplHelpCompartment.of(zplHelp({ dpi: 203, explain: true }))],
   md: markdownSupport(),
+  txt: [],
 }
 
 /** The language of the file in this editor state. */

@@ -56,6 +56,7 @@ describe('typedName', () => {
     expect(typedName('invoice.xml', 'json')).toBe('invoice.json')
     expect(typedName('data.json', 'flat')).toBe('data.txt')
     expect(typedName('untitled', 'md')).toBe('untitled.md')
+    expect(typedName('invoice.xml', 'txt')).toBe('invoice.txt')
   })
 
   it('keeps an extension that already reads as the type', () => {
@@ -71,6 +72,12 @@ describe('languageOf', () => {
     expect(languageOf('guide.markdown', '')).toBe('md')
   })
 
+  it('reads a .txt file as plain text unless it holds flat records', () => {
+    expect(languageOf('notes.txt', 'hello <world>')).toBe('txt')
+    expect(languageOf('server.log', '{"level":"info"}')).toBe('txt')
+    expect(languageOf('records.txt', 'SH|001\nPC|002')).toBe('flat')
+  })
+
   it('reads an untitled file that starts with a heading as Markdown', () => {
     expect(languageOf('untitled', '# Title')).toBe('md')
   })
@@ -79,6 +86,7 @@ describe('languageOf', () => {
 describe('isPlain', () => {
   it('marks the types with no elements to act on', () => {
     expect(isPlain('md')).toBe(true)
+    expect(isPlain('txt')).toBe(true)
     expect(isPlain('sql')).toBe(true)
     expect(isPlain('zpl')).toBe(true)
     expect(isPlain('xml')).toBe(false)

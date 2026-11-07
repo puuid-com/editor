@@ -12,6 +12,7 @@ export const FILE_TYPES: Array<{ value: DocLanguage; label: () => string }> = [
   { value: 'sql', label: m.paste_type_sql },
   { value: 'zpl', label: m.paste_type_zpl },
   { value: 'md', label: m.paste_type_md },
+  { value: 'txt', label: m.paste_type_txt },
 ]
 
 /**

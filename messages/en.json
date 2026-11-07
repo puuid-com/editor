@@ -891,5 +891,8 @@
   "file_untitled_md": "untitled.md",
   "md_preview": "Markdown preview",
   "md_diagram": "Diagram",
-  "md_diagram_error": "Diagram error: {message}"
+  "md_diagram_error": "Diagram error: {message}",
+  "paste_type_txt": "Plain text",
+  "file_new_txt": "New text file",
+  "file_untitled_txt": "untitled.txt"
 }
