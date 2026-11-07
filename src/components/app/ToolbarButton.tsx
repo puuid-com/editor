@@ -8,16 +8,19 @@ import {
 import type { Shortcut } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 
-/** Icon button; only a button with a shortcut gets a tooltip to show it. */
+/** Icon button; a shortcut or hint shows it in a tooltip with the label. */
 export function ToolbarButton({
   label,
   shortcut,
+  hint,
   size = 'icon-xs',
   className,
   ...props
 }: Omit<React.ComponentProps<typeof Button>, 'aria-label'> & {
   label: string
   shortcut?: Shortcut
+  /** Short explanation shown under the label in the tooltip. */
+  hint?: string
 }) {
   const button = (
     <Button
@@ -28,13 +31,16 @@ export function ToolbarButton({
       {...props}
     />
   )
-  if (!shortcut) return button
+  if (!shortcut && !hint) return button
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent className="flex items-center gap-2">
-        {label}
-        <ShortcutKeys shortcut={shortcut} />
+      <TooltipContent className="flex max-w-64 flex-col items-start gap-0.5">
+        <span className="flex items-center gap-2">
+          {label}
+          {shortcut && <ShortcutKeys shortcut={shortcut} />}
+        </span>
+        {hint && <span className="text-background/70">{hint}</span>}
       </TooltipContent>
     </Tooltip>
   )

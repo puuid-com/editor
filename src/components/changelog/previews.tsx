@@ -15,7 +15,9 @@ import {
   IconFilePlus,
   IconFolder,
   IconFolderOpen,
+  IconFolderPlus,
   IconFolderRoot,
+  IconFolderUp,
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebarRight,
@@ -25,6 +27,7 @@ import {
   IconShare,
   IconTag,
   IconTextWrap,
+  IconUpload,
   IconUserCircle,
   IconVariable,
   IconWand,
@@ -2517,7 +2520,42 @@ function FolderWorkspaces() {
   )
 }
 
+function ExplorerHints() {
+  const icon = 'flex size-6 items-center justify-center [&_svg]:size-3.5'
+  return (
+    <Shot>
+      <div className="flex justify-end p-3 pb-16">
+        <div className="relative w-56 border">
+          <div className="flex items-center gap-1 border-b px-2 py-1.5">
+            <span className="flex-1 font-medium">{m.explorer_title()}</span>
+            <span className={icon}>
+              <IconFilePlus />
+            </span>
+            <span className={icon}>
+              <IconFolderPlus />
+            </span>
+            <span className={icon}>
+              <IconUpload />
+            </span>
+            <span className={icon}>
+              <IconFolderUp />
+            </span>
+            <span className={cn(icon, 'bg-muted')}>
+              <IconFolderRoot />
+            </span>
+          </div>
+          <div className="absolute top-full right-0 mt-1 flex w-52 flex-col gap-0.5 bg-foreground px-3 py-1.5 text-background">
+            <span>{m.folder_open()}</span>
+            <span className="text-background/70">{m.folder_open_hint()}</span>
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.8.1': figure(ExplorerHints),
   '1.8.0': figure(FolderWorkspaces),
   '1.7.2': figure(ExplorerHover),
   '1.6.2': figure(HeaderWithoutRepeat),

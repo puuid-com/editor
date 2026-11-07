@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.8.1] - 2026-11-07
+
+### Fixed
+
+- Every button at the top of the explorer now shows a tooltip naming it and explaining what it does, including the difference between importing a folder and opening one.
+
 ## [1.8.0] - 2026-11-07
 
 ### Added

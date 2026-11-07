@@ -933,5 +933,11 @@
   "folder_delete_description": "Cette action le supprime définitivement de votre appareil, avec tout son contenu. Elle est irréversible.",
   "folder_loading": "Chargement…",
   "folder_unavailable": "Ce dossier est illisible. Il a peut-être été déplacé ou supprimé.",
-  "folder_empty": "Aucun fichier modifiable ici."
+  "folder_empty": "Aucun fichier modifiable ici.",
+  "explorer_toggle_hint": "Replier le panneau pour donner plus de place à l’éditeur.",
+  "explorer_new_file_hint": "Créer un fichier vide au premier niveau.",
+  "explorer_new_folder_hint": "Créer un dossier au premier niveau pour regrouper des fichiers.",
+  "explorer_import_hint": "Copier des fichiers de votre appareil dans l’espace de travail du navigateur.",
+  "explorer_import_folder_hint": "Copier un dossier entier de votre appareil dans l’espace de travail du navigateur. L’original reste intact.",
+  "folder_open_hint": "Modifier directement un dossier de votre appareil. Les changements sont enregistrés sur le disque."
 }

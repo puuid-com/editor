@@ -453,6 +453,7 @@ export function FileExplorer({
       <div className="flex h-12 shrink-0 items-center gap-1 border-b px-2 md:h-10">
         <ToolbarButton
           label={m.explorer_toggle()}
+          hint={m.explorer_toggle_hint()}
           onClick={() => setVisible(!visible)}
         >
           <IconLayoutSidebarRight />
@@ -464,6 +465,7 @@ export function FileExplorer({
             </span>
             <ToolbarButton
               label={m.file_new()}
+              hint={m.explorer_new_file_hint()}
               onClick={() =>
                 setEdit({
                   kind: 'file',
@@ -476,17 +478,23 @@ export function FileExplorer({
             </ToolbarButton>
             <ToolbarButton
               label={m.explorer_new_folder()}
+              hint={m.explorer_new_folder_hint()}
               onClick={() =>
                 setEdit({ kind: 'folder', parentId: null, name: '' })
               }
             >
               <IconFolderPlus />
             </ToolbarButton>
-            <ToolbarButton label={m.explorer_import()} onClick={onImport}>
+            <ToolbarButton
+              label={m.explorer_import()}
+              hint={m.explorer_import_hint()}
+              onClick={onImport}
+            >
               <IconUpload />
             </ToolbarButton>
             <ToolbarButton
               label={m.explorer_import_folder()}
+              hint={m.explorer_import_folder_hint()}
               onClick={() => directoryInput.current?.click()}
             >
               <IconFolderUp />
@@ -494,6 +502,7 @@ export function FileExplorer({
             {canOpenFolders && (
               <ToolbarButton
                 label={m.folder_open()}
+                hint={m.folder_open_hint()}
                 onClick={() => run(openFolder)}
               >
                 <IconFolderRoot />
