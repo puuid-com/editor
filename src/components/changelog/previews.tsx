@@ -2877,7 +2877,26 @@ function PastedImage() {
   )
 }
 
+function ImageFiles() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab active name="image.png" />
+      </Tabs>
+      <div className="flex items-center justify-between border-b px-3 py-2 text-xs text-muted-foreground">
+        <span>{m.image_preview()} · 640 × 480</span>
+        <span>{m.image_actual()}</span>
+      </div>
+      <div className="flex h-40 items-center justify-center bg-muted/20">
+        <IconPhoto className="size-24 text-muted-foreground" stroke={1} />
+      </div>
+      <StatusBar>{m.file_download()}</StatusBar>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.15.0': figure(ImageFiles),
   '1.14.0': figure(UnsupportedFiles),
   '1.13.1': figure(SquareCode),
   '1.13.0': figure(PastedImage),

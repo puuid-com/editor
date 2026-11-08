@@ -1,3 +1,5 @@
+import { ImagePreview } from '#/components/image/ImagePreview'
+import { imageMime, isImageData } from '#/lib/image-file'
 import { Fragment, Suspense, lazy, useEffect } from 'react'
 import { useSelector } from '@tanstack/react-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
@@ -104,12 +106,13 @@ function FilePane({
   const fileId = pane.activeId
   const file = useFileContent(fileId)
   const language = languageOf(file?.name ?? '', file?.content ?? '')
+  const image = !!file && (!!imageMime(file.name) || isImageData(file.content))
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const files = useOpenFiles()
   // ZPL has its own label preview; SQL and plain text have nothing to show
   // beside them.
   const hasPanel =
-    language !== 'zpl' && language !== 'sql' && language !== 'txt'
+    !image && language !== 'zpl' && language !== 'sql' && language !== 'txt'
   const showPanel = active && panelOpen && hasPanel && !!file?.content
   const markdown = language === 'md'
   return (
@@ -157,57 +160,74 @@ function FilePane({
         }
       />
       <div className="min-h-0 flex-1">
-        {/* A flat file's records are wide tables, so they always sit
+        {image ? (
+          <ImagePreview
+            key={file.content}
+            file={{ ...file, id: fileId }}
+            active={active}
+          />
+        ) : (
+          <>
+            {/* A flat file's records are wide tables, so they always sit
             under the code. */}
-        <ResizablePanelGroup
-          orientation={
-            wide && count === 1 && language !== 'flat'
-              ? 'horizontal'
-              : 'vertical'
-          }
-        >
-          <ResizablePanel id="code" minSize="25%">
-            <Suspense>
-              <div className={compareId ? 'hidden h-full' : 'h-full'}>
-                {language === 'zpl' ? (
-                  <ZplPane fileId={fileId} sideBySide={wide && count === 1} />
-                ) : (
-                  <CodeEditor fileId={fileId} />
-                )}
-              </div>
-              {compareId && (
-                <CompareView
-                  fileId={fileId}
-                  otherId={compareId}
-                  layout={wide ? 'split' : 'unified'}
-                />
-              )}
-            </Suspense>
-          </ResizablePanel>
-          {showPanel && (
-            <>
-              <ResizableHandle />
-              {/* Markdown gets a live preview, every other type its
+            <ResizablePanelGroup
+              orientation={
+                wide && count === 1 && language !== 'flat'
+                  ? 'horizontal'
+                  : 'vertical'
+              }
+            >
+              <ResizablePanel id="code" minSize="25%">
+                <Suspense>
+                  <div className={compareId ? 'hidden h-full' : 'h-full'}>
+                    {language === 'zpl' ? (
+                      <ZplPane
+                        fileId={fileId}
+                        sideBySide={wide && count === 1}
+                      />
+                    ) : (
+                      <CodeEditor fileId={fileId} />
+                    )}
+                  </div>
+                  {compareId && (
+                    <CompareView
+                      fileId={fileId}
+                      otherId={compareId}
+                      layout={wide ? 'split' : 'unified'}
+                    />
+                  )}
+                </Suspense>
+              </ResizablePanel>
+              {showPanel && (
+                <>
+                  <ResizableHandle />
+                  {/* Markdown gets a live preview, every other type its
                   structure. */}
-              {markdown ? (
-                <ResizablePanel id="preview" defaultSize="50%" minSize="20%">
-                  <Suspense>
-                    <MarkdownPreview fileId={fileId} />
-                  </Suspense>
-                </ResizablePanel>
-              ) : (
-                <ResizablePanel
-                  id="structure"
-                  defaultSize="36%"
-                  minSize="20%"
-                  className="bg-muted/20"
-                >
-                  <SidePanel />
-                </ResizablePanel>
+                  {markdown ? (
+                    <ResizablePanel
+                      id="preview"
+                      defaultSize="50%"
+                      minSize="20%"
+                    >
+                      <Suspense>
+                        <MarkdownPreview fileId={fileId} />
+                      </Suspense>
+                    </ResizablePanel>
+                  ) : (
+                    <ResizablePanel
+                      id="structure"
+                      defaultSize="36%"
+                      minSize="20%"
+                      className="bg-muted/20"
+                    >
+                      <SidePanel />
+                    </ResizablePanel>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </ResizablePanelGroup>
+            </ResizablePanelGroup>
+          </>
+        )}
       </div>
     </section>
   )

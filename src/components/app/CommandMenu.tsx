@@ -412,6 +412,7 @@ function CurrentFile({
   onCompare: () => void
   onChangeType: () => void
 }) {
+  const type = useFileType(activeId)
   const writesDisk = useCanWriteDisk()
   const activeFile = files.find((f) => f.id === activeId)
   return (
@@ -423,7 +424,7 @@ function CurrentFile({
           {m.file_rename()}
           <CommandShortcut>{shortcutLabel(shortcuts.rename)}</CommandShortcut>
         </CommandItem>
-        {activeFile && (
+        {activeFile && type && (
           <CommandItem onSelect={onChangeType}>
             <IconFileSettings />
             {m.file_change_type()}
@@ -456,7 +457,7 @@ function CurrentFile({
             </span>
           </div>
         </CommandItem>
-        {files.length > 1 && (
+        {type && files.length > 1 && (
           <CommandItem onSelect={onCompare}>
             <IconGitCompare />
             {m.compare_with()}

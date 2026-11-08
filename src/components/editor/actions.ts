@@ -38,6 +38,7 @@ import {
   languageOf,
   typedName,
 } from '#/lib/document'
+import { contentBlob } from '#/lib/image-file'
 import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
@@ -244,7 +245,7 @@ export function downloadFile(id: string) {
   const content = active ? getText() : file.content
   const language = active ? activeLanguage() : languageOf(file.name, content)
   downloadBlob(
-    new Blob([content], { type: MIME_TYPES[language] }),
+    contentBlob(content, MIME_TYPES[language]),
     /\.\w+$/.test(file.name) ? file.name : typedName(file.name, language),
   )
 }
@@ -317,7 +318,7 @@ export async function copyShareLink({
 }: { profile?: boolean; variables?: boolean } = {}) {
   const { fileId } = editorStore.state
   const file = fileId ? filesCollection.get(fileId) : undefined
-  if (!getView() || !file) return false
+  if (!file) return false
   const shared = profile
     ? snapshotProfile(
         resolveProfile(profilesList(), file.profileId)?.id ?? '',
@@ -329,7 +330,7 @@ export async function copyShareLink({
   try {
     const hash = await encodeShare({
       name: file.name,
-      content: getText(),
+      content: getView() ? getText() : file.content,
       zplSettings: file.zplSettings,
       profile: shared,
     })

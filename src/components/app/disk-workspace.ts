@@ -1,3 +1,4 @@
+import { readFileContent } from '#/lib/image-file'
 import { Debouncer } from '@tanstack/react-pacer'
 
 import { notify } from './notice-store'
@@ -126,7 +127,7 @@ async function readIntoTab(root: DiskRoot, entry: DiskEntry) {
   const handle = entry.handle as FileSystemFileHandle
   try {
     const disk = await handle.getFile()
-    const text = await disk.text()
+    const text = await readFileContent(disk)
     const file = createDiskFile(
       { rootId: root.id, path: entry.path },
       text,
@@ -337,7 +338,12 @@ export async function reloadFromDisk(id: string) {
   try {
     await settleContentSave()
     const disk = await link.handle.getFile()
-    await takeDiskText(file, link.handle, await disk.text(), disk.lastModified)
+    await takeDiskText(
+      file,
+      link.handle,
+      await readFileContent(disk),
+      disk.lastModified,
+    )
   } catch (error) {
     notify.error(m.file_import_failed({ name: file.name }), {
       detail: detail(error),
@@ -365,7 +371,7 @@ async function syncFile(file: XmlFile) {
   try {
     const disk = await link.handle.getFile()
     if (disk.lastModified === link.modified) return
-    const text = await disk.text()
+    const text = await readFileContent(disk)
     if (text === file.content || !unsaved(file)) {
       await takeDiskText(file, link.handle, text, disk.lastModified)
       return

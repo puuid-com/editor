@@ -1,6 +1,7 @@
 // One entry point for language-specific work, so the editor, tree and
 // actions treat XML and JSON files the same way.
 
+import { imageMime, isImageData } from './image-file'
 import { isFlatFile, parseFlat } from './flat/parse'
 import { setJsonValue } from './json/edit'
 import { formatJson } from './json/format'
@@ -41,6 +42,18 @@ export const LANGUAGE_EXTENSIONS = {
   zpl: ['.zpl'],
   md: ['.md', '.markdown'],
   txt: ['.txt', '.text', '.log'],
+  image: [
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.jfif',
+    '.gif',
+    '.webp',
+    '.avif',
+    '.bmp',
+    '.ico',
+    '.apng',
+  ],
 } as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
 
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
@@ -61,6 +74,8 @@ const SQL_START =
 
 /** By extension, else by the first character of the content. */
 export function languageOf(name: string, content: string): DocLanguage {
+  if (isImageData(content) || (imageMime(name) && !/\.svg$/i.test(name)))
+    return 'image'
   // A flat file is never valid XML or JSON, so its content beats the name.
   if (isFlatFile(content)) return 'flat'
   for (const language of ['zpl', 'json', 'xml', 'sql', 'md'] as const) {
@@ -110,7 +125,8 @@ export function isPlain(language: DocLanguage) {
     language === 'sql' ||
     language === 'zpl' ||
     language === 'md' ||
-    language === 'txt'
+    language === 'txt' ||
+    language === 'image'
   )
 }
 
@@ -163,4 +179,5 @@ export const MIME_TYPES: Record<DocLanguage, string> = {
   zpl: 'application/octet-stream',
   md: 'text/markdown',
   txt: 'text/plain',
+  image: 'application/octet-stream',
 }

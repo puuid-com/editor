@@ -949,5 +949,9 @@
   "explorer_in_browser": "In Browser",
   "explorer_from_device": "From your device",
   "folder_open_desc": "Edits the files on disk, live",
-  "explorer_in_folder": "In {name}"
+  "explorer_in_folder": "In {name}",
+  "image_preview": "Image preview",
+  "image_fit": "Fit to window",
+  "image_actual": "Actual size",
+  "image_failed": "This image could not be displayed. It may be damaged or use a format your browser does not support."
 }

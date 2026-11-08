@@ -4,7 +4,8 @@ import type { FlatFile } from '../flat/parse'
 // CodeMirror's. `from` is inclusive, `to` exclusive. JSON documents use the
 // same model: each property or array item is an element (see `JsonInfo`).
 
-export type DocLanguage = 'xml' | 'json' | 'flat' | 'sql' | 'zpl' | 'md' | 'txt'
+export type DocLanguage =
+  'xml' | 'json' | 'flat' | 'sql' | 'zpl' | 'md' | 'txt' | 'image'
 
 export type JsonType =
   | 'object'

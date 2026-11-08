@@ -59,6 +59,7 @@ describe('reading a folder', () => {
     expect(names(await listFiles(handle))).toEqual([
       'A.xml',
       'b.xml',
+      'image.png',
       'notes.md',
       'src/a.json',
       'src/deep/q.sql',

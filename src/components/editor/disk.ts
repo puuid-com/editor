@@ -1,3 +1,4 @@
+import { readFileContent, contentBlob, isImageData } from '#/lib/image-file'
 import { downloadFile, formatActive } from './actions'
 import { editorStore, getText, getView } from './editor-store'
 import { notify } from '#/components/app/notice-store'
@@ -38,7 +39,7 @@ async function write(id: string, handle: FileSystemFileHandle, quiet = false) {
   const text = textOf(id)
   // The file can disappear while a picker or permission prompt is open.
   if (text === undefined) return false
-  await writeFile(handle, text)
+  await writeFile(handle, isImageData(text) ? contentBlob(text) : text)
   const { lastModified } = await handle.getFile()
   await setDiskLink(id, { handle, saved: text, modified: lastModified })
   if (!quiet) notify.success(m.saved_to_disk({ name: handle.name }))
@@ -55,7 +56,7 @@ async function changedOnDisk(id: string) {
   if (!link) return false
   const file = await link.handle.getFile()
   if (file.lastModified === link.modified) return false
-  const text = await file.text()
+  const text = await readFileContent(file)
   if (text !== link.saved && text !== textOf(id)) return true
   await setDiskLink(id, { ...link, saved: text, modified: file.lastModified })
   return false

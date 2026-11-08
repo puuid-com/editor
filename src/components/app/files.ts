@@ -1,3 +1,4 @@
+import { readFileContent, IMAGE_TYPES } from '#/lib/image-file'
 import { foldersCollection, saveFolder, moveFile } from '#/lib/store/folders'
 import { notify } from './notice-store'
 import { diskRoot, setDiskLink } from '#/lib/store/disk'
@@ -29,6 +30,8 @@ export const TEMPLATE_TYPES = STRUCTURED_TYPES.join(',')
 
 export const ACCEPTED_TYPES = [
   ...STRUCTURED_TYPES,
+  ...Object.values(IMAGE_TYPES).flat(),
+  ...Object.keys(IMAGE_TYPES),
   ...new Set([...flat, ...txt]),
   'text/plain',
   ...sql,
@@ -43,6 +46,7 @@ const PICKER_TYPES: Array<FilePickerAcceptType> = [
   {
     description: 'XML, JSON, TXT, SQL, ZPL, MD',
     accept: {
+      ...IMAGE_TYPES,
       'application/xml': [...xml],
       'application/json': [...json],
       'text/plain': [...new Set([...flat, ...txt, ...zpl])],
@@ -208,7 +212,7 @@ async function importHandles(handles: ReadonlyArray<FileSystemFileHandle>) {
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       const file = await handle.getFile()
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      const opened = open(file.name, await file.text())
+      const opened = open(file.name, await readFileContent(file))
       last = opened.id
       void setDiskLink(last, {
         handle,
@@ -255,7 +259,7 @@ export function dropFiles(data: DataTransfer) {
 /** Reads dropped or picked files and opens each in a tab. */
 export async function importFiles(list: FileList | Array<File>) {
   const files = Array.from(list)
-  const contents = await Promise.allSettled(files.map((file) => file.text()))
+  const contents = await Promise.allSettled(files.map(readFileContent))
   const open = fileOpener()
   let last: string | null = null
   for (const [i, result] of contents.entries()) {

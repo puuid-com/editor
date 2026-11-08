@@ -949,5 +949,9 @@
   "explorer_in_browser": "Dans le navigateur",
   "explorer_from_device": "Depuis votre appareil",
   "folder_open_desc": "Modifie les fichiers sur le disque, en direct",
-  "explorer_in_folder": "Dans {name}"
+  "explorer_in_folder": "Dans {name}",
+  "image_preview": "Aperçu de l’image",
+  "image_fit": "Adapter à la fenêtre",
+  "image_actual": "Taille réelle",
+  "image_failed": "Impossible d’afficher cette image. Elle est peut-être endommagée ou utilise un format non pris en charge par votre navigateur."
 }
