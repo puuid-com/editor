@@ -64,3 +64,15 @@ export const blobQuery = (
     },
     ...fresh,
   })
+
+/** A note's text, for `![[embeds]]` of it in other notes. */
+export const textQuery = (
+  root: DiskRoot,
+  path: string,
+  handle: FileSystemFileHandle,
+) =>
+  queryOptions({
+    queryKey: [...diskKeys.root(root.id), 'text', path],
+    queryFn: async () => (await handle.getFile()).text(),
+    ...fresh,
+  })

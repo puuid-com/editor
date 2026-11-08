@@ -34,7 +34,12 @@ function vault() {
   const folder = fakeFolder('Notes', {
     '.obsidian': { 'app.json': '{}' },
     'Home.md': '# Home',
-    Projects: { 'Plan.md': '', 'Ideas.md': '# Ideas' },
+    Projects: {
+      'Plan.md': '',
+      'Ideas.md': '# Ideas',
+      'Loop.md': 'Loop text ![[Loop]]\n\n![[Plan]]',
+      'Part.md': '# Part\nFirst [[Ideas]]\n## Two\nSecond',
+    },
     assets: { 'diagram.png': 'png' },
   })
   const root: DiskRoot = {
@@ -96,6 +101,34 @@ describe('links in a note of a vault', () => {
     const image = await screen.findByRole('img', { name: 'diagram.png' })
     expect(image).toHaveAttribute('src', 'blob:diagram')
     expect(image).toHaveAttribute('width', '120')
+  })
+
+  it('shows the note an ![[embed]] names, or the heading it names', async () => {
+    const root = vault()
+    preview('Before\n\n![[Part#Two]]\n\n![[Part]]', {
+      rootId: root.id,
+      path: 'Home.md',
+    })
+    expect(await screen.findByText('First')).toBeInTheDocument()
+    expect(screen.getAllByText('Second')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Part > Two' })).toHaveAttribute(
+      'title',
+      'Projects/Part.md',
+    )
+    // The embedded note's own links still find their notes.
+    expect(screen.getByRole('link', { name: 'Ideas' })).toHaveAttribute(
+      'title',
+      'Projects/Ideas.md',
+    )
+  })
+
+  it('links to a note instead of embedding it inside itself', async () => {
+    const root = vault()
+    preview('![[Loop]]', { rootId: root.id, path: 'Projects/Plan.md' })
+    expect(await screen.findByText(/Loop text/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Loop text/)).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: 'Loop' })).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Plan' })).toBeInTheDocument()
   })
 
   it('shows callouts and highlights', async () => {

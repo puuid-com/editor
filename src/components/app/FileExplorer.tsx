@@ -1,5 +1,5 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
-import { isMarkdownName } from '#/components/markdown/pdf/source'
+import { isMarkdownName } from '#/lib/obsidian'
 import {
   IconBrowser,
   IconChevronRight,

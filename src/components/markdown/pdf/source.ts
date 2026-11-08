@@ -2,6 +2,7 @@ import { getFileView } from '#/components/editor/editor-store'
 import { fileIdField } from '#/components/editor/extensions'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
 import { isWithin, listFiles } from '#/lib/disk-tree'
+import { isMarkdownName } from '#/lib/obsidian'
 import type { DiskRoot } from '#/lib/store/disk'
 import { fileAt, filesCollection } from '#/lib/store/files'
 import type { FileLocation, XmlFile } from '#/lib/store/files'
@@ -19,8 +20,6 @@ export interface PdfNote {
   content: string
   location?: FileLocation
 }
-
-export const isMarkdownName = (name: string) => /\.(md|markdown)$/i.test(name)
 
 function currentNote(file: XmlFile): PdfNote {
   const view = getFileView(file.id)

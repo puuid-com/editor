@@ -7,6 +7,7 @@ import {
   isExcluded,
   isLocalHref,
   noteName,
+  noteSection,
   parseVaultSettings,
   parseWikilink,
   readVault,
@@ -183,5 +184,41 @@ describe('resolving links', () => {
     expect(isLocalHref('')).toBe(false)
     expect(hrefPath('Other%20note.md#Plan')).toBe('Other note.md')
     expect(hrefPath('100%.md')).toBe('100%.md')
+  })
+})
+
+describe('embedded notes', () => {
+  const note = [
+    '---',
+    'tags: [a]',
+    '---',
+    '# Plan',
+    'Intro',
+    '## Steps',
+    '```md',
+    '# Not a heading',
+    '```',
+    'Do it ^step',
+    '### Detail',
+    'More',
+    '## Done',
+    'End',
+  ].join('\n')
+
+  it('shows the whole note without its frontmatter', () => {
+    expect(noteSection(note)?.startsWith('# Plan')).toBe(true)
+  })
+
+  it('shows a heading and what is under it, past code and deeper headings', () => {
+    expect(noteSection(note, 'steps')).toBe(
+      '## Steps\n```md\n# Not a heading\n```\nDo it ^step\n### Detail\nMore',
+    )
+    expect(noteSection(note, 'Plan#Done')).toBe('## Done\nEnd')
+    expect(noteSection(note, 'Nowhere')).toBeNull()
+  })
+
+  it('shows the paragraph a block id marks, without the id', () => {
+    expect(noteSection('a\n\nb\nc ^x\n\nd', '^x')).toBe('b\nc')
+    expect(noteSection('a', '^x')).toBeNull()
   })
 })

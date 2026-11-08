@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.20.0] - 2026-11-08
+
+### Added
+
+- In a folder opened from disk, `![[note]]` on its own line shows that note's content in the preview, as Obsidian does, under a link to open it. `![[note#Heading]]` shows just that section and `![[note#^id]]` one marked paragraph.
+- Embedded notes show your unsaved edits when they are open in a tab, and are included in PDF exports. A note never embeds itself or a note it is already inside.
+
 ## [1.19.1] - 2026-11-08
 
 ### Fixed

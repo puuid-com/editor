@@ -3139,7 +3139,34 @@ function LightPdf() {
   return <BeforeAfter before={<PdfPage dark />} after={<PdfPage />} />
 }
 
+const EMBEDDING = ['# Plan', '', 'Start from:', '', '![[Ideas]]']
+
+/** A note embedding another, shown in place in the preview. */
+function NoteEmbeds() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab name="Plan.md" active />
+      </Tabs>
+      <div className="grid grid-cols-2 divide-x">
+        <Code lines={EMBEDDING} format={markdownLine} />
+        <div className="grid content-start gap-2 p-3">
+          <span className="text-sm font-semibold tracking-tight">Plan</span>
+          <span>Start from:</span>
+          <div className="grid gap-1.5 border-l-2 pl-3">
+            <span className="text-[10px] text-muted-foreground">Ideas</span>
+            <span className="font-semibold tracking-tight">Ideas</span>
+            <Bar className="w-full" />
+            <Bar className="w-2/3" />
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.20.0': figure(NoteEmbeds),
   '1.19.1': figure(LightPdf),
   '1.19.0': figure(DraftEditor),
   '1.18.1': figure(FileTitleAndLogo),

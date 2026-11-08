@@ -140,6 +140,69 @@ export function embedSize(alias: string | undefined) {
   }
 }
 
+export const isMarkdownName = (name: string) => /\.(md|markdown)$/i.test(name)
+
+const FENCE = /^ {0,3}(`{3,}|~{3,})/
+const ATX = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/
+const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/
+
+/**
+ * What `![[note#heading]]` shows of a note, as Obsidian does: the heading
+ * and everything under it up to the next heading as big, the paragraph
+ * marked `^id` for `#^id`, or the whole note without its frontmatter.
+ * Null when the heading or block isn't there.
+ */
+export function noteSection(source: string, heading?: string): string | null {
+  const body = source.replace(FRONTMATTER, '')
+  // `#Part#Section` names the last heading of a path.
+  const wanted = heading?.split('#').at(-1)?.trim()
+  if (!wanted) return body
+  const lines = body.split(/\r?\n/)
+  if (wanted.startsWith('^')) {
+    const marker = new RegExp(`\\s\\^${escapeRegExp(wanted.slice(1))}\\s*$`)
+    const at = lines.findIndex((line) => marker.test(` ${line}`))
+    if (at < 0) return null
+    let start = at
+    while (start > 0 && lines[start - 1].trim()) start--
+    const block = lines.slice(start, at + 1)
+    block[block.length - 1] = ` ${lines[at]}`.replace(marker, '').slice(1)
+    return block.join('\n')
+  }
+  let fence: string | null = null
+  let start = -1
+  let depth = 0
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]
+    const open = FENCE.exec(line)
+    if (fence) {
+      if (open && open[1][0] === fence[0] && open[1].length >= fence.length)
+        fence = null
+      continue
+    }
+    if (open) {
+      fence = open[1]
+      continue
+    }
+    const match = ATX.exec(line)
+    if (!match) continue
+    const level = match[1].length
+    if (start >= 0 && level <= depth)
+      return lines.slice(start, index).join('\n').trimEnd()
+    if (
+      start < 0 &&
+      (match.at(2) ?? '').trim().toLowerCase() === wanted.toLowerCase()
+    ) {
+      start = index
+      depth = level
+    }
+  }
+  return start < 0 ? null : lines.slice(start).join('\n').trimEnd()
+}
+
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 const IMAGE = /\.(png|jpe?g|gif|webp|avif|svg|bmp|ico)$/i
 
 export function isImagePath(path: string) {

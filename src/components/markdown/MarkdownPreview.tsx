@@ -3,18 +3,24 @@ import type { ComponentProps } from 'react'
 import type { FileLocation } from '#/lib/store/files'
 import { cn } from '#/lib/utils'
 import { Markdown } from '@tanstack/markdown/react'
-import type { BlockNode, MarkdownExtension } from '@tanstack/markdown'
+import type {
+  BlockNode,
+  InlineNode,
+  MarkdownExtension,
+} from '@tanstack/markdown'
 import type { MarkdownComponents } from '@tanstack/markdown/react'
 
 import { CodeBlock } from './CodeBlock'
 import { highlightCode } from './highlight'
 import { MermaidDiagram } from './MermaidDiagram'
 import {
+  EmbeddedNote,
   NoteProvider,
   PreviewImage,
   PreviewLink,
   WikiEmbed,
   WikiLink,
+  useNoteEmbed,
 } from './note-links'
 import {
   WIKI_EMBED_TAG,
@@ -23,20 +29,38 @@ import {
 } from './obsidian-syntax'
 import { usePreviewScroll } from './use-preview-scroll'
 import { useFileContent } from '#/hooks/use-files'
+import { wikilinkText } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
 const DIAGRAM_TAG = 'mermaid-diagram'
+const NOTE_EMBED_TAG = 'note-embed'
 
-/** ```mermaid blocks become diagrams instead of highlighted code. */
-const diagrams: MarkdownExtension = {
-  name: 'mermaid',
+/**
+ * ```mermaid blocks become diagrams instead of highlighted code, and an
+ * `![[embed]]` alone on its line a block that can hold a whole note.
+ */
+const blocks: MarkdownExtension = {
+  name: 'blocks',
   transformDocument: (document) => ({
     ...document,
-    children: document.children.map(toDiagram),
+    children: document.children.map(toBlock),
   }),
 }
 
-function toDiagram(node: BlockNode): BlockNode {
+/** The embed a paragraph holds and nothing else, but space. */
+function soleEmbed(children: Array<InlineNode>) {
+  const nodes = children.filter(
+    (child) => child.type !== 'text' || child.value.trim(),
+  )
+  const [node] = nodes
+  return nodes.length === 1 &&
+    node.type === 'inlineComponent' &&
+    node.tagName === WIKI_EMBED_TAG
+    ? node
+    : undefined
+}
+
+function toBlock(node: BlockNode): BlockNode {
   if (node.type === 'code' && node.lang?.toLowerCase() === 'mermaid') {
     return {
       type: 'component',
@@ -47,23 +71,58 @@ function toDiagram(node: BlockNode): BlockNode {
       children: [],
     }
   }
-  if (node.type === 'blockquote')
-    return { ...node, children: node.children.map(toDiagram) }
+  if (node.type === 'paragraph') {
+    const embed = soleEmbed(node.children)
+    if (embed)
+      return {
+        type: 'component',
+        name: 'note-embed',
+        tagName: NOTE_EMBED_TAG,
+        attributes: {},
+        properties: embed.properties,
+        children: [],
+      }
+  }
+  if (node.type === 'blockquote' || node.type === 'callout')
+    return { ...node, children: node.children.map(toBlock) }
   if (node.type === 'list')
     return {
       ...node,
       items: node.items.map((item) => ({
         ...item,
-        children: item.children.map(toDiagram),
+        children: item.children.map(toBlock),
       })),
     }
   return node
 }
 
-const EXTENSIONS = [diagrams, obsidianSyntax]
+const EXTENSIONS = [blocks, obsidianSyntax]
+
+/** `![[target]]` on its own line: the note's text, or as inline when it isn't a note. */
+function NoteEmbedBlock(link: {
+  target?: string
+  heading?: string
+  alias?: string
+}) {
+  const embed = useNoteEmbed(link.target ?? '')
+  if (!embed)
+    return (
+      <p>
+        <WikiEmbed {...link}>
+          {wikilinkText({ ...link, target: link.target ?? '' })}
+        </WikiEmbed>
+      </p>
+    )
+  return (
+    <EmbeddedNote {...embed} heading={link.heading}>
+      {(source) => <MarkdownBody source={source} />}
+    </EmbeddedNote>
+  )
+}
 
 const components = {
   [DIAGRAM_TAG]: MermaidDiagram,
+  [NOTE_EMBED_TAG]: NoteEmbedBlock,
   [WIKI_LINK_TAG]: WikiLink,
   [WIKI_EMBED_TAG]: WikiEmbed,
   a: PreviewLink,
@@ -114,14 +173,20 @@ export function MarkdownDocument({
   return (
     <article {...props} className={cn(PROSE, className)}>
       <NoteProvider location={location}>
-        <Markdown
-          components={components}
-          extensions={EXTENSIONS}
-          highlighter={highlightCode}
-        >
-          {source}
-        </Markdown>
+        <MarkdownBody source={source} />
       </NoteProvider>
     </article>
+  )
+}
+
+function MarkdownBody({ source }: { source: string }) {
+  return (
+    <Markdown
+      components={components}
+      extensions={EXTENSIONS}
+      highlighter={highlightCode}
+    >
+      {source}
+    </Markdown>
   )
 }

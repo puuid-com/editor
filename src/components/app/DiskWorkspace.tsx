@@ -1,5 +1,4 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
-import { isMarkdownName } from '#/components/markdown/pdf/source'
 import {
   IconChevronDown,
   IconChevronRight,
@@ -59,7 +58,12 @@ import {
 import { DropdownMenuItem } from '#/components/ui/dropdown-menu'
 import { isEditableName, isWithin, parentPath } from '#/lib/disk-tree'
 import type { DiskEntry, EntryKind } from '#/lib/disk-tree'
-import { isAttachmentFolder, isExcluded, noteName } from '#/lib/obsidian'
+import {
+  isAttachmentFolder,
+  isExcluded,
+  isMarkdownName,
+  noteName,
+} from '#/lib/obsidian'
 import type { Vault } from '#/lib/obsidian'
 import type { DiskRoot } from '#/lib/store/disk'
 import { cn } from '#/lib/utils'

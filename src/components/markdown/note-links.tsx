@@ -3,16 +3,23 @@ import { useSelector } from '@tanstack/react-store'
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
 
-import { allFilesQuery, blobQuery } from '#/components/app/disk-queries'
+import {
+  allFilesQuery,
+  blobQuery,
+  textQuery,
+} from '#/components/app/disk-queries'
 import { openDiskFile } from '#/components/app/disk-workspace'
 import { isEditableName } from '#/lib/disk-tree'
 import type { DiskEntry } from '#/lib/disk-tree'
+import { useFileContent, useOpenFiles } from '#/hooks/use-files'
 import {
   embedSize,
   hrefPath,
   isImagePath,
   isLocalHref,
+  isMarkdownName,
   linkResolver,
+  noteSection,
 } from '#/lib/obsidian'
 import { rootsStore } from '#/lib/store/disk'
 import type { DiskRoot } from '#/lib/store/disk'
@@ -22,7 +29,7 @@ import { m } from '#/paraglide/messages'
 // Links and images in a note of a folder opened from disk point at the
 // folder's other files, as in an Obsidian vault: `[[links]]` and relative
 // links open the note in a tab, `![[embeds]]` and relative images show the
-// image from disk.
+// image from disk, and `![[note]]` shows that note's text.
 
 /** The note the preview shows, and how to find what it links to. */
 interface Note {
@@ -30,9 +37,17 @@ interface Note {
   path: string
   /** The folder's file a link or image in the note points at. */
   find: (target: string) => DiskEntry | undefined
+  /** Another note of the same folder, whose links start from it. */
+  at: (path: string) => Note
 }
 
 const NoteContext = createContext<Note | null>(null)
+
+/** The notes embedding the one shown, outermost first. */
+const EmbeddingNotes = createContext<ReadonlyArray<string>>([])
+
+/** How many notes deep embeds go, which also stops notes embedding each other. */
+const MAX_EMBED_DEPTH = 4
 
 /** Lets links and images in the preview find the folder's files. */
 export function NoteProvider({
@@ -65,11 +80,13 @@ function FolderNote({
   const { data: files = [], isPending, isError } = useQuery(allFilesQuery(root))
   const resolve = linkResolver(files.map((file) => file.path))
   const byPath = new Map(files.map((file) => [file.path, file]))
-  const note: Note = {
+  const noteAt = (from: string): Note => ({
     root,
-    path,
-    find: (target) => byPath.get(resolve(target, path) ?? ''),
-  }
+    path: from,
+    find: (target) => byPath.get(resolve(target, from) ?? ''),
+    at: noteAt,
+  })
+  const note = noteAt(path)
   return (
     <NoteContext value={note}>
       <span
@@ -209,6 +226,91 @@ export function WikiEmbed({
     <WikiLink target={target} heading={heading}>
       {children}
     </WikiLink>
+  )
+}
+
+/**
+ * The note `![[target]]` embeds, or nothing when it isn't a note of the
+ * folder, or showing it would loop back to a note it is already inside.
+ */
+export function useNoteEmbed(target: string) {
+  const note = useContext(NoteContext)
+  const above = useContext(EmbeddingNotes)
+  const entry = target ? note?.find(target) : undefined
+  if (!note || !entry || !isMarkdownName(entry.name)) return undefined
+  if (
+    entry.path === note.path ||
+    above.includes(entry.path) ||
+    above.length >= MAX_EMBED_DEPTH
+  )
+    return undefined
+  return { note, entry }
+}
+
+/** A note's text: its latest edits when open in a tab, else as saved on disk. */
+function useNoteText(root: DiskRoot, entry: DiskEntry) {
+  const open = useOpenFiles().find(
+    (file) =>
+      file.location?.rootId === root.id && file.location.path === entry.path,
+  )
+  const live = useFileContent(open?.id ?? '')
+  const disk = useQuery({
+    ...textQuery(root, entry.path, entry.handle as FileSystemFileHandle),
+    enabled: !open,
+  })
+  if (open) return { text: live?.content, isError: false }
+  return { text: disk.data, isError: disk.isError }
+}
+
+/**
+ * `![[note#heading]]`: the note's text, or the part it names, ruled off and
+ * titled with a link to the note. `children` draws it, with the note's own
+ * links starting from where it sits in the folder.
+ */
+export function EmbeddedNote({
+  note,
+  entry,
+  heading,
+  children,
+}: {
+  note: Note
+  entry: DiskEntry
+  heading?: string
+  children: (source: string) => ReactNode
+}) {
+  const above = useContext(EmbeddingNotes)
+  const { text, isError } = useNoteText(note.root, entry)
+  const name = entry.name.replace(/\.(md|markdown)$/i, '')
+  const label = heading ? `${name} > ${heading.replace(/^\^/, '')}` : name
+  if (isError)
+    return (
+      <p data-pdf-state="error">
+        <MissingLink name={entry.path}>{label}</MissingLink>
+      </p>
+    )
+  if (text === undefined) return <p data-pdf-state="pending" />
+  const section = noteSection(text, heading)
+  if (section === null)
+    return (
+      <p>
+        <MissingLink name={`${entry.path}#${heading}`}>{label}</MissingLink>
+      </p>
+    )
+  return (
+    <div data-note-embed className="my-5 border-l-2 pl-4">
+      <div className="not-prose mb-2 truncate text-xs text-muted-foreground [&_a]:underline-offset-2 [&_a:hover]:underline">
+        <FileLink note={note} entry={entry} heading={heading}>
+          {label}
+        </FileLink>
+      </div>
+      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
+        <EmbeddingNotes value={[...above, note.path]}>
+          <NoteContext value={note.at(entry.path)}>
+            {children(section)}
+          </NoteContext>
+        </EmbeddingNotes>
+      </div>
+    </div>
   )
 }
 
