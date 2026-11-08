@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.11.0] - 2026-11-07
+
+### Changed
+
+- Code blocks in the Markdown preview sit in an outlined frame with their language (or title) in a header and a Copy button.
+- Inline `code` in the preview stands out more, with an outline and a stronger tint.
+
 ## [1.10.0] - 2026-11-07
 
 ### Added

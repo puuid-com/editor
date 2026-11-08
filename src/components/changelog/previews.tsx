@@ -2624,6 +2624,54 @@ function ExplorerNewMenu() {
   )
 }
 
+function PreviewCode({ framed }: { framed?: boolean }) {
+  const line = (
+    <span className="text-(--sql-keyword)">
+      const <span className="text-foreground">doc = </span>
+      <span className="text-(--sql-function)">parse</span>
+      <span className="text-foreground">(</span>
+      <span className="text-(--sql-string)">'&lt;a/&gt;'</span>
+      <span className="text-foreground">)</span>
+    </span>
+  )
+  return (
+    <div className="grid gap-3 p-3">
+      <span>
+        Call{' '}
+        <code
+          className={
+            framed
+              ? 'rounded border bg-muted px-1 font-mono text-[0.85em] font-medium'
+              : 'rounded bg-muted px-1 font-mono'
+          }
+        >
+          parse()
+        </code>{' '}
+        first.
+      </span>
+      {framed ? (
+        <div className="overflow-hidden rounded-md border">
+          <div className="flex h-7 items-center justify-between border-b pr-1 pl-2.5">
+            <span className="font-mono text-muted-foreground">ts</span>
+            <Button variant="outline" size="xs" className="h-5">
+              {m.md_code_copy()}
+            </Button>
+          </div>
+          <pre className="px-2.5 py-2 font-mono">{line}</pre>
+        </div>
+      ) : (
+        <pre className="rounded-md border bg-muted/40 px-2.5 py-2 font-mono">
+          {line}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+function CodeBlockFrame() {
+  return <BeforeAfter before={<PreviewCode />} after={<PreviewCode framed />} />
+}
+
 function ObsidianVault() {
   const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
   const nested = 'ml-3 border-l pl-1 text-muted-foreground'
@@ -2697,6 +2745,7 @@ function ObsidianVault() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.11.0': figure(CodeBlockFrame),
   '1.10.0': figure(ObsidianVault),
   '1.9.0': figure(ExplorerNewMenu),
   '1.8.1': figure(ExplorerHints),

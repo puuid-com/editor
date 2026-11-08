@@ -892,6 +892,7 @@
   "md_link_missing": "{name} isn’t in this folder",
   "md_diagram": "Diagram",
   "md_diagram_error": "Diagram error: {message}",
+  "md_code_copy": "Copy",
   "paste_type_txt": "Plain text",
   "file_new_txt": "New text file",
   "file_untitled_txt": "untitled.txt",

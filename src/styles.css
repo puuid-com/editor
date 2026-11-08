@@ -354,6 +354,13 @@
   font-size: 12px;
   line-height: 1.6;
 }
+/* A titled fence shows its title in the code block's header instead. */
+.md-preview .tm-code-frame {
+  margin: 0;
+}
+.md-preview .tm-code-frame > figcaption {
+  display: none;
+}
 /* A task list item shows its checkbox, not a bullet as well. */
 .md-preview li:has(> input[type='checkbox']) {
   list-style: none;
