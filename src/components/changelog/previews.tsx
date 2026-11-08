@@ -2624,12 +2624,13 @@ function ExplorerNewMenu() {
   )
 }
 
-type CodeLook = 'filled' | 'framed' | 'quiet'
+type CodeLook = 'filled' | 'framed' | 'quiet' | 'blue'
 
 const INLINE_CODE: Record<CodeLook, string> = {
   filled: 'rounded bg-muted px-1',
   framed: 'rounded border bg-muted px-1 text-[0.85em] font-medium',
   quiet: 'rounded-sm bg-muted px-[0.3em] text-[0.875em]',
+  blue: 'rounded bg-(--hl-blue)/10 px-[0.3em] text-[0.85em] text-(--sql-keyword)',
 }
 
 function PreviewCode({ look }: { look: CodeLook }) {
@@ -2688,6 +2689,15 @@ function QuietCode() {
     <BeforeAfter
       before={<PreviewCode look="framed" />}
       after={<PreviewCode look="quiet" />}
+    />
+  )
+}
+
+function BlueCode() {
+  return (
+    <BeforeAfter
+      before={<PreviewCode look="quiet" />}
+      after={<PreviewCode look="blue" />}
     />
   )
 }
@@ -2765,6 +2775,7 @@ function ObsidianVault() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.12.0': figure(BlueCode),
   '1.11.1': figure(QuietCode),
   '1.11.0': figure(CodeBlockFrame),
   '1.10.0': figure(ObsidianVault),

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.12.0] - 2026-11-07
+
+### Changed
+
+- Inline `code` in the Markdown preview is blue on a faint blue wash, so it stands out from the text in both themes.
+
 ## [1.11.1] - 2026-11-07
 
 ### Changed
