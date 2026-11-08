@@ -3165,7 +3165,60 @@ function NoteEmbeds() {
   )
 }
 
+const meta = (text: string) => <Syn k="comment">{text}</Syn>
+
+/** Markdown in the editor, faintly styled or formatted as the preview shows it. */
+function MarkdownLines({ formatted }: { formatted?: boolean }) {
+  const style = (className: string) => (formatted ? className : undefined)
+  return (
+    <Code
+      lines={[
+        <>
+          {meta('# ')}
+          <span
+            className={cn(
+              'font-semibold text-(--syntax-tag)',
+              style('text-[1.5em] leading-none'),
+            )}
+          >
+            Release
+          </span>
+        </>,
+        '',
+        <>
+          Ships {meta('__')}
+          <span className={formatted ? 'font-bold' : 'font-semibold'}>
+            today
+          </span>
+          {meta('__')}, {meta('_')}
+          <span className="italic">maybe</span>
+          {meta('_')}.
+        </>,
+        <>
+          Run {meta('`')}
+          <span className={style('bg-(--hl-blue)/10 text-(--sql-keyword)')}>
+            deploy
+          </span>
+          {meta('`')} and {meta('==')}
+          <span className={style('bg-(--hl-amber)/30')}>check</span>
+          {meta('==')}.
+        </>,
+      ]}
+    />
+  )
+}
+
+function FormattedMarkdown() {
+  return (
+    <BeforeAfter
+      before={<MarkdownLines />}
+      after={<MarkdownLines formatted />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.21.0': figure(FormattedMarkdown),
   '1.20.0': figure(NoteEmbeds),
   '1.19.1': figure(LightPdf),
   '1.19.0': figure(DraftEditor),

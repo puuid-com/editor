@@ -361,6 +361,11 @@
 .md-preview .tm-code-frame > figcaption {
   display: none;
 }
+/* `==highlights==`, the same amber as the editor shows them, in either theme. */
+.md-preview mark {
+  color: inherit;
+  background-color: color-mix(in oklch, var(--hl-amber) 30%, transparent);
+}
 /* A task list item shows its checkbox, not a bullet as well. */
 .md-preview li:has(> input[type='checkbox']) {
   list-style: none;
