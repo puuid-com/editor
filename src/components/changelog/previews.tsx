@@ -3353,7 +3353,35 @@ function SettingsOnPlainFiles() {
   return <BeforeAfter before={bar()} after={bar(true)} />
 }
 
+function SingleTilde({ struck }: { struck?: boolean }) {
+  return (
+    <Code
+      lines={[
+        <>
+          {meta('~~')}
+          <span className="line-through">gone</span>
+          {meta('~~')}{' '}
+          {struck ? (
+            <>
+              {meta('~')}
+              <span className="line-through">gone</span>
+              {meta('~')}
+            </>
+          ) : (
+            '~gone~'
+          )}
+        </>,
+      ]}
+    />
+  )
+}
+
+function SingleTildeStrike() {
+  return <BeforeAfter before={<SingleTilde />} after={<SingleTilde struck />} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.26.0': figure(SingleTildeStrike),
   '1.25.0': figure(FormattedProse),
   '1.24.0': figure(SettingsOnPlainFiles),
   '1.23.0': figure(FormattedFences),

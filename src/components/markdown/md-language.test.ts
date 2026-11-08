@@ -62,6 +62,24 @@ describe('Markdown as it is typed', () => {
   })
 })
 
+describe('Strikethrough as it is typed', () => {
+  it('strikes both one and two tildes, like the preview', () => {
+    const { view, names } = editor('~~two~~ ~one~')
+    expect(names.filter((name) => name === 'Strikethrough')).toHaveLength(2)
+    expect(styleOf(view, 'two')).toContain('line-through')
+    expect(styleOf(view, 'one')).toContain('line-through')
+    // The markup itself stays plain.
+    expect(styleOf(view, '~')).toContain('text-decoration: none')
+  })
+
+  it.each(['~5 km and 3~', 'a ~ b ~ c', '~/src and ~/lib', 'x~ y~', '~~~'])(
+    'leaves %s alone',
+    (doc) => {
+      expect(editor(doc).names).not.toContain('Strikethrough')
+    },
+  )
+})
+
 describe('Fenced code as it is typed', () => {
   it('colours languages the editor has no grammar for, like the preview', () => {
     const { view } = editor('```ts\nconst a = "x"\n```\n')

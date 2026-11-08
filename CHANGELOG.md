@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.26.0] - 2026-11-08
+
+### Changed
+
+- The Markdown editor now strikes through `~text~` as it does `~~text~~`, matching the preview.
+
 ## [1.25.0] - 2026-11-08
 
 ### Changed

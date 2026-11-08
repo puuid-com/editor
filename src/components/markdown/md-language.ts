@@ -40,6 +40,35 @@ const highlight = Tag.define()
 const wikilink = Tag.define(t.link)
 
 const HighlightDelim = { resolve: 'Highlight', mark: 'HighlightMark' }
+const SingleTildeDelim = { resolve: 'Strikethrough', mark: 'StrikethroughMark' }
+
+/** `~struck~`, which the preview reads as well as GFM's `~~struck~~`. */
+const singleTilde: MarkdownConfig = {
+  parseInline: [
+    {
+      name: 'SingleTilde',
+      parse(cx, next, pos) {
+        if (
+          next !== 126 ||
+          cx.char(pos + 1) === 126 ||
+          cx.char(pos - 1) === 126
+        )
+          return -1
+        const before = cx.slice(pos - 1, pos)
+        const after = cx.slice(pos + 1, pos + 2)
+        // Like the preview, so `~5` and `a ~ b` stay plain.
+        return cx.addDelimiter(
+          SingleTildeDelim,
+          pos,
+          pos + 1,
+          !/[\s\d]|^$/.test(after),
+          !/\s|^$/.test(before),
+        )
+      },
+      after: 'Emphasis',
+    },
+  ],
+}
 
 /** Obsidian's `==highlights==` and `[[links]]`, as the preview reads them. */
 const obsidian: MarkdownConfig = {
@@ -99,6 +128,7 @@ const language = new Language(
       codeParser: (info) => CODE[info.trim().toLowerCase()] ?? null,
     }),
     obsidian,
+    singleTilde,
   ]),
   [],
   'markdown',
