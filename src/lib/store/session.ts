@@ -3,9 +3,10 @@ import { singleton } from './singleton'
 import type { FilePaneGroup } from './pane-layout'
 
 // Identifies this page load. Not persisted: a duplicated browser tab copies
-// sessionStorage, and two tabs must never share an id.
+// sessionStorage, and two tabs must never share an id. Workers forbid random
+// values in global scope, so the server gets a fixed id.
 export const writerId = singleton('writerId', () =>
-  typeof crypto !== 'undefined' ? crypto.randomUUID() : 'server',
+  typeof window !== 'undefined' ? crypto.randomUUID() : 'server',
 )
 
 // Writer ids this page used to replace content in bulk, such as a backup
