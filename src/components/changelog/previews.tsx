@@ -3248,6 +3248,7 @@ function ColouredFences() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.22.1': figure(ColouredFences),
   '1.22.0': figure(ColouredFences),
   '1.21.0': figure(FormattedMarkdown),
   '1.20.0': figure(NoteEmbeds),

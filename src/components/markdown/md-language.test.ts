@@ -67,6 +67,8 @@ describe('Fenced code as it is typed', () => {
     const { view } = editor('```ts\nconst a = "x"\n```\n')
     const keyword = [...view.contentDOM.querySelectorAll('.th-keyword')]
     expect(keyword.map((span) => span.textContent)).toEqual(['const'])
+    // Innermost, or the grammar's grey code colour inside it wins.
+    expect(keyword[0].children).toHaveLength(0)
     expect(view.contentDOM.querySelector('.th-string')?.textContent).toBe('"x"')
   })
 
