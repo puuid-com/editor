@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.28.0] - 2026-11-08
+
+### Changed
+
+- Tables in the Markdown preview and PDF export have a border all around and between every row and column, with a shaded header row.
+
 ## [1.27.0] - 2026-11-08
 
 ### Added

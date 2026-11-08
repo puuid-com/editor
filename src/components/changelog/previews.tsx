@@ -3450,7 +3450,44 @@ function TableHelpers() {
   )
 }
 
+/** A Markdown table in the preview, from rules under rows to a full grid. */
+function RuledTables() {
+  const table = (ruled?: boolean) => {
+    const cell = ruled
+      ? 'border px-2 py-1 text-left'
+      : 'border-b py-1 pr-2 text-left'
+    return (
+      <Shot className="p-4">
+        <table className="w-full border-collapse text-[11px]">
+          <thead>
+            <tr className={ruled ? 'bg-muted' : undefined}>
+              <th className={cn(cell, 'font-medium')}>Name</th>
+              <th className={cn(cell, 'font-medium')}>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Ada', 'Eng'],
+              ['Grace', 'Admiral'],
+            ].map((row) => (
+              <tr key={row[0]}>
+                {row.map((value) => (
+                  <td key={value} className={cell}>
+                    {value}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Shot>
+    )
+  }
+  return <BeforeAfter before={table()} after={table(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.28.0': figure(RuledTables),
   '1.27.0': figure(TableHelpers),
   '1.26.0': figure(SingleTildeStrike),
   '1.25.0': figure(FormattedProse),

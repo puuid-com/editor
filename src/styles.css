@@ -422,6 +422,17 @@
 .md-preview .markdown-alert-content > :last-child {
   margin-bottom: 0;
 }
+/* Tables are ruled all around and between every row and column. */
+.md-preview table {
+  border-collapse: collapse;
+}
+.md-preview :is(th, td) {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+}
+.md-preview th {
+  background: var(--muted);
+}
 /* `==highlighted==` text. */
 .md-preview mark {
   background: color-mix(in oklab, var(--foreground) 12%, transparent);
