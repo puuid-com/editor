@@ -172,6 +172,36 @@ export async function writeFile(
   }
 }
 
+/**
+ * Writes `data` to a new file `name` in the folder at `parent`, creating the
+ * folders on the way. A taken name gets `-2`, `-3`… Returns the new path.
+ */
+export async function writeNewFile(
+  root: FileSystemDirectoryHandle,
+  parent: string,
+  name: string,
+  data: Blob,
+) {
+  let directory = root
+  for (const part of parent ? parent.split('/') : []) {
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    directory = await directory.getDirectoryHandle(part, { create: true })
+  }
+  const dot = name.lastIndexOf('.')
+  const stem = dot > 0 ? name.slice(0, dot) : name
+  const ext = dot > 0 ? name.slice(dot) : ''
+  for (let i = 1; ; i++) {
+    const candidate = i === 1 ? name : `${stem}-${i}${ext}`
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    if (await exists(directory, candidate)) continue
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    const handle = await directory.getFileHandle(candidate, { create: true })
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    await writeFile(handle, data)
+    return joinPath(parent, candidate)
+  }
+}
+
 /** An entry that already exists where a new one was asked for. */
 export class EntryExistsError extends Error {}
 

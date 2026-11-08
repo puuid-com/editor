@@ -10,6 +10,7 @@ import {
   rebase,
   removeEntry,
   renameEntry,
+  writeNewFile,
 } from './disk-tree'
 import { fakeFolder } from '#/test/fake-fs'
 
@@ -111,6 +112,21 @@ describe('changing a folder', () => {
       expect(has('src')).toBe(false)
     },
   )
+
+  it('writes a new file, making its folders and avoiding taken names', async () => {
+    const { handle, read } = fakeFolder('vault', {
+      attachements: { img: { 'a.png': 'old' } },
+    })
+    const blob = new Blob(['new'])
+    expect(await writeNewFile(handle, 'attachements/img', 'a.png', blob)).toBe(
+      'attachements/img/a-2.png',
+    )
+    expect(read('attachements/img/a.png')).toBe('old')
+    expect(read('attachements/img/a-2.png')).toBe('new')
+    expect(await writeNewFile(handle, 'media/new', 'b.png', blob)).toBe(
+      'media/new/b.png',
+    )
+  })
 
   it("won't rename onto another entry", async () => {
     const { handle, read } = fakeFolder('project', {

@@ -1,7 +1,9 @@
 import { QueryClient } from '@tanstack/react-query'
 
-export function getContext() {
-  const queryClient = new QueryClient({
+import { singleton } from '#/lib/store/singleton'
+
+function makeQueryClient() {
+  return new QueryClient({
     defaultOptions: {
       queries: {
         // With SSR, data fetched on the server would otherwise be refetched
@@ -10,8 +12,20 @@ export function getContext() {
       },
     },
   })
+}
 
+/**
+ * The query client: a new one for each server request, and one for the
+ * page in the browser, which code outside React reaches through
+ * `browserQueryClient`.
+ */
+export function getContext() {
   return {
-    queryClient,
+    queryClient:
+      typeof window === 'undefined' ? makeQueryClient() : browserQueryClient(),
   }
+}
+
+export function browserQueryClient() {
+  return singleton('queryClient', makeQueryClient)
 }

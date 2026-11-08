@@ -22,6 +22,7 @@ import {
 import { createEditorSession, remoteSync } from './editor-session'
 import { setVarValues } from './dynamic-vars'
 import { editorExtensions, setDefaultRules, fileIdField } from './extensions'
+import { imagePaste } from '#/components/markdown/image-paste'
 import { setLongValueLimit } from './long-values'
 import { setZplTags } from './zpl-links'
 import { setTagHighlights } from './tag-highlights'
@@ -54,45 +55,57 @@ function sharedExtensions(
   values: ReadonlyMap<string, string>,
   shortenAt: number,
 ) {
-  extensions ??= editorExtensions(
-    {
-      onParse: (fileId, doc) => {
-        if (sessionStore.state.activeId === fileId) publishParse(fileId, doc)
-      },
-      onChange: (fileId, update) => {
-        if (update.transactions.some((tr) => tr.annotation(remoteSync))) return
-        saveContent({ id: fileId, content: update.state.doc.toString() })
-      },
-      onCursor: (update) => {
-        if (getView() === update.view) publishCursorFrom(update.state)
-      },
-      onPasteWhole: askPasteChoice,
-      keys: [
-        { key: shortcuts.format.key, run: formatActive, preventDefault: true },
-        { key: shortcuts.save.key, run: saveActive, preventDefault: true },
-        { key: shortcuts.saveAs.key, run: saveActiveAs, preventDefault: true },
-        {
-          key: shortcuts.highlight.key,
-          run: highlightAtCursor,
-          preventDefault: true,
+  extensions ??= [
+    imagePaste,
+    editorExtensions(
+      {
+        onParse: (fileId, doc) => {
+          if (sessionStore.state.activeId === fileId) publishParse(fileId, doc)
         },
-        {
-          key: shortcuts.applyDefaults.key,
-          run: applyDefaultsActive,
-          preventDefault: true,
+        onChange: (fileId, update) => {
+          if (update.transactions.some((tr) => tr.annotation(remoteSync)))
+            return
+          saveContent({ id: fileId, content: update.state.doc.toString() })
         },
-        {
-          key: shortcuts.resolveVars.key,
-          run: resolveVarsActive,
-          preventDefault: true,
+        onCursor: (update) => {
+          if (getView() === update.view) publishCursorFrom(update.state)
         },
-      ],
-    },
-    highlights,
-    defaults,
-    values,
-    shortenAt,
-  )
+        onPasteWhole: askPasteChoice,
+        keys: [
+          {
+            key: shortcuts.format.key,
+            run: formatActive,
+            preventDefault: true,
+          },
+          { key: shortcuts.save.key, run: saveActive, preventDefault: true },
+          {
+            key: shortcuts.saveAs.key,
+            run: saveActiveAs,
+            preventDefault: true,
+          },
+          {
+            key: shortcuts.highlight.key,
+            run: highlightAtCursor,
+            preventDefault: true,
+          },
+          {
+            key: shortcuts.applyDefaults.key,
+            run: applyDefaultsActive,
+            preventDefault: true,
+          },
+          {
+            key: shortcuts.resolveVars.key,
+            run: resolveVarsActive,
+            preventDefault: true,
+          },
+        ],
+      },
+      highlights,
+      defaults,
+      values,
+      shortenAt,
+    ),
+  ]
   return extensions
 }
 

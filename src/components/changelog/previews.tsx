@@ -23,6 +23,7 @@ import {
   IconLayoutSidebarRight,
   IconMarkdown,
   IconNotebook,
+  IconPhoto,
   IconPin,
   IconPlus,
   IconReplace,
@@ -2624,13 +2625,15 @@ function ExplorerNewMenu() {
   )
 }
 
-type CodeLook = 'filled' | 'framed' | 'quiet' | 'blue'
+type CodeLook = 'filled' | 'framed' | 'quiet' | 'blue' | 'padded'
 
 const INLINE_CODE: Record<CodeLook, string> = {
   filled: 'rounded bg-muted px-1',
   framed: 'rounded border bg-muted px-1 text-[0.85em] font-medium',
   quiet: 'rounded-sm bg-muted px-[0.3em] text-[0.875em]',
   blue: 'rounded bg-(--hl-blue)/10 px-[0.3em] text-[0.85em] text-(--sql-keyword)',
+  padded:
+    'rounded bg-(--hl-blue)/10 px-[0.45em] py-[0.2em] text-[0.85em] text-(--sql-keyword)',
 }
 
 function PreviewCode({ look }: { look: CodeLook }) {
@@ -2698,6 +2701,15 @@ function BlueCode() {
     <BeforeAfter
       before={<PreviewCode look="quiet" />}
       after={<PreviewCode look="blue" />}
+    />
+  )
+}
+
+function PaddedCode() {
+  return (
+    <BeforeAfter
+      before={<PreviewCode look="blue" />}
+      after={<PreviewCode look="padded" />}
     />
   )
 }
@@ -2774,7 +2786,49 @@ function ObsidianVault() {
   )
 }
 
+const PASTED = [
+  '# Trip',
+  '',
+  'The view from the top:',
+  '',
+  '![](attachements/img/image-20261107-091503.png)',
+]
+
+/** A note with an image pasted into it, saved in the folder and linked. */
+function PastedImage() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab name="Trip.md" active />
+      </Tabs>
+      <div className="grid grid-cols-2 divide-x">
+        <Code
+          lines={PASTED}
+          marks={{ 4: 'active' }}
+          wrap
+          format={(line) =>
+            line.startsWith('![') ? (
+              <Syn k="comment">{line}</Syn>
+            ) : (
+              markdownLine(line)
+            )
+          }
+        />
+        <div className="grid content-start gap-2 p-3">
+          <span className="text-sm font-semibold tracking-tight">Trip</span>
+          <span>The view from the top:</span>
+          <div className="flex aspect-video items-center justify-center border bg-muted/40 text-muted-foreground">
+            <IconPhoto className="size-6" stroke={1.5} />
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.13.0': figure(PastedImage),
+  '1.12.1': figure(PaddedCode),
   '1.12.0': figure(BlueCode),
   '1.11.1': figure(QuietCode),
   '1.11.0': figure(CodeBlockFrame),

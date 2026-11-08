@@ -8,6 +8,18 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.13.0] - 2026-11-07
+
+### Added
+
+- Paste an image into a Markdown note of a folder opened from disk and it's saved in the folder's `attachements/img` (or the attachment folder an Obsidian vault sets), with a link to it added where the cursor is.
+
+## [1.12.1] - 2026-11-07
+
+### Changed
+
+- Inline `code` in the Markdown preview has more padding, so it stands out from the text.
+
 ## [1.12.0] - 2026-11-07
 
 ### Changed
