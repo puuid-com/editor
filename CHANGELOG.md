@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.18.0] - 2026-11-08
+
+### Changed
+
+- Pasting over a whole file only asks about its type when the pasted content reads as a different type, or when its type can't be told.
+- The question is now a slim bar under the tabs instead of a dialog: Enter switches, Escape keeps the current type, and the editor stays usable around it.
+
 ## [1.17.0] - 2026-11-08
 
 ### Added

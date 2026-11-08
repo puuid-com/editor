@@ -27,7 +27,7 @@ interface UiState {
   /** Variables waiting for confirmation before a filled-in copy is opened. */
   varsPreview: VarsPreview | null
   profileDialog: ProfileDialog | null
-  /** Choosing the type and profile of content pasted into an empty file. */
+  /** Offering a new type and profile for content pasted over a whole file. */
   pasteChoice: PasteChoice | null
   deleteProfileId: string | null
   /** A backup waiting for confirmation before it replaces the workspace. */
@@ -60,10 +60,14 @@ export interface RestorePreview {
 /** The pasted file and what the dialog has picked for it so far. */
 export interface PasteChoice {
   fileId: string
+  /** The type the file reads as now, kept if the offer is turned down. */
+  current: DocLanguage
+  /** The type the pasted content reads as, or null when nothing gives it away. */
+  detected: DocLanguage | null
   language: DocLanguage
   profileId: string
-  /** What the content gave away, to mark the guesses as such. */
-  detected: { language: boolean; profileId: string | null }
+  /** The profile files like this one belong to, if any. */
+  bestMatch: string | null
 }
 
 /** Creating a profile, or cloning or editing the one with `profileId`. */
@@ -150,7 +154,7 @@ export function setPasteChoice(pasteChoice: PasteChoice | null) {
   uiStore.setState((s) => ({ ...s, pasteChoice }))
 }
 
-/** Changes what the open paste dialog has picked. */
+/** Changes what the paste bar has picked. */
 export function updatePasteChoice(
   changes: Partial<Pick<PasteChoice, 'language' | 'profileId'>>,
 ) {

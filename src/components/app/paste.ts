@@ -6,25 +6,35 @@ import { learnSample, profileGuesser } from '#/lib/store/profiles'
 import type { PasteChoice } from './ui-store'
 
 /**
- * Asks which type and profile content pasted into an empty file has, with
- * whatever the content gives away already picked.
+ * Offers to change a file's type when content pasted over all of it reads as
+ * another type, or when nothing gives its type away. Pasting the type the
+ * file already has just gives it that extension.
  */
 export function askPasteChoice(fileId: string, text: string) {
   const file = filesCollection.get(fileId)
   if (!file) return
   const detected = detectLanguage(text)
-  // Labels and Markdown have no profile to pick, so nothing to ask.
-  if (detected === 'zpl' || detected === 'md') {
+  const current = languageOf(file.name, text)
+  // Labels and Markdown have no profile to pick, so they switch on their own.
+  if (detected === 'zpl' || detected === 'md' || detected === current) {
+    setPasteChoice(null)
     void setFileType(fileId, detected)
     return
   }
-  const language = detected ?? languageOf(file.name, text)
+  // Notes and plain text take any text, so there is nothing to ask.
+  if (!detected && (current === 'md' || current === 'txt')) {
+    setPasteChoice(null)
+    return
+  }
+  const language = detected ?? current
   const guessed = profileGuesser(fileId)(typedName(file.name, language), text)
   setPasteChoice({
     fileId,
+    current,
+    detected,
     language,
     profileId: guessed ?? file.profileId,
-    detected: { language: detected !== null, profileId: guessed },
+    bestMatch: guessed,
   })
 }
 

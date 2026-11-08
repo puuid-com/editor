@@ -15,6 +15,7 @@ import { cn } from '#/lib/utils'
 import { SidePanel } from './SidePanel'
 import { normalizePanes, savePanes } from './panes'
 import { AppHeader } from './AppHeader'
+import { PasteBar } from './PasteBar'
 import type { FilePaneGroup } from '#/lib/store/pane-layout'
 
 const ZplPane = lazy(() =>
@@ -159,6 +160,7 @@ function FilePane({
           )
         }
       />
+      {!image && <PasteBar fileId={fileId} />}
       <div className="min-h-0 flex-1">
         {image ? (
           <ImagePreview

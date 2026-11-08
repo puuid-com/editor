@@ -359,6 +359,54 @@ function PasteDialog() {
   )
 }
 
+const PASTED_JSON = ['{', '  "order": 4821,', '  "currency": "CAD"', '}']
+
+function PasteBar() {
+  const xml = m.paste_type_xml()
+  const json = m.paste_type_json()
+  return (
+    <BeforeAfter
+      className="flex flex-col"
+      before={
+        <>
+          <Tabs>
+            <Tab name="orders.xml" active />
+          </Tabs>
+          <div className="relative h-32">
+            <Code lines={PASTED_JSON} className="opacity-30" />
+            <div className="absolute inset-x-4 top-3 grid gap-1.5 border bg-popover p-2 shadow-md">
+              <span className="font-semibold">{m.paste_title()}</span>
+              <Option selected badge={m.paste_detected()}>
+                {json}
+              </Option>
+              <Option>{xml}</Option>
+            </div>
+          </div>
+        </>
+      }
+      after={
+        <>
+          <Tabs>
+            <Tab name="orders.xml" active />
+          </Tabs>
+          <div className="flex flex-wrap items-center gap-1.5 border-b bg-muted px-2 py-1">
+            <span className="min-w-0 flex-1">
+              {m.paste_mismatch({ detected: json, current: xml })}
+            </span>
+            <Button size="xs" variant="ghost" className="text-muted-foreground">
+              {m.paste_keep({ type: xml })}
+            </Button>
+            <Button size="xs">{m.paste_switch({ type: json })}</Button>
+          </div>
+          <div className="h-[6.5rem]">
+            <Code lines={PASTED_JSON} />
+          </div>
+        </>
+      }
+    />
+  )
+}
+
 function EmptyFile() {
   return (
     <BeforeAfter
@@ -2963,6 +3011,7 @@ function FileTitleAndLogo() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.18.0': figure(PasteBar),
   '1.17.0': figure(FileTitleAndLogo),
   '1.16.0': figure(MarkdownPdf),
   '1.15.0': figure(ImageFiles),

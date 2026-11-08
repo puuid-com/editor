@@ -17,7 +17,6 @@ import {
   importFiles,
   pickFromDisk,
 } from './files'
-import { PasteDialog } from './PasteDialog'
 import { RenameDialog } from './RenameDialog'
 import { RestoreDialog } from './RestoreDialog'
 import { OpenSharedDialog } from './OpenSharedDialog'
@@ -155,7 +154,6 @@ export function EditorApp() {
       <VarsConfirmDialog />
       <RestoreDialog />
       <VariableValueDialog />
-      <PasteDialog />
       <ProfileDialog />
       <DeleteProfileDialog />
       <QuickHighlight />
