@@ -21,6 +21,7 @@ import type { Parser } from '@lezer/common'
 
 import { codeBlocks } from './md-code'
 import { quoteLines } from './md-quotes'
+import { markdownTables, tableKeymap } from './md-table'
 
 // Built from the GFM grammar directly rather than through `markdown()`, which
 // would pull in the HTML, CSS and JavaScript grammars for embedded HTML.
@@ -183,8 +184,9 @@ export function markdownSupport() {
     syntaxHighlighting(style),
     quoteLines,
     codeBlocks(new Set(Object.keys(CODE))),
+    markdownTables(language),
     // Enter continues a list or quote; Backspace removes its marker.
-    Prec.high(keymap.of(markdownKeymap)),
+    Prec.high(keymap.of([...tableKeymap, ...markdownKeymap])),
     pasteURLAsLink,
   ])
 }

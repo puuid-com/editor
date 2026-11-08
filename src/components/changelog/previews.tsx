@@ -1,6 +1,9 @@
 import {
   IconAdjustmentsHorizontal,
   IconAlertTriangle,
+  IconAlignCenter,
+  IconAlignLeft,
+  IconAlignRight,
   IconBraces,
   IconBrowser,
   IconCheck,
@@ -3380,7 +3383,75 @@ function SingleTildeStrike() {
   return <BeforeAfter before={<SingleTilde />} after={<SingleTilde struck />} />
 }
 
+function TableHelpers() {
+  const cols = 6
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Shot className="h-40">
+        <Code
+          lines={['## Team', '', '/table']}
+          format={(line) => line}
+          marks={{ 2: 'active' }}
+        />
+        <div className="absolute top-20 left-10 grid gap-1.5 border bg-popover p-1.5">
+          <div
+            className="grid gap-0.5"
+            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+          >
+            {Array.from({ length: cols * 3 }, (_, index) => (
+              <span
+                key={index}
+                className={
+                  index % cols < 3 && index < cols * 2
+                    ? 'size-2.5 border border-foreground bg-foreground'
+                    : 'size-2.5 border'
+                }
+              />
+            ))}
+          </div>
+          <span className="text-center font-mono text-[10px] text-muted-foreground">
+            {m.md_table_size({ cols: 3, rows: 2 })}
+          </span>
+        </div>
+      </Shot>
+      <Shot className="h-40">
+        <Code
+          className="pt-11"
+          format={(line) => line}
+          lines={[
+            '| Name  | Role    |',
+            meta('| ----- | ------- |'),
+            '| Ada   | Eng     |',
+            '| Grace | Admiral |',
+          ]}
+          marks={{ 2: 'active' }}
+        />
+        <div className="absolute top-2 left-8 flex items-center gap-1.5 border bg-popover px-2 py-1 text-[11px] whitespace-nowrap">
+          <span className="flex items-center gap-0.5">
+            <IconPlus className="size-3" />
+            {m.md_table_row()}
+          </span>
+          <span className="flex items-center gap-0.5">
+            <IconPlus className="size-3" />
+            {m.md_table_column()}
+          </span>
+          <span aria-hidden className="h-3 w-px bg-border" />
+          <IconAlignLeft className="size-3" />
+          <IconAlignCenter className="size-3" />
+          <IconAlignRight className="size-3" />
+          <span aria-hidden className="h-3 w-px bg-border" />
+          <span className="flex items-center gap-0.5">
+            {m.md_table_delete()}
+            <IconChevronDown className="size-3" />
+          </span>
+        </div>
+      </Shot>
+    </div>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.27.0': figure(TableHelpers),
   '1.26.0': figure(SingleTildeStrike),
   '1.25.0': figure(FormattedProse),
   '1.24.0': figure(SettingsOnPlainFiles),

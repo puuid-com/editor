@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.27.0] - 2026-11-08
+
+### Added
+
+- Markdown tables are easier to write in the editor. Type `/table` on an empty line and pick a size from a grid, or end a line like `| Name | Role |` with Enter to turn it into a table.
+- In a table, Tab and ⇧Tab move between cells, Tab past the last cell adds a row, Enter adds a row below, and Enter on an empty last row leaves the table. Columns stay aligned as you type.
+- A toolbar above the table you're in adds rows and columns, aligns the current column, and deletes the row, the column or the table.
+
 ## [1.26.0] - 2026-11-08
 
 ### Changed
