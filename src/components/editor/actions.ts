@@ -39,7 +39,7 @@ import {
   typedName,
 } from '#/lib/document'
 import { contentBlob } from '#/lib/image-file'
-import { formatMarkdownCode } from '#/lib/markdown-format'
+import { formatMarkdown } from '#/lib/markdown-format'
 import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
@@ -122,10 +122,10 @@ export function formatActive() {
   return true
 }
 
-/** Formats the code in a Markdown file's fences, as Prettier would. */
+/** Formats a Markdown file's prose and fenced code, as Prettier and markdownlint would. */
 async function formatMarkdownActive(view: EditorView) {
   const text = view.state.doc.toString()
-  const { text: formatted, skipped } = await formatMarkdownCode(text)
+  const { text: formatted, skipped } = await formatMarkdown(text)
   // Typed over or switched away while the formatters loaded.
   if (getView() !== view || view.state.doc.toString() !== text) return
   const change = diffChange(text, formatted)

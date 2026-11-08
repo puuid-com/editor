@@ -3303,6 +3303,35 @@ function FormattedFences() {
   )
 }
 
+/** Markdown prose before and after Format, as Prettier and markdownlint lay it out. */
+function FormattedProse() {
+  const lines = (formatted?: boolean) =>
+    formatted
+      ? [
+          meta('# Notes'),
+          '',
+          '- _one_',
+          '- **two**',
+          '',
+          'See <https://example.com>',
+        ]
+      : [
+          'Notes',
+          meta('====='),
+          '* *one*',
+          '+ __two__',
+          '',
+          '',
+          'See https://example.com   ',
+        ]
+  return (
+    <BeforeAfter
+      before={<Code lines={lines()} format={(line) => line} />}
+      after={<Code lines={lines(true)} format={(line) => line} />}
+    />
+  )
+}
+
 function SettingsOnPlainFiles() {
   const bar = (settings?: boolean) => (
     <StatusBar className="border-t-0">
@@ -3325,6 +3354,7 @@ function SettingsOnPlainFiles() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.25.0': figure(FormattedProse),
   '1.24.0': figure(SettingsOnPlainFiles),
   '1.23.0': figure(FormattedFences),
   '1.22.1': figure(ColouredFences),

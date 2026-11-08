@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.25.0] - 2026-11-08
+
+### Changed
+
+- Format (and format on save) on a Markdown file now lays out the text too, to the Prettier and markdownlint standards: `#` headings, `-` bullets, `_emphasis_` and `**strong**`, one blank line between blocks, aligned tables, bare links in `<>` and no trailing spaces. Lines aren't rewrapped, and Obsidian links, embeds, callouts and front matter stay as written.
+
 ## [1.24.0] - 2026-11-08
 
 ### Changed
