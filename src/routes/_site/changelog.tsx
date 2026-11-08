@@ -22,7 +22,12 @@ import { getLocale } from '#/paraglide/runtime'
 const entries = parseChangelog(changelog)
 
 export const Route = createFileRoute('/_site/changelog')({
-  head: () => seo({ title: m.changelog_title(), path: '/changelog' }),
+  head: () =>
+    seo({
+      title: m.changelog_title(),
+      description: m.seo_changelog_description(),
+      path: '/changelog',
+    }),
   component: Changelog,
 })
 

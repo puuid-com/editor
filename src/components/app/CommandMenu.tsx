@@ -1,3 +1,4 @@
+import { Logo } from '#/components/Logo'
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import {
   IconArchive,
@@ -23,7 +24,6 @@ import {
   IconPencil,
   IconPlus,
   IconReplace,
-  IconSearch,
   IconTrash,
   IconUserCircle,
   IconMarkdown,
@@ -155,7 +155,7 @@ export function CommandMenuButton() {
       className="gap-1.5 px-1.5 text-[11px] font-normal text-muted-foreground hover:text-foreground max-md:h-11 max-md:min-w-11"
       onClick={() => setPaletteOpen(true)}
     >
-      <IconSearch className="size-3.5" />
+      <Logo className="size-5" />
       <Kbd className="h-4 min-w-4 bg-transparent px-0 text-[11px] font-normal">
         {shortcutLabel(shortcuts.palette)}
       </Kbd>

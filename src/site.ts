@@ -1,7 +1,6 @@
 // Site-wide identity used by the SEO helper, sitemap, robots.txt and manifest.
 interface Site {
   name: string
-  description: string
   url: string
   ogImage: string
   twitter: string
@@ -12,12 +11,10 @@ interface Site {
 
 export const site: Site = {
   name: 'Editor',
-  description:
-    'A fast XML editor with a synced tree view, tag highlighting and <<variable>> support.',
   /** Production origin, no trailing slash. Used for canonical and sitemap URLs. */
   url: 'https://editor.puuid.com',
   /** Default social preview image (1200x630), e.g. '/og.png'. Empty to omit. */
-  ogImage: '',
+  ogImage: '/og.png',
   /** Twitter/X handle including the @, or empty. */
   twitter: '',
   /** Public source repository URL. */

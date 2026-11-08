@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "site_description": "Edit XML, JSON, TXT, SQL and ZPL side by side, with structure tools and live label previews.",
+  "site_description": "Edit and format XML, JSON, SQL, Markdown, text and ZPL online. Explore XML and JSON trees, compare files and preview labels in one browser workspace.",
   "skip_to_content": "Skip to content",
   "nav_about": "About",
   "language_label": "Language",
@@ -963,5 +963,9 @@
   "md_pdf_empty": "This selection contains no Markdown files.",
   "md_pdf_failed": "Could not prepare the PDF. Close this dialog and try again.",
   "md_pdf_assets_failed": "An image or diagram could not load. Fix it in the preview, then export again.",
-  "md_pdf_timeout": "Preparing the PDF took too long. Check that images and diagrams load in the preview, then try again."
+  "md_pdf_timeout": "Preparing the PDF took too long. Check that images and diagrams load in the preview, then try again.",
+  "seo_title": "Online XML, JSON, SQL & Markdown editor",
+  "seo_about_description": "Explore Editor: a browser workspace for XML, JSON, SQL, Markdown, text and ZPL, with local storage, tree views, file comparisons and label previews.",
+  "seo_changelog_description": "See the latest Editor updates, new features and fixes for editing XML, JSON, SQL, Markdown, text and ZPL in your browser.",
+  "seo_image_alt": "Editor — XML, JSON, SQL, Markdown, TXT and ZPL"
 }

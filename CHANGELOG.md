@@ -8,6 +8,17 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.17.0] - 2026-11-08
+
+### Added
+
+- A bracket-and-cursor logo across the site, browser tab and installed app, with a branded social preview image.
+
+### Changed
+
+- Show the active filename in the browser title, including after renaming or switching files.
+- Improve English and French search titles, page descriptions and social previews for all supported text formats.
+
 ## [1.16.0] - 2026-11-07
 
 ### Added

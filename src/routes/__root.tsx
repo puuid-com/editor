@@ -19,6 +19,7 @@ import { site } from '#/site'
 
 import appCss from '../styles.css?url'
 
+import type { AnyRouteMatch } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 
 interface MyRouterContext {
@@ -34,9 +35,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     }
   },
 
-  head: () => {
+  head: ({ matches }) => {
     // Site-wide defaults; routes override them with their own seo() call.
-    const defaults = seo()
+    const defaults = seo({
+      title: m.seo_title(),
+      // The client-only editor needs server defaults; other routes own their links.
+      path: matches.some((match: AnyRouteMatch) => match.routeId === '/')
+        ? '/'
+        : undefined,
+    })
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -45,6 +52,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         ...defaults.meta,
       ],
       links: [
+        ...defaults.links,
         { rel: 'stylesheet', href: appCss },
         { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },

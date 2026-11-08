@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { EditorApp } from '#/components/app/EditorApp'
+import { m } from '#/paraglide/messages'
 import { seo } from '#/lib/seo'
 
 export const Route = createFileRoute('/')({
@@ -9,6 +10,6 @@ export const Route = createFileRoute('/')({
   // Stored files and settings load from IndexedDB before the editor shows.
   loader: () =>
     import('#/lib/store/workspace').then((mod) => mod.workspaceReady()),
-  head: () => seo({ path: '/' }),
+  head: () => seo({ title: m.seo_title(), path: '/' }),
   component: EditorApp,
 })

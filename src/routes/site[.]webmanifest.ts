@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { m } from '#/paraglide/messages'
 import { site } from '#/site'
 
 const icon = (src: string, size: number, purpose: 'any' | 'maskable') => ({
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/site.webmanifest')({
           {
             name: site.name,
             short_name: site.name,
-            description: site.description,
+            description: m.site_description(),
             id: '/',
             start_url: '/',
             scope: '/',

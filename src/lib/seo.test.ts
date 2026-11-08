@@ -47,3 +47,36 @@ describe('absoluteUrl', () => {
     expect(absoluteUrl('/about', 'en')).toBe(`${site.url}/about`)
   })
 })
+
+describe('public metadata', () => {
+  it('includes an absolute social image and localized canonical alternatives', () => {
+    const { meta, links } = seo({ title: 'About', path: '/about' })
+    expect(meta).toContainEqual({ title: 'About | Editor' })
+    expect(meta).toContainEqual({
+      property: 'og:image',
+      content: `${site.url}/og.png`,
+    })
+    expect(meta).toContainEqual({ property: 'og:image:width', content: '1200' })
+    expect(meta).toContainEqual({ property: 'og:locale', content: 'en_CA' })
+    expect(links).toContainEqual({
+      rel: 'canonical',
+      href: `${site.url}/about`,
+    })
+    expect(links).toContainEqual({
+      rel: 'alternate',
+      hrefLang: 'fr',
+      href: `${site.url}/fr/about`,
+    })
+  })
+  it('preserves page descriptions and explicit indexing controls', () => {
+    const { meta } = seo({ description: 'Page description', noindex: true })
+    expect(meta).toContainEqual({
+      name: 'description',
+      content: 'Page description',
+    })
+    expect(meta).toContainEqual({
+      name: 'robots',
+      content: 'noindex, nofollow',
+    })
+  })
+})

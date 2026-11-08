@@ -39,3 +39,17 @@ for (const size of [192, 512]) {
 await (await tile(180)).toFile('public/apple-touch-icon.png')
 
 console.log('Wrote public/icon-*.png and public/apple-touch-icon.png')
+
+// Social cards use a fixed light canvas so crawlers render a consistent mark.
+const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+  <rect width="1200" height="630" fill="#fafafa"/>
+  <path d="M72 460h1056" stroke="#d4d4d4"/>
+  <text x="72" y="345" font-family="sans-serif" font-size="96" font-weight="600" fill="#0a0a0a">${site.name}</text>
+  <text x="76" y="407" font-family="monospace" font-size="29" fill="#525252">XML · JSON · SQL · Markdown · TXT · ZPL</text>
+  <text x="76" y="520" font-family="monospace" font-size="24" fill="#525252">${new URL(site.url).hostname}</text>
+</svg>`
+await sharp(Buffer.from(card))
+  .composite([{ input: await logo(96), left: 72, top: 100 }])
+  .png()
+  .toFile('public/og.png')
+console.log('Wrote public/og.png')

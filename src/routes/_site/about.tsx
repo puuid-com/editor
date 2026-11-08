@@ -7,7 +7,12 @@ import { m } from '#/paraglide/messages'
 import { site } from '#/site'
 
 export const Route = createFileRoute('/_site/about')({
-  head: () => seo({ title: m.about_title(), path: '/about' }),
+  head: () =>
+    seo({
+      title: m.about_title(),
+      description: m.seo_about_description(),
+      path: '/about',
+    }),
   component: About,
 })
 

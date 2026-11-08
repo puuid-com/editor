@@ -33,6 +33,7 @@ import {
   DeleteProfileDialog,
   ProfileDialog,
 } from '#/components/profiles/ProfileDialogs'
+import { useEditorTitle } from '#/hooks/use-editor-title'
 import { useOpenFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { onSaveFailed } from '#/lib/store/persist'
@@ -53,6 +54,7 @@ export function EditorApp() {
   const activeId = files.some((f) => f.id === storedActive)
     ? storedActive
     : (files.at(0)?.id ?? null)
+  useEditorTitle(files.find((file) => file.id === activeId)?.name)
   useEffect(() => {
     if (activeId !== storedActive) setActive(activeId)
   }, [activeId, storedActive])

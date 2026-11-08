@@ -56,6 +56,8 @@ import {
   Tabs,
   sql,
 } from './kit'
+import { Logo } from '#/components/Logo'
+import { site } from '#/site'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Kbd } from '#/components/ui/kbd'
@@ -2929,7 +2931,39 @@ function MarkdownPdf() {
   )
 }
 
+function FileTitleAndLogo() {
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <StatusBar>
+            <span className="size-4 rounded bg-foreground" />
+            {site.name}
+          </StatusBar>
+          <Tabs>
+            <Tab name="invoice.xml" active />
+          </Tabs>
+          <Code lines={ORDER} />
+        </>
+      }
+      after={
+        <>
+          <StatusBar>
+            <Logo className="size-4" />
+            <span>invoice.xml | {site.name}</span>
+          </StatusBar>
+          <Tabs>
+            <Tab name="invoice.xml" active />
+          </Tabs>
+          <Code lines={ORDER} />
+        </>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.17.0': figure(FileTitleAndLogo),
   '1.16.0': figure(MarkdownPdf),
   '1.15.0': figure(ImageFiles),
   '1.14.0': figure(UnsupportedFiles),

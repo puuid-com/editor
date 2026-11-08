@@ -41,7 +41,16 @@ export function seo({
     { property: 'og:site_name', content: site.name },
     { property: 'og:title', content: fullTitle },
     { property: 'og:description', content: description },
-    { property: 'og:locale', content: getLocale() },
+    {
+      property: 'og:locale',
+      content: getLocale() === 'fr' ? 'fr_CA' : 'en_CA',
+    },
+    ...locales
+      .filter((locale) => locale !== getLocale())
+      .map((locale) => ({
+        property: 'og:locale:alternate',
+        content: locale === 'fr' ? 'fr_CA' : 'en_CA',
+      })),
     {
       name: 'twitter:card',
       content: imageUrl ? 'summary_large_image' : 'summary',
@@ -53,6 +62,15 @@ export function seo({
       ? [
           { property: 'og:image', content: imageUrl },
           { name: 'twitter:image', content: imageUrl },
+          { property: 'og:image:alt', content: m.seo_image_alt() },
+          { name: 'twitter:image:alt', content: m.seo_image_alt() },
+          ...(image === site.ogImage
+            ? [
+                { property: 'og:image:width', content: '1200' },
+                { property: 'og:image:height', content: '630' },
+                { property: 'og:image:type', content: 'image/png' },
+              ]
+            : []),
         ]
       : []),
     ...(path ? [{ property: 'og:url', content: absoluteUrl(path) }] : []),

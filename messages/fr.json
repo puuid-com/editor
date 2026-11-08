@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "site_description": "Modifiez XML, JSON, TXT, SQL et ZPL côte à côte, avec des outils de structure et des aperçus d’étiquettes.",
+  "site_description": "Modifiez et formatez XML, JSON, SQL, Markdown, texte et ZPL en ligne. Explorez les arbres XML et JSON, comparez les fichiers et prévisualisez les étiquettes.",
   "skip_to_content": "Aller au contenu",
   "nav_about": "À propos",
   "language_label": "Langue",
@@ -963,5 +963,9 @@
   "md_pdf_empty": "Cette sélection ne contient aucun fichier Markdown.",
   "md_pdf_failed": "Impossible de préparer le PDF. Fermez cette fenêtre et réessayez.",
   "md_pdf_assets_failed": "Une image ou un diagramme n’a pas pu être chargé. Corrigez le problème dans l’aperçu, puis relancez l’export.",
-  "md_pdf_timeout": "La préparation du PDF a pris trop de temps. Vérifiez que les images et diagrammes se chargent dans l’aperçu, puis réessayez."
+  "md_pdf_timeout": "La préparation du PDF a pris trop de temps. Vérifiez que les images et diagrammes se chargent dans l’aperçu, puis réessayez.",
+  "seo_title": "Éditeur XML, JSON, SQL et Markdown en ligne",
+  "seo_about_description": "Découvrez Editor : un espace pour XML, JSON, SQL, Markdown, texte et ZPL avec stockage local, vues en arbre, comparaison et aperçu des étiquettes.",
+  "seo_changelog_description": "Découvrez les nouveautés et corrections d’Editor pour modifier XML, JSON, SQL, Markdown, texte et ZPL dans votre navigateur.",
+  "seo_image_alt": "Editor — XML, JSON, SQL, Markdown, TXT et ZPL"
 }
