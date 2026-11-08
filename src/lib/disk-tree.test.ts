@@ -39,12 +39,13 @@ describe('reading a folder', () => {
       'A.xml': '<a/>',
     })
 
-  it('lists folders first, then files it can edit, without hidden ones', async () => {
+  it('lists folders first, then every file, without hidden ones', async () => {
     const { handle } = folder()
     expect(names(await listDirectory(handle, ''))).toEqual([
       'src',
       'A.xml',
       'b.xml',
+      'image.png',
       'notes.md',
     ])
     expect(names(await listDirectory(handle, 'src'))).toEqual([

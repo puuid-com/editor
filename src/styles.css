@@ -403,7 +403,6 @@
 .md-preview .markdown-alert {
   margin-block: 1.25em;
   border-left: 2px solid color-mix(in oklab, var(--foreground) 25%, transparent);
-  border-radius: var(--radius-md);
   background: color-mix(in oklab, var(--muted) 50%, transparent);
   padding: 0.5em 1em;
 }
@@ -420,7 +419,6 @@
 }
 /* `==highlighted==` text. */
 .md-preview mark {
-  border-radius: 2px;
   background: color-mix(in oklab, var(--foreground) 12%, transparent);
   color: inherit;
   padding-inline: 1px;

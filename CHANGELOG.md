@@ -8,6 +8,18 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.14.0] - 2026-11-07
+
+### Changed
+
+- A folder opened from disk lists every file in the explorer, images and PDFs included. Files the editor can't open are dimmed and don't open, but can still be renamed or deleted.
+
+## [1.13.1] - 2026-11-07
+
+### Changed
+
+- Code blocks, inline code, callouts, Mermaid diagrams and images in the Markdown preview have square corners, like the rest of the app.
+
 ## [1.13.0] - 2026-11-07
 
 ### Added

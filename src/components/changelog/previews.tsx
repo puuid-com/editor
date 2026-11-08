@@ -2453,6 +2453,41 @@ function ExplorerRows({ after }: { after?: boolean }) {
   )
 }
 
+function FolderFiles({ after }: { after?: boolean }) {
+  const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
+  return (
+    <div className="w-48 space-y-0.5 p-2 text-muted-foreground">
+      <div className={row}>
+        <IconChevronDown />
+        <IconFolder />
+        img
+      </div>
+      <div className="ml-3 border-l pl-1">
+        {after && (
+          <div className={cn(row, 'opacity-50')}>
+            <IconPhoto />
+            logo.png
+          </div>
+        )}
+      </div>
+      <div className={cn(row, 'bg-muted font-medium text-foreground')}>
+        <IconMarkdown />
+        notes.md
+      </div>
+      {after && (
+        <div className={cn(row, 'opacity-50')}>
+          <IconFileDots />
+          report.pdf
+        </div>
+      )}
+    </div>
+  )
+}
+
+function UnsupportedFiles() {
+  return <BeforeAfter before={<FolderFiles />} after={<FolderFiles after />} />
+}
+
 function ExplorerHover() {
   return (
     <BeforeAfter before={<ExplorerRows />} after={<ExplorerRows after />} />
@@ -2625,7 +2660,7 @@ function ExplorerNewMenu() {
   )
 }
 
-type CodeLook = 'filled' | 'framed' | 'quiet' | 'blue' | 'padded'
+type CodeLook = 'filled' | 'framed' | 'quiet' | 'blue' | 'padded' | 'square'
 
 const INLINE_CODE: Record<CodeLook, string> = {
   filled: 'rounded bg-muted px-1',
@@ -2634,6 +2669,8 @@ const INLINE_CODE: Record<CodeLook, string> = {
   blue: 'rounded bg-(--hl-blue)/10 px-[0.3em] text-[0.85em] text-(--sql-keyword)',
   padded:
     'rounded bg-(--hl-blue)/10 px-[0.45em] py-[0.2em] text-[0.85em] text-(--sql-keyword)',
+  square:
+    'bg-(--hl-blue)/10 px-[0.45em] py-[0.2em] text-[0.85em] text-(--sql-keyword)',
 }
 
 function PreviewCode({ look }: { look: CodeLook }) {
@@ -2657,7 +2694,12 @@ function PreviewCode({ look }: { look: CodeLook }) {
           {line}
         </pre>
       ) : (
-        <div className="overflow-hidden rounded-md border">
+        <div
+          className={cn(
+            'overflow-hidden border',
+            look !== 'square' && 'rounded-md',
+          )}
+        >
           <div className="flex h-7 items-center justify-between border-b pr-1 pl-2.5">
             <span className="font-mono text-muted-foreground">ts</span>
             {look === 'framed' ? (
@@ -2710,6 +2752,15 @@ function PaddedCode() {
     <BeforeAfter
       before={<PreviewCode look="blue" />}
       after={<PreviewCode look="padded" />}
+    />
+  )
+}
+
+function SquareCode() {
+  return (
+    <BeforeAfter
+      before={<PreviewCode look="padded" />}
+      after={<PreviewCode look="square" />}
     />
   )
 }
@@ -2827,6 +2878,8 @@ function PastedImage() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.14.0': figure(UnsupportedFiles),
+  '1.13.1': figure(SquareCode),
   '1.13.0': figure(PastedImage),
   '1.12.1': figure(PaddedCode),
   '1.12.0': figure(BlueCode),

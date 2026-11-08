@@ -107,9 +107,12 @@ async function readDirectory(
   return entries.sort(byKindThenName)
 }
 
-/** A folder's listed entries: folders first, then files, by name. */
+/**
+ * A folder's entries but hidden ones, files the editor can't open included:
+ * folders first, then files, by name.
+ */
 export function listDirectory(root: FileSystemDirectoryHandle, path: string) {
-  return readDirectory(root, path, isListed)
+  return readDirectory(root, path, (name) => !isHidden(name))
 }
 
 /** Folders search skips: installed packages, rarely what anyone edits. */

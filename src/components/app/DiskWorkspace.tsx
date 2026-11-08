@@ -55,7 +55,7 @@ import {
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import { DropdownMenuItem } from '#/components/ui/dropdown-menu'
-import { isWithin, parentPath } from '#/lib/disk-tree'
+import { isEditableName, isWithin, parentPath } from '#/lib/disk-tree'
 import type { DiskEntry, EntryKind } from '#/lib/disk-tree'
 import { isAttachmentFolder, isExcluded, noteName } from '#/lib/obsidian'
 import type { Vault } from '#/lib/obsidian'
@@ -359,14 +359,22 @@ function FileRow({
   const tabId = tree.tabs.get(entry.path)
   const active = !!tabId && tabId === tree.activeId
   const folder = parentPath(entry.path)
+  // Files the editor can't open still show, to rename or delete, but stay shut.
+  const editable = isEditableName(entry.name)
+  const title = `${tree.root.name}/${entry.path}`
   return (
     <div className={cn(rowClass, active && activeRowClass)}>
       <Button
         variant="ghost"
-        className={cn(rowButtonClass, active && 'font-medium')}
+        className={cn(
+          rowButtonClass,
+          active && 'font-medium',
+          !editable && 'cursor-default opacity-50',
+        )}
         aria-current={active ? 'page' : undefined}
-        title={`${tree.root.name}/${entry.path}`}
-        onClick={() => tree.open(entry)}
+        aria-disabled={!editable || undefined}
+        title={editable ? title : `${title}\n${m.folder_unsupported_file()}`}
+        onClick={editable ? () => tree.open(entry) : undefined}
       >
         <FileIcon file={{ name: entry.name, empty: false }} />
         <span className="truncate">{entry.name}</span>

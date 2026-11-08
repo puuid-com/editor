@@ -33,14 +33,14 @@ export function MermaidDiagram({ code }: { code: string }) {
           role="img"
           aria-label={m.md_diagram()}
           className={cn(
-            'flex justify-center overflow-x-auto rounded-md border bg-background p-4 [&_svg]:h-auto [&_svg]:max-w-full',
+            'flex justify-center overflow-x-auto rounded-none border bg-background p-4 [&_svg]:h-auto [&_svg]:max-w-full',
             query.isError && 'opacity-40',
           )}
           // Mermaid's strict mode sanitizes labels before they reach the SVG.
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (
-        <pre className="overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground">
+        <pre className="overflow-x-auto rounded-none border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground">
           {code}
         </pre>
       )}
