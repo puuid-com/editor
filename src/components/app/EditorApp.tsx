@@ -1,3 +1,4 @@
+import { PdfExportDialog } from '#/components/markdown/pdf/PdfExportDialog'
 import { IconFileUpload } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
@@ -143,6 +144,7 @@ export function EditorApp() {
       </main>
       <StatusBar />
 
+      <PdfExportDialog />
       <RenameDialog />
       <ArchiveDialog />
       <CommandMenu activeId={activeId} onOpenFromDisk={openFromDisk} />

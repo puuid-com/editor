@@ -953,5 +953,15 @@
   "image_preview": "Image preview",
   "image_fit": "Fit to window",
   "image_actual": "Actual size",
-  "image_failed": "This image could not be displayed. It may be damaged or use a format your browser does not support."
+  "image_failed": "This image could not be displayed. It may be damaged or use a format your browser does not support.",
+  "md_pdf_export": "Export PDF",
+  "md_pdf_folder": "Export Markdown as one PDF",
+  "md_pdf_description": "Uses the preview’s appearance. Folder exports include nested Markdown files in path order, with each file starting on a new page. Code blocks stay together when they fit. Choose Save as PDF in the print dialog; turn off headers and footers for a clean document.",
+  "md_pdf_preparing": "Preparing notes, images and diagrams…",
+  "md_pdf_ready": "{name} · {count} Markdown file(s) ready",
+  "md_pdf_save": "Save as PDF…",
+  "md_pdf_empty": "This selection contains no Markdown files.",
+  "md_pdf_failed": "Could not prepare the PDF. Close this dialog and try again.",
+  "md_pdf_assets_failed": "An image or diagram could not load. Fix it in the preview, then export again.",
+  "md_pdf_timeout": "Preparing the PDF took too long. Check that images and diagrams load in the preview, then try again."
 }

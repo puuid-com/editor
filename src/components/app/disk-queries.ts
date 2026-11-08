@@ -33,7 +33,7 @@ export const filesQuery = (root: DiskRoot) =>
 export const allFilesQuery = (root: DiskRoot) =>
   queryOptions({
     queryKey: [...diskKeys.root(root.id), 'all-files'],
-    queryFn: () => listFiles(root.handle, { all: true }),
+    queryFn: () => listFiles(root.handle, { all: true, limit: Infinity }),
     ...fresh,
   })
 

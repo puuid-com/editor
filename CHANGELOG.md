@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.16.0] - 2026-11-07
+
+### Added
+
+- Export Markdown files or entire folders, including nested notes, as one PDF using the preview’s typography, syntax highlighting, images, links and Mermaid diagrams.
+- Keep code blocks together on a page whenever they fit, with wrapping and page breaks for oversized blocks.
+
 ## [1.15.0] - 2026-11-07
 
 ### Added

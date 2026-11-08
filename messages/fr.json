@@ -953,5 +953,15 @@
   "image_preview": "Aperçu de l’image",
   "image_fit": "Adapter à la fenêtre",
   "image_actual": "Taille réelle",
-  "image_failed": "Impossible d’afficher cette image. Elle est peut-être endommagée ou utilise un format non pris en charge par votre navigateur."
+  "image_failed": "Impossible d’afficher cette image. Elle est peut-être endommagée ou utilise un format non pris en charge par votre navigateur.",
+  "md_pdf_export": "Exporter en PDF",
+  "md_pdf_folder": "Exporter les fichiers Markdown en un PDF",
+  "md_pdf_description": "Utilise l’apparence de l’aperçu. Les exports de dossiers incluent les fichiers Markdown des sous-dossiers, triés par chemin, chacun sur une nouvelle page. Les blocs de code restent entiers s’ils tiennent sur une page. Choisissez Enregistrer au format PDF dans la boîte d’impression et désactivez les en-têtes et pieds de page.",
+  "md_pdf_preparing": "Préparation des notes, images et diagrammes…",
+  "md_pdf_ready": "{name} · {count} fichier(s) Markdown prêt(s)",
+  "md_pdf_save": "Enregistrer en PDF…",
+  "md_pdf_empty": "Cette sélection ne contient aucun fichier Markdown.",
+  "md_pdf_failed": "Impossible de préparer le PDF. Fermez cette fenêtre et réessayez.",
+  "md_pdf_assets_failed": "Une image ou un diagramme n’a pas pu être chargé. Corrigez le problème dans l’aperçu, puis relancez l’export.",
+  "md_pdf_timeout": "La préparation du PDF a pris trop de temps. Vérifiez que les images et diagrammes se chargent dans l’aperçu, puis réessayez."
 }

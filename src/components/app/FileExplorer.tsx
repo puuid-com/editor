@@ -1,3 +1,5 @@
+import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { isMarkdownName } from '#/components/markdown/pdf/source'
 import {
   IconBrowser,
   IconChevronRight,
@@ -256,6 +258,13 @@ export function FileExplorer({
         {m.file_rename()}
       </DropdownMenuItem>
       {destinations(entry.id, entry.kind === 'folder', entry.parentId)}
+      {(entry.kind === 'folder' || isMarkdownName(entry.name)) && (
+        <DropdownMenuItem
+          onSelect={() => exportMarkdownPdf({ kind: entry.kind, id: entry.id })}
+        >
+          {entry.kind === 'folder' ? m.md_pdf_folder() : m.md_pdf_export()}
+        </DropdownMenuItem>
+      )}
       {entry.kind === 'folder' ? (
         <>
           <DropdownMenuItem onSelect={() => newEntry('file', entry.id)}>

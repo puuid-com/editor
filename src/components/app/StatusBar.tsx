@@ -1,5 +1,6 @@
+import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import { Suspense, lazy } from 'react'
-import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
+import { IconAdjustmentsHorizontal, IconFileTypePdf } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 
@@ -46,6 +47,7 @@ export function StatusBar() {
   // variables; SQL can still be formatted.
   const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
   const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
+  const markdown = useSelector(editorStore, (s) => s.doc.language === 'md')
   const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
@@ -83,6 +85,17 @@ export function StatusBar() {
             className="mx-1 data-vertical:h-4 data-vertical:self-center"
           />
         </>
+      )}
+      {activeId && markdown && (
+        <Button
+          variant="ghost"
+          size="xs"
+          className="max-md:h-11"
+          onClick={() => exportMarkdownPdf({ kind: 'file', id: activeId })}
+        >
+          <IconFileTypePdf />
+          {m.md_pdf_export()}
+        </Button>
       )}
       <ArchiveButton />
       <CommandMenuButton />

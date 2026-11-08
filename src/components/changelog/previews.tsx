@@ -10,6 +10,7 @@ import {
   IconChevronUp,
   IconColumnsOff,
   IconDots,
+  IconDownload,
   IconFileCode,
   IconFileDots,
   IconFilePlus,
@@ -2895,7 +2896,41 @@ function ImageFiles() {
   )
 }
 
+function MarkdownPdf() {
+  return (
+    <Shot>
+      <Tabs>
+        <Tab name="notes.md" active />
+      </Tabs>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 p-5">
+        <div className="grid gap-2 text-xs">
+          <span className="flex items-center gap-2">
+            <IconFolder className="size-4" />
+            {m.explorer_new_folder()}
+          </span>
+          <span className="ml-4 font-mono text-muted-foreground">01.md</span>
+          <span className="ml-4 font-mono text-muted-foreground">02.md</span>
+        </div>
+        <IconChevronRight className="size-4 text-muted-foreground" />
+        <div className="border bg-background p-3">
+          <div className="mb-3 text-xs font-medium">{m.md_preview()}</div>
+          <Bar className="mb-2 w-3/4" />
+          <Bar className="mb-3 w-full" />
+          <div className="border">
+            <Code lines={['const pdf = true']} format={(line) => line} />
+          </div>
+        </div>
+      </div>
+      <StatusBar>
+        <IconDownload className="mx-1 size-3.5" />
+        {m.md_pdf_folder()}
+      </StatusBar>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.16.0': figure(MarkdownPdf),
   '1.15.0': figure(ImageFiles),
   '1.14.0': figure(UnsupportedFiles),
   '1.13.1': figure(SquareCode),

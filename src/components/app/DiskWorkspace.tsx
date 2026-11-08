@@ -1,3 +1,5 @@
+import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { isMarkdownName } from '#/components/markdown/pdf/source'
 import {
   IconChevronDown,
   IconChevronRight,
@@ -227,6 +229,19 @@ export function DiskWorkspace({
           </>
         )}
         <RowMenu label={m.folder_actions()}>
+          <DropdownMenuItem
+            disabled={!granted}
+            onSelect={() =>
+              exportMarkdownPdf({
+                kind: 'disk',
+                root,
+                path: '',
+                directory: true,
+              })
+            }
+          >
+            {m.md_pdf_folder()}
+          </DropdownMenuItem>
           <DropdownMenuItem disabled={!granted} onSelect={() => void refresh()}>
             {m.folder_refresh()}
           </DropdownMenuItem>
@@ -323,6 +338,18 @@ function DirectoryRow({ tree, entry }: { tree: Tree; entry: DiskEntry }) {
           </Button>
         </CollapsibleTrigger>
         <RowMenu label={m.explorer_folder_actions()}>
+          <DropdownMenuItem
+            onSelect={() =>
+              exportMarkdownPdf({
+                kind: 'disk',
+                root: tree.root,
+                path: entry.path,
+                directory: true,
+              })
+            }
+          >
+            {m.md_pdf_folder()}
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => tree.create(entry.path, 'file')}>
             {m.file_new()}
           </DropdownMenuItem>
@@ -386,6 +413,20 @@ function FileRow({
         {tabId && <UnsavedMark fileId={tabId} />}
       </Button>
       <RowMenu label={m.explorer_actions()}>
+        {isMarkdownName(entry.name) && (
+          <DropdownMenuItem
+            onSelect={() =>
+              exportMarkdownPdf({
+                kind: 'disk',
+                root: tree.root,
+                path: entry.path,
+                directory: false,
+              })
+            }
+          >
+            {m.md_pdf_export()}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={() => tree.rename(entry)}>
           {m.file_rename()}
         </DropdownMenuItem>

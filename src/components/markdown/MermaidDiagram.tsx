@@ -27,7 +27,12 @@ export function MermaidDiagram({ code }: { code: string }) {
   const svg = query.data ?? lastGood
 
   return (
-    <figure className="not-prose my-5 grid gap-2">
+    <figure
+      data-pdf-state={
+        query.isError ? 'error' : svg && !query.isFetching ? 'ready' : 'pending'
+      }
+      className="not-prose my-5 grid gap-2"
+    >
       {svg ? (
         <div
           role="img"

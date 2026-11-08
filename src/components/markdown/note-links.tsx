@@ -62,7 +62,7 @@ function FolderNote({
   path: string
   children: ReactNode
 }) {
-  const { data: files = [] } = useQuery(allFilesQuery(root))
+  const { data: files = [], isPending, isError } = useQuery(allFilesQuery(root))
   const resolve = linkResolver(files.map((file) => file.path))
   const byPath = new Map(files.map((file) => [file.path, file]))
   const note: Note = {
@@ -70,7 +70,16 @@ function FolderNote({
     path,
     find: (target) => byPath.get(resolve(target, path) ?? ''),
   }
-  return <NoteContext value={note}>{children}</NoteContext>
+  return (
+    <NoteContext value={note}>
+      <span
+        className="contents"
+        data-pdf-state={isError ? 'error' : isPending ? 'pending' : 'ready'}
+      >
+        {children}
+      </span>
+    </NoteContext>
+  )
 }
 
 /** Scrolls the preview to the heading that reads `heading`. */
@@ -121,6 +130,8 @@ function FileLink({
     <a
       href={encodeURI(entry.path)}
       title={entry.path}
+      data-note-path={entry.path}
+      data-note-heading={heading}
       onClick={(event) => {
         if (entry.path === note.path && heading) {
           scrollToHeading(event, heading)
@@ -148,7 +159,11 @@ export function WikiLink({
   const note = useContext(NoteContext)
   if (!target && heading) {
     return (
-      <a href="#" onClick={(event) => scrollToHeading(event, heading)}>
+      <a
+        href="#"
+        data-note-heading={heading}
+        onClick={(event) => scrollToHeading(event, heading)}
+      >
         {children}
       </a>
     )
@@ -221,7 +236,15 @@ export function PreviewLink({ href = '', ...props }: ComponentProps<'a'>) {
   if (note && isLocalHref(href)) {
     const entry = note.find(hrefPath(href))
     return entry ? (
-      <FileLink note={note} entry={entry}>
+      <FileLink
+        note={note}
+        entry={entry}
+        heading={
+          href.includes('#')
+            ? headingId(href.slice(href.indexOf('#')))
+            : undefined
+        }
+      >
         {props.children}
       </FileLink>
     ) : (
@@ -290,7 +313,12 @@ function DiskImage({
     blobQuery(root, entry.path, entry.handle as FileSystemFileHandle),
   )
   const url = useObjectUrl(data)
-  if (isError) return <MissingLink name={entry.path}>{alt}</MissingLink>
-  if (!url) return null
+  if (isError)
+    return (
+      <span data-pdf-state="error">
+        <MissingLink name={entry.path}>{alt}</MissingLink>
+      </span>
+    )
+  if (!url) return <span data-pdf-state="pending" />
   return <img src={url} alt={alt} title={title} width={width} height={height} />
 }

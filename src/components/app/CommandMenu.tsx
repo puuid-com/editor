@@ -1,3 +1,4 @@
+import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import {
   IconArchive,
   IconArrowBackUp,
@@ -434,6 +435,16 @@ function CurrentFile({
           <IconDownload />
           {m.file_download()}
         </CommandItem>
+        {type?.language === 'md' && (
+          <CommandItem
+            onSelect={() =>
+              run(() => exportMarkdownPdf({ kind: 'file', id: activeId }))
+            }
+          >
+            <IconDownload />
+            {m.md_pdf_export()}
+          </CommandItem>
+        )}
         {writesDisk && (
           <CommandItem onSelect={() => run(() => void saveAs(activeId))}>
             <IconDeviceFloppy />

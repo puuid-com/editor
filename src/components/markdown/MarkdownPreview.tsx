@@ -1,4 +1,7 @@
 import { useDeferredValue, useRef } from 'react'
+import type { ComponentProps } from 'react'
+import type { FileLocation } from '#/lib/store/files'
+import { cn } from '#/lib/utils'
 import { Markdown } from '@tanstack/markdown/react'
 import type { BlockNode, MarkdownExtension } from '@tanstack/markdown'
 import type { MarkdownComponents } from '@tanstack/markdown/react'
@@ -89,17 +92,36 @@ export function MarkdownPreview({ fileId }: { fileId: string }) {
       tabIndex={0}
       className="h-full overflow-y-auto px-6 py-5 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
-      <article ref={contentRef} className={PROSE}>
-        <NoteProvider location={file?.location}>
-          <Markdown
-            components={components}
-            extensions={EXTENSIONS}
-            highlighter={highlightCode}
-          >
-            {source}
-          </Markdown>
-        </NoteProvider>
-      </article>
+      <MarkdownDocument
+        ref={contentRef}
+        source={source}
+        location={file?.location}
+      />
     </div>
+  )
+}
+
+/** One renderer for the live preview and PDF: extensions, typography and assets stay identical. */
+export function MarkdownDocument({
+  source,
+  location,
+  className,
+  ...props
+}: ComponentProps<'article'> & {
+  source: string
+  location?: FileLocation
+}) {
+  return (
+    <article {...props} className={cn(PROSE, className)}>
+      <NoteProvider location={location}>
+        <Markdown
+          components={components}
+          extensions={EXTENSIONS}
+          highlighter={highlightCode}
+        >
+          {source}
+        </Markdown>
+      </NoteProvider>
+    </article>
   )
 }

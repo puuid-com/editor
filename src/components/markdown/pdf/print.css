@@ -1,0 +1,79 @@
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: auto;
+  overflow: visible;
+  background: var(--background);
+  color: var(--foreground);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+[data-pdf-note] + [data-pdf-note] {
+  break-before: page;
+}
+
+/* Avoiding a break is a preference: the browser can split an oversized block. */
+[data-code-block],
+.md-preview figure,
+.md-preview img,
+.md-preview tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+[data-code-block],
+.md-preview pre,
+.md-preview figure,
+.md-preview figure > div {
+  overflow: visible;
+}
+
+/* Scrollable code on screen must reflow onto the printable page. */
+.md-preview pre,
+.md-preview pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+[data-code-block] > div:first-child,
+.md-preview :is(h1, h2, h3, h4, h5, h6) {
+  break-after: avoid;
+}
+
+.md-preview button {
+  display: none;
+}
+
+.md-preview figure {
+  display: block;
+}
+
+.md-preview img,
+.md-preview svg {
+  max-width: 100%;
+  max-height: 250mm;
+  object-fit: contain;
+}
+
+.md-preview table {
+  width: 100%;
+  table-layout: fixed;
+  overflow-wrap: anywhere;
+}
+
+.md-preview thead {
+  display: table-header-group;
+}
+
+.md-preview p,
+.md-preview li {
+  orphans: 3;
+  widows: 3;
+}
