@@ -1,5 +1,5 @@
 import { readFileContent, contentBlob, isImageData } from '#/lib/image-file'
-import { downloadFile, formatActive } from './actions'
+import { downloadFile, formatActiveAsync } from './actions'
 import { editorStore, getText, getView } from './editor-store'
 import { notify } from '#/components/app/notice-store'
 import { writeFile } from '#/lib/disk-tree'
@@ -145,19 +145,22 @@ export async function saveAs(id: string) {
  * option is on, then writes to the tab's file on disk if it has one.
  */
 export function saveActive() {
-  if (activeFormat().formatOnSave) formatActive()
   const id = editorStore.state.fileId
-  if (id && diskStore.state[id]) void saveToDisk(id)
-  else notify.success(m.saved_locally())
+  void (async () => {
+    if (activeFormat().formatOnSave) await formatActiveAsync()
+    if (id && diskStore.state[id]) await saveToDisk(id)
+    else notify.success(m.saved_locally())
+  })()
   return true
 }
 
 /** ⇧⌘S: save the active tab to a file of the person's choice. */
 export function saveActiveAs() {
   const id = editorStore.state.fileId
-  if (id) {
-    if (activeFormat().formatOnSave) formatActive()
-    void saveAs(id)
-  }
+  if (id)
+    void (async () => {
+      if (activeFormat().formatOnSave) await formatActiveAsync()
+      await saveAs(id)
+    })()
   return true
 }

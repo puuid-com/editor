@@ -69,6 +69,7 @@
   "sort_order_added": "<{name}> ajouté à l'ordre de tri personnalisé",
   "sort_order_added_detail": "Formatez le fichier pour l'appliquer.",
   "action_toggle_panel": "Afficher ou masquer le panneau",
+  "md_format_skipped": "Certains blocs de code n'ont pas pu être lus et sont restés tels quels ({count})",
   "format_failed": "Corrigez les erreurs avant de formater",
   "copied": "Copié dans le presse-papiers",
   "copy_failed": "Impossible de copier dans le presse-papiers",

@@ -69,6 +69,7 @@
   "sort_order_added": "Added <{name}> to the custom sort order",
   "sort_order_added_detail": "Format the file to apply it.",
   "action_toggle_panel": "Toggle side panel",
+  "md_format_skipped": "Some code blocks didn't parse and were left as written ({count})",
   "format_failed": "Fix the errors before formatting",
   "copied": "Copied to clipboard",
   "copy_failed": "Could not copy to the clipboard",

@@ -39,6 +39,7 @@ import {
   typedName,
 } from '#/lib/document'
 import { contentBlob } from '#/lib/image-file'
+import { formatMarkdownCode } from '#/lib/markdown-format'
 import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
@@ -74,6 +75,10 @@ export function historyDepth() {
 export function formatActive() {
   const view = getView()
   if (!view) return true
+  if (activeLanguage() === 'md') {
+    void formatMarkdownActive(view)
+    return true
+  }
   const {
     removeEmptyLines,
     trimVars,
@@ -115,6 +120,24 @@ export function formatActive() {
   const change = diffChange(text, result.text)
   if (change) view.dispatch({ changes: change, userEvent: 'input.format' })
   return true
+}
+
+/** Formats the code in a Markdown file's fences, as Prettier would. */
+async function formatMarkdownActive(view: EditorView) {
+  const text = view.state.doc.toString()
+  const { text: formatted, skipped } = await formatMarkdownCode(text)
+  // Typed over or switched away while the formatters loaded.
+  if (getView() !== view || view.state.doc.toString() !== text) return
+  const change = diffChange(text, formatted)
+  if (change) view.dispatch({ changes: change, userEvent: 'input.format' })
+  if (skipped > 0) notify.error(m.md_format_skipped({ count: skipped }))
+}
+
+/** Formats the active file and resolves once it is, for saving after. */
+export async function formatActiveAsync() {
+  const view = getView()
+  if (view && activeLanguage() === 'md') await formatMarkdownActive(view)
+  else formatActive()
 }
 
 /** Asks to confirm the enabled default values that would change the active file. */

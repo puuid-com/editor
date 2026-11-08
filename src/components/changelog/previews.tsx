@@ -3247,7 +3247,64 @@ function ColouredFences() {
   return <BeforeAfter before={<FenceLines />} after={<FenceLines coloured />} />
 }
 
+function FormattedFence({ formatted }: { formatted?: boolean }) {
+  const k = (text: string) => (
+    <span style={{ color: 'var(--sql-keyword)' }}>{text}</span>
+  )
+  const str = (text: string) => (
+    <span style={{ color: 'var(--sql-string)' }}>{text}</span>
+  )
+  const marks = formatted
+    ? { 0: 'code', 1: 'code', 2: 'code', 3: 'code', 4: 'code', 5: 'code' }
+    : { 0: 'code', 1: 'code', 2: 'code', 3: 'code' }
+  return (
+    <Code
+      marks={marks as Partial<Record<number, 'code'>>}
+      lines={
+        formatted
+          ? [
+              meta('```ts'),
+              <>
+                {k('const')} test = {str('"123"')};
+              </>,
+              <>
+                {k('function')} a() {'{'}
+              </>,
+              <>
+                {'  '}
+                {k('return')} test;
+              </>,
+              '}',
+              meta('```'),
+            ]
+          : [
+              meta('```ts'),
+              <>
+                {k('const')} test={str("'123'")}
+              </>,
+              <>
+                {k('function')} a(){'{'}
+                {k('return')} test{'}'}
+              </>,
+              meta('```'),
+            ]
+      }
+      format={(line) => line}
+    />
+  )
+}
+
+function FormattedFences() {
+  return (
+    <BeforeAfter
+      before={<FormattedFence />}
+      after={<FormattedFence formatted />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.23.0': figure(FormattedFences),
   '1.22.1': figure(ColouredFences),
   '1.22.0': figure(ColouredFences),
   '1.21.0': figure(FormattedMarkdown),

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.23.0] - 2026-11-08
+
+### Added
+
+- Format (⇧⌥F, or the button in the bottom bar) works on Markdown files: it formats the code in each fenced block, in TypeScript, JavaScript, JSON, CSS, YAML, GraphQL, HTML, XML and SQL, and leaves the text around it as written. Format on save does it too.
+
 ## [1.22.1] - 2026-11-08
 
 ### Fixed

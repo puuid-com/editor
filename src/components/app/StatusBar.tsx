@@ -49,7 +49,7 @@ export function StatusBar({
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
   // SQL, ZPL, Markdown and text have no highlights, profiles, defaults or
-  // variables; SQL can still be formatted.
+  // variables; SQL and Markdown's fenced code can still be formatted.
   const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
   const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
   const markdown = useSelector(editorStore, (s) => s.doc.language === 'md')
@@ -60,7 +60,7 @@ export function StatusBar({
       {leading}
       {typed && !plain && <HighlightsBar />}
       <StatusNotice />
-      {typed && sql && (
+      {typed && (sql || markdown) && (
         <>
           <div className="flex items-center text-foreground">
             <FormatButton />
