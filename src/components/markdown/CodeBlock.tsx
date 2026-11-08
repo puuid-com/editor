@@ -1,8 +1,14 @@
+import { IconCopy } from '@tabler/icons-react'
 import { useRef } from 'react'
 import type { ComponentProps } from 'react'
 
 import { copyText } from '#/components/app/clipboard'
 import { Button } from '#/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
@@ -23,17 +29,24 @@ export function CodeBlock({ className, children, ...props }: PreProps) {
 
   return (
     <div className="not-prose my-5 overflow-hidden rounded-md border bg-background">
-      <div className="flex h-9 items-center justify-between gap-2 border-b pr-1.5 pl-3">
+      <div className="flex h-9 items-center justify-between gap-2 border-b pr-1 pl-3">
         <span className="truncate font-mono text-xs text-muted-foreground">
           {label}
         </span>
-        <Button
-          variant="outline"
-          size="xs"
-          onClick={() => void copyText(ref.current?.textContent ?? '')}
-        >
-          {m.md_code_copy()}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={m.md_code_copy()}
+              onClick={() => void copyText(ref.current?.textContent ?? '')}
+            >
+              <IconCopy />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{m.md_code_copy()}</TooltipContent>
+        </Tooltip>
       </div>
       <pre
         ref={ref}

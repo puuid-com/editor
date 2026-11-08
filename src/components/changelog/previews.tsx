@@ -2624,7 +2624,15 @@ function ExplorerNewMenu() {
   )
 }
 
-function PreviewCode({ framed }: { framed?: boolean }) {
+type CodeLook = 'filled' | 'framed' | 'quiet'
+
+const INLINE_CODE: Record<CodeLook, string> = {
+  filled: 'rounded bg-muted px-1',
+  framed: 'rounded border bg-muted px-1 text-[0.85em] font-medium',
+  quiet: 'rounded-sm bg-muted px-[0.3em] text-[0.875em]',
+}
+
+function PreviewCode({ look }: { look: CodeLook }) {
   const line = (
     <span className="text-(--sql-keyword)">
       const <span className="text-foreground">doc = </span>
@@ -2637,39 +2645,51 @@ function PreviewCode({ framed }: { framed?: boolean }) {
   return (
     <div className="grid gap-3 p-3">
       <span>
-        Call{' '}
-        <code
-          className={
-            framed
-              ? 'rounded border bg-muted px-1 font-mono text-[0.85em] font-medium'
-              : 'rounded bg-muted px-1 font-mono'
-          }
-        >
-          parse()
-        </code>{' '}
+        Call <code className={cn('font-mono', INLINE_CODE[look])}>parse()</code>{' '}
         first.
       </span>
-      {framed ? (
-        <div className="overflow-hidden rounded-md border">
-          <div className="flex h-7 items-center justify-between border-b pr-1 pl-2.5">
-            <span className="font-mono text-muted-foreground">ts</span>
-            <Button variant="outline" size="xs" className="h-5">
-              {m.md_code_copy()}
-            </Button>
-          </div>
-          <pre className="px-2.5 py-2 font-mono">{line}</pre>
-        </div>
-      ) : (
+      {look === 'filled' ? (
         <pre className="rounded-md border bg-muted/40 px-2.5 py-2 font-mono">
           {line}
         </pre>
+      ) : (
+        <div className="overflow-hidden rounded-md border">
+          <div className="flex h-7 items-center justify-between border-b pr-1 pl-2.5">
+            <span className="font-mono text-muted-foreground">ts</span>
+            {look === 'framed' ? (
+              <Button variant="outline" size="xs" className="h-5">
+                {m.md_code_copy()}
+              </Button>
+            ) : (
+              <IconCopy
+                aria-hidden
+                className="mr-1 size-3 text-muted-foreground"
+              />
+            )}
+          </div>
+          <pre className="px-2.5 py-2 font-mono">{line}</pre>
+        </div>
       )}
     </div>
   )
 }
 
 function CodeBlockFrame() {
-  return <BeforeAfter before={<PreviewCode />} after={<PreviewCode framed />} />
+  return (
+    <BeforeAfter
+      before={<PreviewCode look="filled" />}
+      after={<PreviewCode look="framed" />}
+    />
+  )
+}
+
+function QuietCode() {
+  return (
+    <BeforeAfter
+      before={<PreviewCode look="framed" />}
+      after={<PreviewCode look="quiet" />}
+    />
+  )
 }
 
 function ObsidianVault() {
@@ -2745,6 +2765,7 @@ function ObsidianVault() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.11.1': figure(QuietCode),
   '1.11.0': figure(CodeBlockFrame),
   '1.10.0': figure(ObsidianVault),
   '1.9.0': figure(ExplorerNewMenu),
