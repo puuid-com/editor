@@ -26,7 +26,7 @@ import { yaml } from '@tanstack/highlight/languages/yaml'
 
 // The languages people paste into notes and docs most; anything else shows
 // as plain text. `html` also reads `xml`.
-const highlighter = createHighlighter({
+export const highlighter = createHighlighter({
   languages: [
     c,
     cpp,

@@ -347,7 +347,7 @@
 }
 
 /*
- * Code in the Markdown preview, coloured by the same roles as the SQL editor
+ * Code in the Markdown preview and editor, coloured by the same roles as the SQL editor
  * so every code block reads alike. Classes come from TanStack Highlight.
  */
 .md-preview pre code {
@@ -370,38 +370,38 @@
 .md-preview li:has(> input[type='checkbox']) {
   list-style: none;
 }
-.md-preview :is(.th-keyword, .th-command) {
+:is(.md-preview, .cm-md-code) :is(.th-keyword, .th-command) {
   color: var(--sql-keyword);
 }
-.md-preview :is(.th-function, .th-selector) {
+:is(.md-preview, .cm-md-code) :is(.th-function, .th-selector) {
   color: var(--sql-function);
 }
-.md-preview .th-string {
+:is(.md-preview, .cm-md-code) .th-string {
   color: var(--sql-string);
 }
-.md-preview :is(.th-number, .th-literal) {
+:is(.md-preview, .cm-md-code) :is(.th-number, .th-literal) {
   color: var(--sql-number);
 }
-.md-preview .th-comment {
+:is(.md-preview, .cm-md-code) .th-comment {
   color: var(--sql-comment);
   font-style: italic;
 }
-.md-preview :is(.th-type, .th-tag) {
+:is(.md-preview, .cm-md-code) :is(.th-type, .th-tag) {
   color: var(--sql-table);
 }
-.md-preview :is(.th-attr, .th-property, .th-variable) {
+:is(.md-preview, .cm-md-code) :is(.th-attr, .th-property, .th-variable) {
   color: var(--sql-alias);
 }
-.md-preview :is(.th-operator, .th-meta) {
+:is(.md-preview, .cm-md-code) :is(.th-operator, .th-meta) {
   color: var(--sql-operator);
 }
-.md-preview .th-inserted {
+:is(.md-preview, .cm-md-code) .th-inserted {
   color: var(--sql-comment);
 }
-.md-preview .th-deleted {
+:is(.md-preview, .cm-md-code) .th-deleted {
   color: var(--destructive);
 }
-.md-preview .th-heading {
+:is(.md-preview, .cm-md-code) .th-heading {
   font-weight: 600;
 }
 /* Callouts, `> [!note]`, in the same greys whatever their kind. */

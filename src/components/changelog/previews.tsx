@@ -3217,7 +3217,38 @@ function FormattedMarkdown() {
   )
 }
 
+function FenceLines({ coloured }: { coloured?: boolean }) {
+  const tone = (color: string, text: string) => (
+    <span style={coloured ? { color } : undefined}>{text}</span>
+  )
+  return (
+    <Code
+      marks={coloured ? { 1: 'code', 2: 'code', 3: 'code', 4: 'code' } : {}}
+      lines={[
+        'Install it:',
+        <>
+          {meta('```')}
+          {meta('ts')}
+        </>,
+        <>
+          {tone('var(--sql-keyword)', 'const')} site{' '}
+          {tone('var(--sql-operator)', '=')}{' '}
+          {tone('var(--sql-function)', 'load')}(
+          {tone('var(--sql-string)', "'docs'")})
+        </>,
+        <>{tone('var(--sql-comment)', '// ready')}</>,
+        meta('```'),
+      ]}
+    />
+  )
+}
+
+function ColouredFences() {
+  return <BeforeAfter before={<FenceLines />} after={<FenceLines coloured />} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.22.0': figure(ColouredFences),
   '1.21.0': figure(FormattedMarkdown),
   '1.20.0': figure(NoteEmbeds),
   '1.19.1': figure(LightPdf),

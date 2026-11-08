@@ -19,6 +19,7 @@ import { parseCode } from '@lezer/markdown'
 import type { MarkdownConfig, MarkdownParser } from '@lezer/markdown'
 import type { Parser } from '@lezer/common'
 
+import { codeBlocks } from './md-code'
 import { quoteLines } from './md-quotes'
 
 // Built from the GFM grammar directly rather than through `markdown()`, which
@@ -151,6 +152,7 @@ export function markdownSupport() {
   return new LanguageSupport(language, [
     syntaxHighlighting(style),
     quoteLines,
+    codeBlocks(new Set(Object.keys(CODE))),
     // Enter continues a list or quote; Backspace removes its marker.
     Prec.high(keymap.of(markdownKeymap)),
     pasteURLAsLink,

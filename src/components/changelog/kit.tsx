@@ -242,12 +242,13 @@ function grey(role: string): CSSProperties {
 }
 
 export type Line = string | ReactNode
-export type LineMark = 'add' | 'remove' | 'active'
+export type LineMark = 'add' | 'remove' | 'active' | 'code'
 
 const MARK: Record<LineMark, string> = {
   add: 'bg-(--hl-green)/12',
   remove: 'bg-(--hl-red)/12',
   active: 'bg-(--syntax-active-line)',
+  code: 'bg-foreground/4',
 }
 
 const mark = (kind?: LineMark) => kind && MARK[kind]

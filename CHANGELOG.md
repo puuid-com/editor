@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.22.0] - 2026-11-08
+
+### Changed
+
+- Fenced code in the Markdown editor reads as a block, on a light band, and is coloured like the preview in TypeScript, JavaScript, Python, shell, CSS, YAML and the other languages the preview reads.
+
 ## [1.21.0] - 2026-11-08
 
 ### Changed

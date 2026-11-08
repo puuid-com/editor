@@ -61,3 +61,29 @@ describe('Markdown as it is typed', () => {
     expect(names).not.toContain('Highlight')
   })
 })
+
+describe('Fenced code as it is typed', () => {
+  it('colours languages the editor has no grammar for, like the preview', () => {
+    const { view } = editor('```ts\nconst a = "x"\n```\n')
+    const keyword = [...view.contentDOM.querySelectorAll('.th-keyword')]
+    expect(keyword.map((span) => span.textContent)).toEqual(['const'])
+    expect(view.contentDOM.querySelector('.th-string')?.textContent).toBe('"x"')
+  })
+
+  it('frames every line of the block, fences included', () => {
+    const { view } = editor('text\n```\nplain\n```\n')
+    const lines = [...view.contentDOM.querySelectorAll('.cm-md-code')]
+    expect(lines.map((line) => line.textContent)).toEqual([
+      '```',
+      'plain',
+      '```',
+    ])
+    expect(lines[0].classList).toContain('cm-md-code-first')
+    expect(lines[2].classList).toContain('cm-md-code-last')
+  })
+
+  it('leaves XML, JSON and SQL to the editor grammar', () => {
+    const { view } = editor('```json\n{"a": 1}\n```\n')
+    expect(view.contentDOM.querySelector('[class^="th-"]')).toBeNull()
+  })
+})
