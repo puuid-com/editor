@@ -52,14 +52,18 @@ export function useArchivedFiles() {
   return data
 }
 
-/** One file's name and content, kept current as it changes. */
+/** One file's name, content and place on disk, kept current as they change. */
 export function useFileContent(id: string) {
   const { data } = useLiveQuery({
     query: (q) =>
       q
         .from({ file: filesCollection })
         .where(({ file }) => eq(file.id, id))
-        .select(({ file }) => ({ name: file.name, content: file.content })),
+        .select(({ file }) => ({
+          name: file.name,
+          content: file.content,
+          location: file.location,
+        })),
   })
   return data.at(0) ?? null
 }

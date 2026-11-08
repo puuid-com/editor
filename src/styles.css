@@ -392,6 +392,32 @@
 .md-preview .th-heading {
   font-weight: 600;
 }
+/* Callouts, `> [!note]`, in the same greys whatever their kind. */
+.md-preview .markdown-alert {
+  margin-block: 1.25em;
+  border-left: 2px solid color-mix(in oklab, var(--foreground) 25%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+  padding: 0.5em 1em;
+}
+.md-preview .markdown-alert-title {
+  margin-block: 0;
+  color: var(--foreground);
+  font-weight: 500;
+}
+.md-preview .markdown-alert-content > :first-child {
+  margin-top: 0.25em;
+}
+.md-preview .markdown-alert-content > :last-child {
+  margin-bottom: 0;
+}
+/* `==highlighted==` text. */
+.md-preview mark {
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
+  color: inherit;
+  padding-inline: 1px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

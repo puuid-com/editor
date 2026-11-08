@@ -8,6 +8,15 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.10.0] - 2026-11-07
+
+### Added
+
+- Obsidian vaults open as folders like any other, and the explorer tells them apart with a notebook icon. Their `.obsidian` settings and `.trash` stay hidden, the attachment folder set in Obsidian stays out of the tree, and files listed under "Excluded files" stay out of search.
+- New files in a vault are notes: they're named `.md` unless you type another type the editor opens.
+- The Markdown preview understands Obsidian's syntax: `[[links]]` (with headings and aliases) open the note they name in a tab, `![[image.png|300]]` shows the image from the folder, and callouts and `==highlights==` render. Relative links and images in any folder opened from disk work the same way.
+- Links to notes that don't exist show faded, as in Obsidian.
+
 ## [1.9.0] - 2026-11-07
 
 ### Changed

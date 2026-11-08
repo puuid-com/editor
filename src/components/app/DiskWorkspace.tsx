@@ -5,6 +5,7 @@ import {
   IconFolder,
   IconFolderPlus,
   IconFolderRoot,
+  IconNotebook,
 } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -19,6 +20,12 @@ import {
   reloadFromDisk,
   renameDiskEntry,
 } from './disk-workspace'
+import {
+  diskKeys,
+  directoryQuery,
+  filesQuery,
+  vaultQuery,
+} from './disk-queries'
 import {
   RowAction,
   RowMenu,
@@ -48,26 +55,25 @@ import {
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import { DropdownMenuItem } from '#/components/ui/dropdown-menu'
-import { isWithin, listDirectory, listFiles, parentPath } from '#/lib/disk-tree'
+import { isWithin, parentPath } from '#/lib/disk-tree'
 import type { DiskEntry, EntryKind } from '#/lib/disk-tree'
+import { isAttachmentFolder, isExcluded, noteName } from '#/lib/obsidian'
+import type { Vault } from '#/lib/obsidian'
 import type { DiskRoot } from '#/lib/store/disk'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
 // A folder opened from disk, as one workspace of the explorer. Its listing
 // is read from disk as folders open, and read again when the page regains
-// focus, so files added or removed in other apps show up.
-
-const diskKeys = {
-  root: (rootId: string) => ['disk', rootId] as const,
-  directory: (rootId: string, path: string) =>
-    ['disk', rootId, 'directory', path] as const,
-  files: (rootId: string) => ['disk', rootId, 'files'] as const,
-}
+// focus, so files added or removed in other apps show up. An Obsidian vault
+// says so, keeps its attachment folder out of the tree and its excluded
+// files out of search, and names new files as notes.
 
 /** What every row of one folder's tree needs. */
 interface Tree {
   root: DiskRoot
+  /** Its Obsidian vault settings, or null when it isn't a vault. */
+  vault: Vault | null
   /** Open tab ids by path. */
   tabs: ReadonlyMap<string, string>
   activeId: string | null
@@ -100,6 +106,10 @@ export function DiskWorkspace({
   const [deleting, setDeleting] = useState<DiskEntry | null>(null)
   const [busy, setBusy] = useState(false)
   const granted = root.access === 'granted'
+  const { data: vault = null, isPending: vaultPending } = useQuery({
+    ...vaultQuery(root),
+    enabled: granted,
+  })
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: diskKeys.root(root.id) })
   const expand = (path: string) =>
@@ -107,6 +117,7 @@ export function DiskWorkspace({
 
   const tree: Tree = {
     root,
+    vault,
     tabs,
     activeId,
     expanded,
@@ -124,9 +135,19 @@ export function DiskWorkspace({
       askName({
         key: `new:${kind}:${root.id}/${parent}`,
         title: kind === 'file' ? m.file_new() : m.explorer_new_folder(),
-        name: kind === 'file' ? m.file_untitled() : '',
+        name:
+          kind === 'directory'
+            ? ''
+            : vault
+              ? m.file_untitled_md()
+              : m.file_untitled(),
         submit: async (name) => {
-          const done = await createDiskEntry(root, parent, name, kind)
+          const done = await createDiskEntry(
+            root,
+            parent,
+            vault && kind === 'file' ? noteName(name) : name,
+            kind,
+          )
           if (done) {
             setOpen(true)
             if (parent) expand(parent)
@@ -168,9 +189,9 @@ export function DiskWorkspace({
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="mt-2">
       <WorkspaceHeader
-        icon={<IconFolderRoot />}
+        icon={vault ? <IconNotebook /> : <IconFolderRoot />}
         name={root.name}
-        title={m.folder_on_device()}
+        title={vault ? m.vault_on_device() : m.folder_on_device()}
         open={open}
       >
         {!granted && (
@@ -223,6 +244,9 @@ export function DiskWorkspace({
       <CollapsibleContent className="ml-3 border-l pl-1">
         {!granted ? (
           <Hint>{m.folder_access_hint()}</Hint>
+        ) : vaultPending ? (
+          // Until then a vault's attachment folder would show for a moment.
+          <Hint>{m.folder_loading()}</Hint>
         ) : search ? (
           <SearchResults tree={tree} search={search} />
         ) : (
@@ -268,17 +292,16 @@ function Hint({ children }: { children: ReactNode }) {
 }
 
 function Directory({ tree, path }: { tree: Tree; path: string }) {
-  const { root } = tree
-  const { data, isPending, isError } = useQuery({
-    queryKey: diskKeys.directory(root.id, path),
-    queryFn: () => listDirectory(root.handle, path),
-    // Read again on focus, to catch changes made in other apps.
-    staleTime: 0,
-  })
+  const { data, isPending, isError } = useQuery(directoryQuery(tree.root, path))
   if (isPending) return <Hint>{m.folder_loading()}</Hint>
   if (isError) return <Hint>{m.folder_unavailable()}</Hint>
-  if (!data.length) return <Hint>{m.folder_empty()}</Hint>
-  return data.map((entry) =>
+  // A vault's attachments are images and such, nothing to edit.
+  const entries = data.filter(
+    (entry) =>
+      entry.kind === 'file' || !isAttachmentFolder(tree.vault, entry.path),
+  )
+  if (!entries.length) return <Hint>{m.folder_empty()}</Hint>
+  return entries.map((entry) =>
     entry.kind === 'directory' ? (
       <DirectoryRow key={entry.path} tree={tree} entry={entry} />
     ) : (
@@ -371,19 +394,18 @@ function FileRow({
   )
 }
 
-/** Files anywhere in the folder whose path holds the search. */
+/** Files anywhere in the folder whose path holds the search, but for a vault’s excluded files. */
 function SearchResults({ tree, search }: { tree: Tree; search: string }) {
-  const { root } = tree
-  const { data, isPending, isError } = useQuery({
-    queryKey: diskKeys.files(root.id),
-    queryFn: () => listFiles(root.handle),
-    staleTime: 0,
-  })
+  const { data, isPending, isError } = useQuery(filesQuery(tree.root))
   if (isPending) return <Hint>{m.folder_loading()}</Hint>
   if (isError) return <Hint>{m.folder_unavailable()}</Hint>
   const query = search.toLowerCase()
   return data
-    .filter((entry) => entry.path.toLowerCase().includes(query))
+    .filter(
+      (entry) =>
+        entry.path.toLowerCase().includes(query) &&
+        !isExcluded(tree.vault, entry.path),
+    )
     .map((entry) => (
       <FileRow key={entry.path} tree={tree} entry={entry} showPath />
     ))

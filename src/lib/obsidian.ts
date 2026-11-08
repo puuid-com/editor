@@ -1,0 +1,245 @@
+import { z } from 'zod'
+
+import { isEditableName, parentPath } from './disk-tree'
+
+// Obsidian vaults: folders of Markdown notes with their settings in an
+// `.obsidian` folder at the root. The explorer already hides dot folders;
+// these read the few settings it follows, and the `[[links]]` notes make to
+// each other, as Obsidian resolves them.
+
+/** The folder Obsidian keeps a vault's settings in. */
+const CONFIG_FOLDER = '.obsidian'
+
+/** What the editor follows of a vault's settings. */
+export interface Vault {
+  /**
+   * The folder new attachments go to, from the root, or '' when they go
+   * beside each note or at the root.
+   */
+  attachments: string
+  /** "Excluded files": path prefixes, or `/regex/`, left out of search. */
+  excluded: ReadonlyArray<string>
+}
+
+const appSettings = z
+  .object({
+    attachmentFolderPath: z.string().catch(''),
+    userIgnoreFilters: z.array(z.string()).catch([]),
+  })
+  .catch({ attachmentFolderPath: '', userIgnoreFilters: [] })
+
+/** `attachmentFolderPath`: `/` is the root and `./…` beside the note. */
+function fixedFolder(path: string) {
+  const trimmed = path.trim()
+  if (trimmed === '.' || trimmed.startsWith('./')) return ''
+  return trimmed.replace(/^\/+|\/+$/g, '')
+}
+
+/** A vault's settings from its `app.json`, with defaults for anything unreadable. */
+export function parseVaultSettings(json: string | undefined): Vault {
+  let value: unknown
+  try {
+    value = JSON.parse(json ?? '{}')
+  } catch {
+    value = {}
+  }
+  const settings = appSettings.parse(value)
+  return {
+    attachments: fixedFolder(settings.attachmentFolderPath),
+    excluded: settings.userIgnoreFilters.filter((filter) => filter.trim()),
+  }
+}
+
+/** A folder's vault settings, or null when it isn't an Obsidian vault. */
+export async function readVault(
+  root: FileSystemDirectoryHandle,
+): Promise<Vault | null> {
+  let config: FileSystemDirectoryHandle
+  try {
+    config = await root.getDirectoryHandle(CONFIG_FOLDER)
+  } catch {
+    return null
+  }
+  try {
+    const file = await (await config.getFileHandle('app.json')).getFile()
+    return parseVaultSettings(await file.text())
+  } catch {
+    // A new vault has no app.json until a setting changes.
+    return parseVaultSettings(undefined)
+  }
+}
+
+/** Whether `path` is the vault's attachment folder, which holds no notes. */
+export function isAttachmentFolder(vault: Vault | null, path: string) {
+  return (
+    !!vault?.attachments &&
+    path.toLowerCase() === vault.attachments.toLowerCase()
+  )
+}
+
+/** Whether "Excluded files" leaves `path` out of search. */
+export function isExcluded(vault: Vault | null, path: string) {
+  return !!vault?.excluded.some((filter) => {
+    const regex = /^\/(.+)\/$/.exec(filter)
+    if (!regex) {
+      const prefix = filter.replace(/^\/+/, '')
+      return !!prefix && path.startsWith(prefix)
+    }
+    try {
+      return new RegExp(regex[1]).test(path)
+    } catch {
+      return false
+    }
+  })
+}
+
+/** A new note's file name: Markdown unless it names a type the editor opens. */
+export function noteName(name: string) {
+  const trimmed = name.trim()
+  return isEditableName(trimmed) ? trimmed : `${trimmed}.md`
+}
+
+// Links between notes.
+
+/** A `[[target#heading|alias]]` link, or `![[…]]` embed. */
+export interface Wikilink {
+  target: string
+  heading?: string
+  alias?: string
+}
+
+/** The parts of what's between a wikilink's brackets. */
+export function parseWikilink(inner: string): Wikilink {
+  // In a table the pipe before an alias is escaped.
+  const [link, ...rest] = inner.replace(/\\\|/g, '|').split('|')
+  const alias = rest.join('|').trim()
+  const hash = link.indexOf('#')
+  const target = (hash < 0 ? link : link.slice(0, hash)).trim()
+  const heading = hash < 0 ? '' : link.slice(hash + 1).trim()
+  return {
+    target,
+    ...(heading && { heading }),
+    ...(alias && { alias }),
+  }
+}
+
+/** What a wikilink reads as: its alias, else its note and heading. */
+export function wikilinkText({ target, heading, alias }: Wikilink) {
+  if (alias) return alias
+  if (!heading) return target
+  return target ? `${target} > ${heading}` : heading
+}
+
+/** An embed's `|300` or `|300x200` size, in pixels. */
+export function embedSize(alias: string | undefined) {
+  const match = alias ? /^(\d+)(?:x(\d+))?$/.exec(alias.trim()) : null
+  if (!match) return undefined
+  return {
+    width: Number(match[1]),
+    ...(match[2] && { height: Number(match[2]) }),
+  }
+}
+
+const IMAGE = /\.(png|jpe?g|gif|webp|avif|svg|bmp|ico)$/i
+
+export function isImagePath(path: string) {
+  return IMAGE.test(path)
+}
+
+/** Whether a Markdown link or image points at a file beside the note, not a site. */
+export function isLocalHref(href: string) {
+  return (
+    !!href &&
+    !href.startsWith('#') &&
+    !href.startsWith('//') &&
+    !/^[a-z][a-z0-9+.-]*:/i.test(href)
+  )
+}
+
+/** `href` without its URL encoding and `#fragment`, as a path. */
+export function hrefPath(href: string) {
+  const path = href.split('#')[0]
+  try {
+    return decodeURIComponent(path)
+  } catch {
+    return path
+  }
+}
+
+/** `path` from the folder `base`, with `.` and `..` worked out; null above the root. */
+function joinRelative(base: string, path: string) {
+  const parts = base ? base.split('/') : []
+  for (const part of path.split('/')) {
+    if (part === '..') {
+      if (!parts.length) return null
+      parts.pop()
+    } else if (part && part !== '.') parts.push(part)
+  }
+  return parts.join('/')
+}
+
+/** How many folders two paths share from the root. */
+function sharedFolders(a: string, b: string) {
+  const left = a.split('/').slice(0, -1)
+  const right = b.split('/').slice(0, -1)
+  let count = 0
+  while (count < left.length && left[count] === right[count]) count++
+  return count
+}
+
+/** A file's name in lowercase, and without `.md` for a note. */
+function namesOf(path: string) {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  return new Set([name, name.replace(/\.md$/, '')])
+}
+
+/**
+ * Finds what links in notes point at among `paths`, as Obsidian does:
+ * beside the linking note, then from the root, then anywhere by name,
+ * nearest first. Links to notes may leave off `.md`, and case doesn't
+ * matter. Paths are indexed once, so a note with many links stays quick.
+ */
+export function linkResolver(paths: ReadonlyArray<string>) {
+  const exact = new Map<string, string>()
+  const byName = new Map<string, Array<string>>()
+  for (const path of paths) {
+    const lower = path.toLowerCase()
+    exact.set(lower, path)
+    for (const name of namesOf(lower)) {
+      const same = byName.get(name)
+      if (same) same.push(path)
+      else byName.set(name, [path])
+    }
+  }
+  const find = (path: string | null) => {
+    if (path === null) return undefined
+    const lower = path.toLowerCase()
+    return exact.get(lower) ?? exact.get(`${lower}.md`)
+  }
+  /** The path `target`, linked from the note at `from`, points at. */
+  return (target: string, from: string) => {
+    const link = target.trim()
+    if (!link) return undefined
+    const relative = link.startsWith('/')
+      ? undefined
+      : find(joinRelative(parentPath(from), link))
+    const found = relative ?? find(joinRelative('', link))
+    if (found) return found
+    const path = joinRelative('', link)?.toLowerCase()
+    if (!path) return undefined
+    const name = path.slice(path.lastIndexOf('/') + 1)
+    const ends = (candidate: string) => {
+      const lower = `/${candidate.toLowerCase()}`
+      return lower.endsWith(`/${path}`) || lower.endsWith(`/${path}.md`)
+    }
+    return (byName.get(name) ?? [])
+      .filter(ends)
+      .sort(
+        (a, b) =>
+          sharedFolders(b, from) - sharedFolders(a, from) ||
+          a.length - b.length ||
+          a.localeCompare(b),
+      )
+      .at(0)
+  }
+}

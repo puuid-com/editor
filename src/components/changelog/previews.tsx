@@ -21,6 +21,8 @@ import {
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebarRight,
+  IconMarkdown,
+  IconNotebook,
   IconPin,
   IconPlus,
   IconReplace,
@@ -2622,7 +2624,80 @@ function ExplorerNewMenu() {
   )
 }
 
+function ObsidianVault() {
+  const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
+  const nested = 'ml-3 border-l pl-1 text-muted-foreground'
+  return (
+    <Shot>
+      <div className="flex">
+        <div className="min-w-0 flex-1">
+          <Tabs>
+            <Tab name="Plan.md" active />
+          </Tabs>
+          <div className="grid content-start gap-2 p-3">
+            <span className="text-sm font-semibold tracking-tight">Plan</span>
+            <span>
+              Start from{' '}
+              <span className="underline underline-offset-2">Ideas</span>, then{' '}
+              <span className="text-muted-foreground underline decoration-dotted underline-offset-2">
+                Budget
+              </span>
+              .
+            </span>
+            <div className="grid gap-1 border-l-2 border-foreground/25 bg-muted/50 px-3 py-1.5">
+              <span className="font-medium">Tip</span>
+              <span>
+                Water{' '}
+                <mark className="bg-foreground/10 px-px text-inherit">
+                  the plants
+                </mark>{' '}
+                first.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="w-40 shrink-0 border-l">
+          <div className="border-b px-3 py-2 font-medium">
+            {m.explorer_title()}
+          </div>
+          <div className="p-2">
+            <div className={cn(row, 'font-medium')}>
+              <IconChevronDown />
+              <IconNotebook />
+              Notes
+            </div>
+            <div className={nested}>
+              <div className={row}>
+                <IconChevronDown />
+                <IconFolder />
+                Projects
+              </div>
+              <div className={nested}>
+                <div
+                  className={cn(row, 'bg-muted font-medium text-foreground')}
+                >
+                  <IconMarkdown />
+                  Plan.md
+                </div>
+                <div className={row}>
+                  <IconMarkdown />
+                  Ideas.md
+                </div>
+              </div>
+              <div className={row}>
+                <IconMarkdown />
+                Home.md
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.10.0': figure(ObsidianVault),
   '1.9.0': figure(ExplorerNewMenu),
   '1.8.1': figure(ExplorerHints),
   '1.8.0': figure(FolderWorkspaces),

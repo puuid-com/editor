@@ -5,6 +5,18 @@ import type { MarkdownComponents } from '@tanstack/markdown/react'
 
 import { highlightCode } from './highlight'
 import { MermaidDiagram } from './MermaidDiagram'
+import {
+  NoteProvider,
+  PreviewImage,
+  PreviewLink,
+  WikiEmbed,
+  WikiLink,
+} from './note-links'
+import {
+  WIKI_EMBED_TAG,
+  WIKI_LINK_TAG,
+  obsidianSyntax,
+} from './obsidian-syntax'
 import { usePreviewScroll } from './use-preview-scroll'
 import { useFileContent } from '#/hooks/use-files'
 import { m } from '#/paraglide/messages'
@@ -44,43 +56,15 @@ function toDiagram(node: BlockNode): BlockNode {
   return node
 }
 
-const EXTENSIONS = [diagrams]
+const EXTENSIONS = [diagrams, obsidianSyntax]
 
 const components = {
   [DIAGRAM_TAG]: MermaidDiagram,
+  [WIKI_LINK_TAG]: WikiLink,
+  [WIKI_EMBED_TAG]: WikiEmbed,
   a: PreviewLink,
+  img: PreviewImage,
 } satisfies MarkdownComponents
-
-/** Links leave the editor in a new tab; `#section` links scroll the preview. */
-function PreviewLink({ href = '', ...props }: React.ComponentProps<'a'>) {
-  if (href.startsWith('#')) {
-    return (
-      <a
-        {...props}
-        href={href}
-        onClick={(event) => {
-          event.preventDefault()
-          const id = headingId(href)
-          event.currentTarget
-            .closest('article')
-            ?.querySelector(`[id="${CSS.escape(id)}"]`)
-            ?.scrollIntoView({ block: 'start' })
-        }}
-      />
-    )
-  }
-  return <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
-}
-
-/** The id a `#section` link points at, as written if it isn't valid URL encoding. */
-function headingId(href: string) {
-  const id = href.slice(1)
-  try {
-    return decodeURIComponent(id)
-  } catch {
-    return id
-  }
-}
 
 // Typography from the prose plugin, tuned to the app's monochrome tokens.
 const PROSE =
@@ -104,13 +88,15 @@ export function MarkdownPreview({ fileId }: { fileId: string }) {
       className="h-full overflow-y-auto px-6 py-5 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
       <article ref={contentRef} className={PROSE}>
-        <Markdown
-          components={components}
-          extensions={EXTENSIONS}
-          highlighter={highlightCode}
-        >
-          {source}
-        </Markdown>
+        <NoteProvider location={file?.location}>
+          <Markdown
+            components={components}
+            extensions={EXTENSIONS}
+            highlighter={highlightCode}
+          >
+            {source}
+          </Markdown>
+        </NoteProvider>
       </article>
     </div>
   )

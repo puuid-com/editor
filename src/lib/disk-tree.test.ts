@@ -61,7 +61,19 @@ describe('reading a folder', () => {
       'src/a.json',
       'src/deep/q.sql',
     ])
-    expect(await listFiles(handle, 2)).toHaveLength(2)
+    expect(await listFiles(handle, { limit: 2 })).toHaveLength(2)
+  })
+
+  it('finds files it can’t edit too when asked, still without hidden ones', async () => {
+    const { handle } = folder()
+    expect(names(await listFiles(handle, { all: true }))).toEqual([
+      'A.xml',
+      'b.xml',
+      'image.png',
+      'notes.md',
+      'src/a.json',
+      'src/deep/q.sql',
+    ])
   })
 })
 

@@ -21,10 +21,19 @@ const EDITABLE = new RegExp(
   'i',
 )
 
+/** Whether the editor opens a file of this name. */
+export function isEditableName(name: string) {
+  return EDITABLE.test(name)
+}
+
+/** Dot files and folders: settings, such as `.git` or a vault's `.obsidian`. */
+function isHidden(name: string) {
+  return name.startsWith('.')
+}
+
 /** Whether the explorer lists an entry: no hidden ones, and only files it can edit. */
 function isListed(name: string, kind: EntryKind) {
-  if (name.startsWith('.')) return false
-  return kind === 'directory' || EDITABLE.test(name)
+  return !isHidden(name) && (kind === 'directory' || isEditableName(name))
 }
 
 function joinPath(parent: string, name: string) {
@@ -78,15 +87,15 @@ const byKindThenName = (a: DiskEntry, b: DiskEntry) =>
       ? -1
       : 1
 
-/** A folder's listed entries: folders first, then files, by name. */
-export async function listDirectory(
+async function readDirectory(
   root: FileSystemDirectoryHandle,
   path: string,
+  keep: (name: string, kind: EntryKind) => boolean,
 ) {
   const directory = await directoryAt(root, path)
   const entries: Array<DiskEntry> = []
   for await (const handle of directory.values()) {
-    if (isListed(handle.name, handle.kind)) {
+    if (keep(handle.name, handle.kind)) {
       entries.push({
         name: handle.name,
         path: joinPath(path, handle.name),
@@ -98,16 +107,28 @@ export async function listDirectory(
   return entries.sort(byKindThenName)
 }
 
+/** A folder's listed entries: folders first, then files, by name. */
+export function listDirectory(root: FileSystemDirectoryHandle, path: string) {
+  return readDirectory(root, path, isListed)
+}
+
 /** Folders search skips: installed packages, rarely what anyone edits. */
 const UNSEARCHED = new Set(['node_modules'])
 
-/** Every listed file under the folder, nearest first, up to `limit`. */
-export async function listFiles(root: FileSystemDirectoryHandle, limit = 5000) {
+/**
+ * Every listed file under the folder, nearest first, up to `limit`. With
+ * `all`, files the editor can't open too, such as the images a note shows.
+ */
+export async function listFiles(
+  root: FileSystemDirectoryHandle,
+  { limit = 5000, all = false } = {},
+) {
+  const keep = all ? (name: string) => !isHidden(name) : isListed
   const files: Array<DiskEntry> = []
   const queue = ['']
   while (queue.length && files.length < limit) {
     // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    for (const entry of await listDirectory(root, queue.shift()!)) {
+    for (const entry of await readDirectory(root, queue.shift()!, keep)) {
       if (entry.kind === 'file') {
         if (files.length < limit) files.push(entry)
       } else if (!UNSEARCHED.has(entry.name)) queue.push(entry.path)
