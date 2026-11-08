@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.18.1] - 2026-11-08
+
+### Fixed
+
+- Keep the active filename in the browser title when returning to the editor from another page.
+
 ## [1.18.0] - 2026-11-08
 
 ### Changed

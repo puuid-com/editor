@@ -3011,6 +3011,7 @@ function FileTitleAndLogo() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.18.1': figure(FileTitleAndLogo),
   '1.18.0': figure(PasteBar),
   '1.17.0': figure(FileTitleAndLogo),
   '1.16.0': figure(MarkdownPdf),
