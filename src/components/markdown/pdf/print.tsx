@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { createRoot } from 'react-dom/client'
 
 import { TooltipProvider } from '#/components/ui/tooltip'
+import { LightOnly } from '#/hooks/use-dark-mode'
 import { MarkdownDocument } from '../MarkdownPreview'
 import { preparePdfLinks } from './links'
 import { collectPdfNotes } from './source'
@@ -29,7 +30,9 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
   const win = frame.contentWindow!
   doc.title = name
   doc.documentElement.lang = document.documentElement.lang
+  // Paper is white: the PDF is always light, whatever the app's theme.
   doc.documentElement.className = document.documentElement.className
+  doc.documentElement.classList.remove('dark')
   const container = doc.createElement('div')
   doc.body.appendChild(container)
   const objectUrls: Array<string> = []
@@ -82,19 +85,21 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
     root.render(
       <QueryClientProvider client={browserQueryClient()}>
         <TooltipProvider>
-          {notes.map((note, index) => (
-            <section key={index} data-pdf-note={note.path}>
-              {notes.length > 1 && (
-                <div className="mb-5 border-b pb-2 font-mono text-xs text-muted-foreground">
-                  {note.path}
-                </div>
-              )}
-              <MarkdownDocument
-                source={note.content}
-                location={note.location}
-              />
-            </section>
-          ))}
+          <LightOnly value>
+            {notes.map((note, index) => (
+              <section key={index} data-pdf-note={note.path}>
+                {notes.length > 1 && (
+                  <div className="mb-5 border-b pb-2 font-mono text-xs text-muted-foreground">
+                    {note.path}
+                  </div>
+                )}
+                <MarkdownDocument
+                  source={note.content}
+                  location={note.location}
+                />
+              </section>
+            ))}
+          </LightOnly>
         </TooltipProvider>
       </QueryClientProvider>,
     )

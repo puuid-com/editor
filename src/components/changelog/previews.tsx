@@ -3104,7 +3104,43 @@ function FileTitleAndLogo() {
   )
 }
 
+/** A printed page of a note: black like the dark theme, or white paper. Literal colours, as paper doesn't follow the theme. */
+function PdfPage({ dark }: { dark?: boolean }) {
+  const bar = cn('h-1.5', dark ? 'bg-neutral-700' : 'bg-neutral-200')
+  return (
+    <div className="p-5">
+      <div
+        className={cn(
+          'mx-auto grid w-40 gap-2 border p-3 shadow-sm',
+          dark
+            ? 'border-neutral-800 bg-neutral-950 text-neutral-100'
+            : 'border-neutral-200 bg-white text-neutral-900',
+        )}
+      >
+        <span className="text-xs font-semibold tracking-tight">Release</span>
+        <div className={cn(bar, 'w-full')} />
+        <div className={cn(bar, 'w-3/4')} />
+        <div
+          className={cn(
+            'border px-2 py-1 font-mono text-[10px]',
+            dark
+              ? 'border-neutral-800 text-neutral-400'
+              : 'border-neutral-200 text-neutral-500',
+          )}
+        >
+          const pdf = true
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LightPdf() {
+  return <BeforeAfter before={<PdfPage dark />} after={<PdfPage />} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.19.1': figure(LightPdf),
   '1.19.0': figure(DraftEditor),
   '1.18.1': figure(FileTitleAndLogo),
   '1.18.0': figure(PasteBar),
