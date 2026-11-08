@@ -12,8 +12,11 @@ import type { SortOrder } from '#/lib/xml/format'
 
 const SHORTEN_AT = [80, 200, 500, 1000]
 
-/** Format settings, shown in the bottom bar's settings popover. */
-export function FormatOptions() {
+/**
+ * Format settings, shown in the bottom bar's settings popover. Plain files
+ * (SQL, Markdown) only get format on save: the rest shape XML and JSON.
+ */
+export function FormatOptions({ structured }: { structured: boolean }) {
   const settings = useFormatSettings()
 
   return (
@@ -27,68 +30,86 @@ export function FormatOptions() {
           {m.format_on_save()}
           <ShortcutKeys shortcut={shortcuts.save} />
         </SettingSwitch>
-        <SettingSwitch
-          id="format-remove-empty-lines"
-          checked={settings.removeEmptyLines}
-          onCheckedChange={(v) => setFormatSetting('removeEmptyLines', v)}
-        >
-          {m.format_remove_empty_lines()}
-        </SettingSwitch>
-        <SettingSwitch
-          id="format-trim-vars"
-          checked={settings.trimVars}
-          onCheckedChange={(v) => setFormatSetting('trimVars', v)}
-        >
-          {m.format_trim_vars()}
-        </SettingSwitch>
-        <SettingSwitch
-          id="format-strip-prefixes"
-          checked={settings.stripPrefixes}
-          onCheckedChange={(v) => setFormatSetting('stripPrefixes', v)}
-        >
-          {m.format_strip_prefixes()}
-        </SettingSwitch>
-        <SettingSwitch
-          id="format-highlighted-first"
-          checked={settings.highlightedFirst}
-          onCheckedChange={(v) => setFormatSetting('highlightedFirst', v)}
-        >
-          {m.format_highlighted_first()}
-        </SettingSwitch>
-        <SettingSwitch
-          id="format-shorten-values"
-          checked={settings.shortenValues}
-          onCheckedChange={(v) => setFormatSetting('shortenValues', v)}
-        >
-          {m.format_shorten_values()}
-        </SettingSwitch>
-        {settings.shortenValues && (
-          <div className="flex items-center justify-between gap-2 px-3 pt-1 pb-2 text-muted-foreground">
-            <span>{m.format_shorten_at()}</span>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              size="sm"
-              spacing={0}
-              value={String(settings.shortenAt)}
-              onValueChange={(v) => {
-                if (v) setFormatSetting('shortenAt', Number(v))
-              }}
-            >
-              {SHORTEN_AT.map((length) => (
-                <ToggleGroupItem
-                  key={length}
-                  value={String(length)}
-                  className="tabular-nums"
-                >
-                  {length}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            <span>{m.format_shorten_chars()}</span>
-          </div>
-        )}
+        {structured && <StructuredSwitches />}
       </div>
+      {structured && <SortOptions />}
+    </>
+  )
+}
+
+function StructuredSwitches() {
+  const settings = useFormatSettings()
+  return (
+    <>
+      <SettingSwitch
+        id="format-remove-empty-lines"
+        checked={settings.removeEmptyLines}
+        onCheckedChange={(v) => setFormatSetting('removeEmptyLines', v)}
+      >
+        {m.format_remove_empty_lines()}
+      </SettingSwitch>
+      <SettingSwitch
+        id="format-trim-vars"
+        checked={settings.trimVars}
+        onCheckedChange={(v) => setFormatSetting('trimVars', v)}
+      >
+        {m.format_trim_vars()}
+      </SettingSwitch>
+      <SettingSwitch
+        id="format-strip-prefixes"
+        checked={settings.stripPrefixes}
+        onCheckedChange={(v) => setFormatSetting('stripPrefixes', v)}
+      >
+        {m.format_strip_prefixes()}
+      </SettingSwitch>
+      <SettingSwitch
+        id="format-highlighted-first"
+        checked={settings.highlightedFirst}
+        onCheckedChange={(v) => setFormatSetting('highlightedFirst', v)}
+      >
+        {m.format_highlighted_first()}
+      </SettingSwitch>
+      <SettingSwitch
+        id="format-shorten-values"
+        checked={settings.shortenValues}
+        onCheckedChange={(v) => setFormatSetting('shortenValues', v)}
+      >
+        {m.format_shorten_values()}
+      </SettingSwitch>
+      {settings.shortenValues && (
+        <div className="flex items-center justify-between gap-2 px-3 pt-1 pb-2 text-muted-foreground">
+          <span>{m.format_shorten_at()}</span>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            spacing={0}
+            value={String(settings.shortenAt)}
+            onValueChange={(v) => {
+              if (v) setFormatSetting('shortenAt', Number(v))
+            }}
+          >
+            {SHORTEN_AT.map((length) => (
+              <ToggleGroupItem
+                key={length}
+                value={String(length)}
+                className="tabular-nums"
+              >
+                {length}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <span>{m.format_shorten_chars()}</span>
+        </div>
+      )}
+    </>
+  )
+}
+
+function SortOptions() {
+  const settings = useFormatSettings()
+  return (
+    <>
       <Separator />
       <div className="flex flex-col gap-2 px-3 py-2.5">
         <span className="text-muted-foreground">{m.format_sort()}</span>

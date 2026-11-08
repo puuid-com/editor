@@ -3303,7 +3303,29 @@ function FormattedFences() {
   )
 }
 
+function SettingsOnPlainFiles() {
+  const bar = (settings?: boolean) => (
+    <StatusBar className="border-t-0">
+      <div className="flex-1" />
+      <span className="flex items-center gap-1 px-1.5 text-foreground">
+        <IconWand className="size-3.5" />
+        {m.action_format()}
+      </span>
+      {settings && (
+        <span className="flex items-center gap-1 px-1.5 text-foreground">
+          <IconAdjustmentsHorizontal className="size-3.5" />
+          {m.editor_settings()}
+        </span>
+      )}
+      <span aria-hidden className="mx-1 h-4 w-px bg-border" />
+      <span className="px-1.5">{m.md_pdf_export()}</span>
+    </StatusBar>
+  )
+  return <BeforeAfter before={bar()} after={bar(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.24.0': figure(SettingsOnPlainFiles),
   '1.23.0': figure(FormattedFences),
   '1.22.1': figure(ColouredFences),
   '1.22.0': figure(ColouredFences),

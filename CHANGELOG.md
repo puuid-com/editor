@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.24.0] - 2026-11-08
+
+### Changed
+
+- The bottom bar's Settings button shows on every file type. SQL, Markdown, ZPL and text files only see the settings that apply to them: format on save where the file can be formatted, and profiles.
+
 ## [1.23.0] - 2026-11-08
 
 ### Added

@@ -48,8 +48,8 @@ export function StatusBar({
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
-  // SQL, ZPL, Markdown and text have no highlights, profiles, defaults or
-  // variables; SQL and Markdown's fenced code can still be formatted.
+  // SQL, ZPL, Markdown and text have no highlights, defaults or variables;
+  // SQL and Markdown's fenced code can still be formatted.
   const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
   const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
   const markdown = useSelector(editorStore, (s) => s.doc.language === 'md')
@@ -61,20 +61,17 @@ export function StatusBar({
       {typed && !plain && <HighlightsBar />}
       <StatusNotice />
       {typed && (sql || markdown) && (
-        <>
-          <div className="flex items-center text-foreground">
-            <FormatButton />
-          </div>
-          <Separator
-            orientation="vertical"
-            className="mx-1 data-vertical:h-4 data-vertical:self-center"
-          />
-        </>
+        <div className="flex items-center text-foreground">
+          <FormatButton />
+        </div>
       )}
-      {typed && !plain && (
+      {typed && !plain && <ActionBar />}
+      {typed && (
         <>
-          <ActionBar />
-          <SettingsPopover />
+          <SettingsPopover
+            structured={!plain}
+            formattable={!plain || sql || markdown}
+          />
           <Separator
             orientation="vertical"
             className="mx-1 data-vertical:h-4 data-vertical:self-center"
@@ -124,7 +121,19 @@ export function StatusBar({
   )
 }
 
-function SettingsPopover() {
+/**
+ * The file's settings. Plain files only get what applies to them: formatting
+ * on save when they can be formatted, and profiles.
+ */
+function SettingsPopover({
+  structured,
+  formattable,
+}: {
+  /** XML, JSON or flat: every setting applies. */
+  structured: boolean
+  /** Has a formatter, so format on save applies. */
+  formattable: boolean
+}) {
   const profile = useActiveProfile()
   return (
     <Popover>
@@ -149,31 +158,46 @@ function SettingsPopover() {
             <ProfileTag profile={profile} />
           </div>
         )}
-        <Tabs defaultValue="format" className="gap-0">
+        <Tabs
+          defaultValue={formattable ? 'format' : 'profiles'}
+          className="gap-0"
+        >
           <TabsList variant="line" className="w-full justify-start px-2">
-            <TabsTrigger value="format" className="flex-none px-2">
-              {m.action_format()}
-            </TabsTrigger>
-            <TabsTrigger value="defaults" className="flex-none px-2">
-              {m.defaults_tab()}
-            </TabsTrigger>
-            <TabsTrigger value="variables" className="flex-none px-2">
-              {m.variables_tab()}
-            </TabsTrigger>
+            {formattable && (
+              <TabsTrigger value="format" className="flex-none px-2">
+                {m.action_format()}
+              </TabsTrigger>
+            )}
+            {structured && (
+              <>
+                <TabsTrigger value="defaults" className="flex-none px-2">
+                  {m.defaults_tab()}
+                </TabsTrigger>
+                <TabsTrigger value="variables" className="flex-none px-2">
+                  {m.variables_tab()}
+                </TabsTrigger>
+              </>
+            )}
             <TabsTrigger value="profiles" className="flex-none px-2">
               {m.profiles_title()}
             </TabsTrigger>
           </TabsList>
           <Separator />
-          <TabsContent value="format">
-            <FormatOptions />
-          </TabsContent>
-          <TabsContent value="defaults">
-            <DefaultsRules />
-          </TabsContent>
-          <TabsContent value="variables">
-            <VariablesList />
-          </TabsContent>
+          {formattable && (
+            <TabsContent value="format">
+              <FormatOptions structured={structured} />
+            </TabsContent>
+          )}
+          {structured && (
+            <>
+              <TabsContent value="defaults">
+                <DefaultsRules />
+              </TabsContent>
+              <TabsContent value="variables">
+                <VariablesList />
+              </TabsContent>
+            </>
+          )}
           <TabsContent value="profiles">
             <ProfilesPanel />
           </TabsContent>
