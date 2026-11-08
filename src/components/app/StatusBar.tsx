@@ -37,8 +37,13 @@ const ZplStatusControls = lazy(() =>
   })),
 )
 
-/** Bottom bar: highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
-export function StatusBar() {
+/** Bottom bar: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
+export function StatusBar({
+  leading,
+}: {
+  /** Controls for the editor's state when there is no file, before the rest. */
+  leading?: React.ReactNode
+}) {
   const activeId = useSelector(editorStore, (s) => s.fileId)
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
@@ -52,6 +57,7 @@ export function StatusBar() {
 
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
+      {leading}
       {typed && !plain && <HighlightsBar />}
       <StatusNotice />
       {typed && sql && (

@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.19.0] - 2026-11-08
+
+### Changed
+
+- With no tab open, the editor shows an empty untitled file instead of a welcome screen. Start typing or paste and it becomes a file, with undo and type detection working as in any other file.
+- Pick the new file's type in the bottom bar before typing, or leave it on Auto to take the type from what you paste. Open from disk and Open folder sit beside it.
+
 ## [1.18.2] - 2026-11-08
 
 ### Fixed

@@ -239,6 +239,25 @@ function dockInfo(
   }
 }
 
+/**
+ * Line numbers, fold markers and lint marks. The draft editor shows them too,
+ * so its text starts where the file's editor puts it.
+ */
+export function editorGutters(): Extension {
+  return [
+    lineNumbers(),
+    highlightActiveLineGutter(),
+    foldGutter({
+      markerDOM: (open) => {
+        const el = document.createElement('span')
+        el.textContent = open ? '▾' : '▸'
+        return el
+      },
+    }),
+    lintGutter(),
+  ]
+}
+
 export interface EditorCallbacks {
   onParse: (fileId: string, doc: XmlDocument) => void
   onChange: (fileId: string, update: ViewUpdate) => void
@@ -257,16 +276,7 @@ export function editorExtensions(
   shortenAt: number,
 ): Extension {
   return [
-    lineNumbers(),
-    highlightActiveLineGutter(),
-    foldGutter({
-      markerDOM: (open) => {
-        const el = document.createElement('span')
-        el.textContent = open ? '▾' : '▸'
-        return el
-      },
-    }),
-    lintGutter(),
+    editorGutters(),
     highlightSpecialChars(),
     history(),
     drawSelection(),

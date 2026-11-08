@@ -25,7 +25,7 @@ import { StatusBar } from './StatusBar'
 import { useAppShortcuts } from './use-app-shortcuts'
 import { VariableValueDialog } from './VariableValueDialog'
 import { setCompareId, uiStore } from './ui-store'
-import { Welcome } from './Welcome'
+import { DraftControls, DraftPane } from './DraftPane'
 import { MixedWorkspace } from './MixedWorkspace'
 import { QuickHighlight } from '#/components/highlights/QuickHighlight'
 import {
@@ -138,12 +138,14 @@ export function EditorApp() {
               wide={wide}
             />
           ) : (
-            <Welcome onOpenFromDisk={openFromDisk} />
+            <DraftPane />
           )}
         </div>
         <FileExplorer activeId={activeId} onImport={openFromDisk} />
       </main>
-      <StatusBar />
+      <StatusBar
+        leading={!activeId && <DraftControls onOpenFromDisk={openFromDisk} />}
+      />
 
       <PdfExportDialog />
       <RenameDialog />

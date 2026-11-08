@@ -20,6 +20,7 @@ import {
   setView,
 } from './editor-store'
 import { createEditorSession, remoteSync } from './editor-session'
+import { replayDraftEdits } from './draft'
 import { setVarValues } from './dynamic-vars'
 import { editorExtensions, setDefaultRules, fileIdField } from './extensions'
 import { imagePaste } from '#/components/markdown/image-paste'
@@ -190,6 +191,8 @@ export function CodeEditor({ fileId }: { fileId: string }) {
       publishCursorFrom(view.state)
       publishParse(fileId, parseActive())
     }
+    // A file started in the draft takes over what was typed there.
+    replayDraftEdits(fileId, view)
   }, [fileId])
 
   const activate = () => {

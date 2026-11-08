@@ -62,6 +62,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Kbd } from '#/components/ui/kbd'
 import { Switch } from '#/components/ui/switch'
+import { LANGUAGE_EXTENSIONS } from '#/lib/document'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
@@ -360,6 +361,99 @@ function PasteDialog() {
 }
 
 const PASTED_JSON = ['{', '  "order": 4821,', '  "currency": "CAD"', '}']
+
+/** The status bar's type picker: Auto, then each type's extension. */
+const DRAFT_TYPES = [
+  m.draft_type_auto(),
+  ...(['xml', 'json', 'sql', 'zpl', 'md', 'txt'] as const).map((language) =>
+    LANGUAGE_EXTENSIONS[language][0].slice(1).toUpperCase(),
+  ),
+]
+
+function DraftEditor() {
+  return (
+    <BeforeAfter
+      className="flex h-52 flex-col"
+      before={
+        <div className="grid flex-1 content-center justify-items-center gap-3 px-3 text-center">
+          <div className="relative px-6 py-3">
+            <div className="welcome-grid absolute inset-0" />
+            <Code
+              className="relative border bg-background pr-3 text-left shadow-xs"
+              lines={[
+                '<invoice id="2041">',
+                '  <total>128.00</total>',
+                '</invoice>',
+              ]}
+            />
+          </div>
+          <span className="text-sm font-semibold tracking-tight">
+            {m.welcome_title()}
+          </span>
+          <div className="flex flex-wrap justify-center gap-1">
+            <Button size="xs">
+              <IconFilePlus />
+              {m.file_new()}
+            </Button>
+            <Button size="xs" variant="outline">
+              {m.file_new_zpl()}
+            </Button>
+            <Button size="xs" variant="outline">
+              <IconJson />
+              {m.file_new_json()}
+            </Button>
+            <Button size="xs" variant="outline">
+              <IconFolderOpen />
+              {m.file_open_disk()}
+            </Button>
+          </div>
+        </div>
+      }
+      after={
+        <>
+          <SheetTabs>
+            <div className="flex h-full items-center rounded-t-md border border-b-0 border-border bg-background px-2">
+              {m.file_untitled()}
+            </div>
+          </SheetTabs>
+          <Code
+            wrap
+            className="flex-1"
+            marks={{ 0: 'active' }}
+            lines={[
+              <span key="draft" className="text-muted-foreground">
+                {m.draft_placeholder()}
+                <br />
+                <span className="opacity-60">
+                  {m.draft_hint({ shortcut: shortcutLabel(shortcuts.palette) })}
+                </span>
+              </span>,
+            ]}
+          />
+          <StatusBar>
+            <span className="flex shrink-0 border font-mono text-[10px]">
+              {DRAFT_TYPES.map((type, i) => (
+                <span
+                  key={type}
+                  className={cn(
+                    'border-l px-1 first:border-l-0',
+                    i === 0 && 'bg-foreground text-background',
+                  )}
+                >
+                  {type}
+                </span>
+              ))}
+            </span>
+            <span className="ml-1.5 flex min-w-0 items-center gap-1 text-foreground">
+              <IconFolderOpen className="size-3.5 shrink-0" />
+              <span className="truncate">{m.file_open_disk()}</span>
+            </span>
+          </StatusBar>
+        </>
+      }
+    />
+  )
+}
 
 function PasteBar() {
   const xml = m.paste_type_xml()
@@ -3011,6 +3105,7 @@ function FileTitleAndLogo() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.19.0': figure(DraftEditor),
   '1.18.1': figure(FileTitleAndLogo),
   '1.18.0': figure(PasteBar),
   '1.17.0': figure(FileTitleAndLogo),

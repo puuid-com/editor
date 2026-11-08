@@ -972,5 +972,10 @@
   "seo_title": "Éditeur XML, JSON, SQL et Markdown en ligne",
   "seo_about_description": "Découvrez Editor : un espace pour XML, JSON, SQL, Markdown, texte et ZPL avec stockage local, vues en arbre, comparaison et aperçu des étiquettes.",
   "seo_changelog_description": "Découvrez les nouveautés et corrections d’Editor pour modifier XML, JSON, SQL, Markdown, texte et ZPL dans votre navigateur.",
-  "seo_image_alt": "Editor — XML, JSON, SQL, Markdown, TXT et ZPL"
+  "seo_image_alt": "Editor — XML, JSON, SQL, Markdown, TXT et ZPL",
+  "draft_placeholder": "Commencez à écrire, ou collez n’importe quoi.",
+  "draft_hint": "Déposez des fichiers pour les ouvrir. {shortcut} pour tout le reste.",
+  "draft_type": "Type du nouveau fichier",
+  "draft_type_auto": "Auto",
+  "draft_type_auto_hint": "Déduit de ce que vous écrivez ou collez"
 }
