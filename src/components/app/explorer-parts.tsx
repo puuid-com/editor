@@ -40,7 +40,39 @@ export const rowButtonClass =
 /** The selected row: the file in the editor. */
 export const activeRowClass = 'bg-muted text-foreground hover:bg-muted'
 
-/** The "…" menu at the end of a row, shown on hover on wide screens. */
+/** The "…" menu: on wide screens it shows on hover or focus, in its own space. */
+const rowMenuClass =
+  'shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10 md:opacity-0 md:group-focus-within/row:opacity-100 md:group-hover/row:opacity-100 md:aria-expanded:opacity-100 dark:hover:bg-foreground/10'
+/** Other row buttons take the count's place on hover, on focus or while the menu is open. */
+const rowActionClass =
+  'shrink-0 hover:bg-foreground/10 md:hidden md:group-focus-within/row:inline-flex md:group-hover/row:inline-flex md:group-has-[[aria-haspopup=menu][aria-expanded=true]]/row:inline-flex dark:hover:bg-foreground/10'
+
+/** An icon button at the end of a row, such as "New file" on a workspace. */
+export function RowAction({
+  label,
+  hint,
+  onClick,
+  children,
+}: {
+  label: string
+  /** Where it acts, such as "In Browser". */
+  hint: string
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <ToolbarButton
+      label={label}
+      hint={hint}
+      className={rowActionClass}
+      onClick={onClick}
+    >
+      {children}
+    </ToolbarButton>
+  )
+}
+
+/** The "…" menu at the end of a row. */
 export function RowMenu({
   label,
   children,
@@ -51,15 +83,21 @@ export function RowMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton
-          label={label}
-          className="mr-1 shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10 md:opacity-0 md:group-focus-within/row:opacity-100 md:group-hover/row:opacity-100 md:aria-expanded:opacity-100 dark:hover:bg-foreground/10"
-        >
+        <ToolbarButton label={label} className={cn(rowMenuClass, 'mr-1')}>
           <IconDots />
         </ToolbarButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">{children}</DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+/** A workspace's file count, which gives way to its buttons on hover. */
+export function RowCount({ count }: { count: number }) {
+  return (
+    <span className="mr-1 shrink-0 px-1 text-xs text-muted-foreground tabular-nums md:group-focus-within/row:hidden md:group-hover/row:hidden md:group-has-[[aria-haspopup=menu][aria-expanded=true]]/row:hidden">
+      {count}
+    </span>
   )
 }
 

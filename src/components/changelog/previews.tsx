@@ -22,6 +22,7 @@ import {
   IconLayoutColumns,
   IconLayoutSidebarRight,
   IconPin,
+  IconPlus,
   IconReplace,
   IconSelector,
   IconShare,
@@ -2554,7 +2555,75 @@ function ExplorerHints() {
   )
 }
 
+function ExplorerNewMenu() {
+  const icon = 'flex size-6 items-center justify-center [&_svg]:size-3.5'
+  const item = 'flex items-start gap-2 px-2 py-1 [&_svg]:mt-px [&_svg]:size-3.5'
+  const section = 'px-2 pt-1.5 pb-0.5 text-[0.625rem] text-muted-foreground'
+  return (
+    <BeforeAfter
+      className="h-56"
+      before={
+        <div className="p-3">
+          <div className="flex items-center gap-1 border px-2 py-1.5">
+            <span className="flex-1 font-medium">{m.explorer_title()}</span>
+            {[
+              IconFilePlus,
+              IconFolderPlus,
+              IconUpload,
+              IconFolderUp,
+              IconFolderRoot,
+            ].map((Icon, index) => (
+              <span key={index} className={icon}>
+                <Icon />
+              </span>
+            ))}
+          </div>
+        </div>
+      }
+      after={
+        <div className="relative p-3">
+          <div className="flex items-center gap-1 border px-2 py-1.5">
+            <span className="flex-1 font-medium">{m.explorer_title()}</span>
+            <span className="flex h-6 items-center gap-1 border bg-muted px-2 [&_svg]:size-3">
+              <IconPlus />
+              {m.explorer_new()}
+              <IconChevronDown />
+            </span>
+          </div>
+          <div className="absolute top-12 right-3 w-56 border bg-popover py-1 shadow-md">
+            <div className={section}>{m.explorer_in_browser()}</div>
+            <div className={cn(item, 'bg-muted')}>
+              <IconFilePlus />
+              {m.file_new()}
+            </div>
+            <div className={section}>{m.explorer_from_device()}</div>
+            <div className={item}>
+              <IconUpload />
+              <span className="grid">
+                {m.explorer_import()}
+                <span className="text-muted-foreground">
+                  {m.explorer_import_hint()}
+                </span>
+              </span>
+            </div>
+            <div className={item}>
+              <IconFolderRoot />
+              <span className="grid">
+                {m.folder_open()}
+                <span className="text-muted-foreground">
+                  {m.folder_open_desc()}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.9.0': figure(ExplorerNewMenu),
   '1.8.1': figure(ExplorerHints),
   '1.8.0': figure(FolderWorkspaces),
   '1.7.2': figure(ExplorerHover),

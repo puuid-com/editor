@@ -935,9 +935,12 @@
   "folder_unavailable": "This folder can’t be read. It may have been moved or deleted.",
   "folder_empty": "No files to edit here.",
   "explorer_toggle_hint": "Collapse the panel to give the editor more room.",
-  "explorer_new_file_hint": "Create an empty file at the top level.",
-  "explorer_new_folder_hint": "Create a folder at the top level to group files.",
-  "explorer_import_hint": "Copy files from your device into the browser workspace.",
-  "explorer_import_folder_hint": "Copy a whole folder from your device into the browser workspace. The original stays untouched.",
-  "folder_open_hint": "Edit a folder on your device directly. Changes save back to disk."
+  "explorer_import_hint": "Copies them into the browser",
+  "explorer_import_folder_hint": "Copies a whole folder",
+  "folder_open_hint": "Edit a folder on your device directly. Changes save back to disk.",
+  "explorer_new": "New",
+  "explorer_in_browser": "In Browser",
+  "explorer_from_device": "From your device",
+  "folder_open_desc": "Edits the files on disk, live",
+  "explorer_in_folder": "In {name}"
 }

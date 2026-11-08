@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.9.0] - 2026-11-07
+
+### Changed
+
+- The explorer's five unlabelled icons are now one **New** button. Its menu separates making a file or folder in the browser from bringing files in from your device, and says under each import whether it copies the files or edits them on disk.
+- Each workspace row, the browser's and every open folder's, shows New file and New folder buttons on hover, so it's clear where a new file goes. Importing into the browser moves to the browser row's "…" menu.
+
 ## [1.8.1] - 2026-11-07
 
 ### Fixed

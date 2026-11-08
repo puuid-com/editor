@@ -1,7 +1,9 @@
 import {
   IconChevronDown,
   IconChevronRight,
+  IconFilePlus,
   IconFolder,
+  IconFolderPlus,
   IconFolderRoot,
 } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -18,6 +20,7 @@ import {
   renameDiskEntry,
 } from './disk-workspace'
 import {
+  RowAction,
   RowMenu,
   WorkspaceHeader,
   activeRowClass,
@@ -184,19 +187,25 @@ export function DiskWorkspace({
             {m.folder_reconnect()}
           </Button>
         )}
+        {granted && (
+          <>
+            <RowAction
+              label={m.file_new()}
+              hint={m.explorer_in_folder({ name: root.name })}
+              onClick={() => tree.create('', 'file')}
+            >
+              <IconFilePlus />
+            </RowAction>
+            <RowAction
+              label={m.explorer_new_folder()}
+              hint={m.explorer_in_folder({ name: root.name })}
+              onClick={() => tree.create('', 'directory')}
+            >
+              <IconFolderPlus />
+            </RowAction>
+          </>
+        )}
         <RowMenu label={m.folder_actions()}>
-          <DropdownMenuItem
-            disabled={!granted}
-            onSelect={() => tree.create('', 'file')}
-          >
-            {m.file_new()}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!granted}
-            onSelect={() => tree.create('', 'directory')}
-          >
-            {m.explorer_new_folder()}
-          </DropdownMenuItem>
           <DropdownMenuItem disabled={!granted} onSelect={() => void refresh()}>
             {m.folder_refresh()}
           </DropdownMenuItem>

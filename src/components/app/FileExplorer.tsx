@@ -9,6 +9,7 @@ import {
   IconUpload,
   IconChevronDown,
   IconFolderUp,
+  IconPlus,
 } from '@tabler/icons-react'
 import { useLiveQuery } from '@tanstack/react-db'
 import { useSelector } from '@tanstack/react-store'
@@ -18,6 +19,8 @@ import { openFolder } from './disk-workspace'
 import { DiskWorkspace } from './DiskWorkspace'
 import {
   NameDialog,
+  RowAction,
+  RowCount,
   RowMenu,
   WorkspaceHeader,
   activeRowClass,
@@ -39,10 +42,16 @@ import {
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -101,6 +110,29 @@ function browserRequest(edit: Edit): NameRequest {
   }
 }
 
+/** A menu item that says, under its label, what it does with your files. */
+function MenuEntry({
+  icon,
+  label,
+  description,
+  onSelect,
+}: {
+  icon: React.ReactNode
+  label: string
+  description: string
+  onSelect: () => void
+}) {
+  return (
+    <DropdownMenuItem className="items-start" onSelect={onSelect}>
+      <span className="mt-0.5 flex">{icon}</span>
+      <span className="flex flex-col gap-0.5">
+        {label}
+        <span className="text-xs text-muted-foreground">{description}</span>
+      </span>
+    </DropdownMenuItem>
+  )
+}
+
 export function FileExplorer({
   activeId,
   onImport,
@@ -149,6 +181,12 @@ export function FileExplorer({
       },
     })
   }
+  const newEntry = (kind: Edit['kind'], parentId: string | null) =>
+    setEdit({
+      kind,
+      parentId,
+      name: kind === 'file' ? m.file_untitled() : '',
+    })
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [browserOpen, setBrowserOpen] = useState(true)
   const [expanded, setVisible] = useState<boolean | null>(null)
@@ -220,22 +258,10 @@ export function FileExplorer({
       {destinations(entry.id, entry.kind === 'folder', entry.parentId)}
       {entry.kind === 'folder' ? (
         <>
-          <DropdownMenuItem
-            onSelect={() =>
-              setEdit({
-                kind: 'file',
-                parentId: entry.id,
-                name: m.file_untitled(),
-              })
-            }
-          >
+          <DropdownMenuItem onSelect={() => newEntry('file', entry.id)}>
             {m.file_new()}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() =>
-              setEdit({ kind: 'folder', parentId: entry.id, name: '' })
-            }
-          >
+          <DropdownMenuItem onSelect={() => newEntry('folder', entry.id)}>
             {m.explorer_new_folder()}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setDeleteId(entry.id)}>
@@ -463,51 +489,63 @@ export function FileExplorer({
             <span className="min-w-0 flex-1 text-xs font-medium">
               {m.explorer_title()}
             </span>
-            <ToolbarButton
-              label={m.file_new()}
-              hint={m.explorer_new_file_hint()}
-              onClick={() =>
-                setEdit({
-                  kind: 'file',
-                  parentId: null,
-                  name: m.file_untitled(),
-                })
-              }
-            >
-              <IconFilePlus />
-            </ToolbarButton>
-            <ToolbarButton
-              label={m.explorer_new_folder()}
-              hint={m.explorer_new_folder_hint()}
-              onClick={() =>
-                setEdit({ kind: 'folder', parentId: null, name: '' })
-              }
-            >
-              <IconFolderPlus />
-            </ToolbarButton>
-            <ToolbarButton
-              label={m.explorer_import()}
-              hint={m.explorer_import_hint()}
-              onClick={onImport}
-            >
-              <IconUpload />
-            </ToolbarButton>
-            <ToolbarButton
-              label={m.explorer_import_folder()}
-              hint={m.explorer_import_folder_hint()}
-              onClick={() => directoryInput.current?.click()}
-            >
-              <IconFolderUp />
-            </ToolbarButton>
-            {canOpenFolders && (
-              <ToolbarButton
-                label={m.folder_open()}
-                hint={m.folder_open_hint()}
-                onClick={() => run(openFolder)}
-              >
-                <IconFolderRoot />
-              </ToolbarButton>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="aria-expanded:bg-muted max-md:h-9"
+                >
+                  <IconPlus data-icon="inline-start" />
+                  {m.explorer_new()}
+                  <IconChevronDown
+                    data-icon="inline-end"
+                    className="text-muted-foreground"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    {m.explorer_in_browser()}
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onSelect={() => newEntry('file', null)}>
+                    <IconFilePlus />
+                    {m.file_new()}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => newEntry('folder', null)}>
+                    <IconFolderPlus />
+                    {m.explorer_new_folder()}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    {m.explorer_from_device()}
+                  </DropdownMenuLabel>
+                  <MenuEntry
+                    icon={<IconUpload />}
+                    label={m.explorer_import()}
+                    description={m.explorer_import_hint()}
+                    onSelect={onImport}
+                  />
+                  <MenuEntry
+                    icon={<IconFolderUp />}
+                    label={m.explorer_import_folder()}
+                    description={m.explorer_import_folder_hint()}
+                    onSelect={() => directoryInput.current?.click()}
+                  />
+                  {canOpenFolders && (
+                    <MenuEntry
+                      icon={<IconFolderRoot />}
+                      label={m.folder_open()}
+                      description={m.folder_open_desc()}
+                      onSelect={() => run(openFolder)}
+                    />
+                  )}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         )}
       </div>
@@ -532,27 +570,31 @@ export function FileExplorer({
                 title={m.explorer_browser_hint()}
                 open={browserOpen}
               >
-                <span className="mr-1 shrink-0 px-1 text-xs text-muted-foreground tabular-nums">
-                  {files.length}
-                </span>
+                <RowCount count={files.length} />
+                <RowAction
+                  label={m.file_new()}
+                  hint={m.explorer_in_browser()}
+                  onClick={() => newEntry('file', null)}
+                >
+                  <IconFilePlus />
+                </RowAction>
+                <RowAction
+                  label={m.explorer_new_folder()}
+                  hint={m.explorer_in_browser()}
+                  onClick={() => newEntry('folder', null)}
+                >
+                  <IconFolderPlus />
+                </RowAction>
                 <RowMenu label={m.folder_actions()}>
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      setEdit({
-                        kind: 'file',
-                        parentId: null,
-                        name: m.file_untitled(),
-                      })
-                    }
-                  >
-                    {m.file_new()}
+                  <DropdownMenuItem onSelect={onImport}>
+                    <IconUpload />
+                    {m.explorer_import()}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onSelect={() =>
-                      setEdit({ kind: 'folder', parentId: null, name: '' })
-                    }
+                    onSelect={() => directoryInput.current?.click()}
                   >
-                    {m.explorer_new_folder()}
+                    <IconFolderUp />
+                    {m.explorer_import_folder()}
                   </DropdownMenuItem>
                 </RowMenu>
               </WorkspaceHeader>
