@@ -5,6 +5,7 @@ import {
   IconArrowBackUp,
   IconArrowForwardUp,
   IconCheck,
+  IconTypography,
   IconClipboard,
   IconCopy,
   IconDatabaseExport,
@@ -99,7 +100,9 @@ import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
-import { toggleWordWrap } from '#/components/editor/word-wrap'
+import { setCodeFont } from '#/components/editor/code-font'
+import { editorPrefs, toggleWordWrap } from '#/components/editor/word-wrap'
+import { codeFonts } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 import { isPlain } from '#/lib/document'
 import type { DocLanguage } from '#/lib/document'
@@ -637,6 +640,7 @@ function Workspace({
 }) {
   const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
   const canOpenFolders = useCanOpenFolders()
+  const codeFont = useSelector(editorPrefs, (s) => s.codeFont)
   return (
     <>
       <CommandSeparator />
@@ -708,6 +712,18 @@ function Workspace({
           {m.word_wrap_toggle()}
           <CommandShortcut>{shortcutLabel(shortcuts.wordWrap)}</CommandShortcut>
         </CommandItem>
+        {codeFonts.map((font) => (
+          <CommandItem
+            key={font.id}
+            onSelect={() => run(() => void setCodeFont(font.id))}
+          >
+            <IconTypography />
+            {m.code_font_option({ font: font.name })}
+            {font.id === codeFont && (
+              <IconCheck className="size-3 text-muted-foreground" />
+            )}
+          </CommandItem>
+        ))}
       </CommandGroup>
     </>
   )

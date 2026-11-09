@@ -227,6 +227,8 @@
   "defaults_confirm_count_label": "Valeurs à modifier : {count}",
   "defaults_tab": "Valeurs",
   "theme_toggle": "Changer de thème",
+  "code_font": "Police du code",
+  "code_font_option": "Police du code : {font}",
   "word_wrap_toggle": "Activer ou désactiver le retour à la ligne",
   "editor_settings": "Réglages",
   "defaults_save_current": "Enregistrer comme valeur par défaut",

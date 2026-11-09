@@ -11,6 +11,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import { TooltipProvider } from '#/components/ui/tooltip'
+import { codeFontScript } from '#/lib/code-font'
 import { seo } from '#/lib/seo'
 import { themeScript } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
@@ -66,10 +67,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    // The theme script adds `.dark` before hydration.
+    // The theme and font scripts change <html> before hydration.
     <html lang={getLocale()} dir={getTextDirection()} suppressHydrationWarning>
       <head>
         <ScriptOnce>{themeScript}</ScriptOnce>
+        <ScriptOnce>{codeFontScript}</ScriptOnce>
         <HeadContent />
       </head>
       <body>

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.30.0] - 2026-11-08
+
+### Added
+
+- Choose the font for code from the new menu in the bottom bar or the command menu: Geist Mono, as before, or Ioskeley Mono. The choice applies to every file and profile, and to code in exported PDFs.
+
 ## [1.29.0] - 2026-11-08
 
 ### Changed

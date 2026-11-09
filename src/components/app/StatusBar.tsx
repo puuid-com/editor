@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 
 import { ActionBar, FormatButton } from './ActionBar'
+import { CodeFontMenu } from './CodeFontMenu'
 import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
 import { ArchiveButton } from './ArchiveDialog'
@@ -103,6 +104,7 @@ export function StatusBar({
       <ArchiveButton />
       <CommandMenuButton />
       <WordWrapToggle />
+      <CodeFontMenu />
       <ThemeToggle />
       <Button
         asChild

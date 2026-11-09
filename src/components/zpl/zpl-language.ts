@@ -212,7 +212,7 @@ export function zplHelp({
   return [labelDpi.of(dpi), explain ? explainHints : []]
 }
 
-const MONO_FONT = "'Geist Mono Variable', ui-monospace, monospace"
+const MONO_FONT = 'var(--font-mono)'
 const SANS_FONT = "'Geist Variable', ui-sans-serif, system-ui, sans-serif"
 
 const editorTheme = EditorView.theme({

@@ -65,6 +65,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Kbd } from '#/components/ui/kbd'
 import { Switch } from '#/components/ui/switch'
+import { CODE_FONT_PROPERTY, codeFonts } from '#/lib/code-font'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
@@ -3507,7 +3508,22 @@ function SqlColoursEverywhere() {
   )
 }
 
+function CodeFonts() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {codeFonts.map((font) => (
+        <Shot key={font.id} label={font.name}>
+          <div style={{ [CODE_FONT_PROPERTY]: font.stack } as CSSProperties}>
+            <Code lines={ORDER} />
+          </div>
+        </Shot>
+      ))}
+    </div>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.30.0': figure(CodeFonts),
   '1.29.0': figure(SqlColoursEverywhere),
   '1.28.0': figure(RuledTables),
   '1.27.0': figure(TableHelpers),

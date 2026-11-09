@@ -9,6 +9,7 @@ export const editorPrefs = persistedStore(
   () => localStorage,
   {
     wordWrap: false,
+    codeFont: 'geist-mono',
   },
 )
 
