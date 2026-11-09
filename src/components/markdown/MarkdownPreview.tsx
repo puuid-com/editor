@@ -11,7 +11,7 @@ import type {
 import type { MarkdownComponents } from '@tanstack/markdown/react'
 
 import { CodeBlock } from './CodeBlock'
-import { CODE_COLOR_TAG, codeColorStyle, codeColors } from './code-colors'
+import { CODE_TAG, codeColorStyle, htmlCodeSyntax } from './code-colors'
 import { highlightCode } from './highlight'
 import { MermaidDiagram } from './MermaidDiagram'
 import {
@@ -28,9 +28,9 @@ import {
   WIKI_LINK_TAG,
   obsidianSyntax,
 } from './obsidian-syntax'
+import { PreviewCodeColors } from './PreviewCodeColors'
 import { usePreviewScroll } from './use-preview-scroll'
 import { useFileContent } from '#/hooks/use-files'
-import { isPreset } from '#/lib/store/colors'
 import { wikilinkText } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
@@ -98,18 +98,23 @@ function toBlock(node: BlockNode): BlockNode {
   return node
 }
 
-const EXTENSIONS = [blocks, obsidianSyntax, codeColors]
+const EXTENSIONS = [blocks, obsidianSyntax, htmlCodeSyntax]
 
-/** `` `code`{.red} ``: inline code in a colour of the palette. */
-function ColoredCode({
+/** `<code>` written as HTML, in its colour when it has one. */
+function HtmlCode({
   color,
   children,
 }: {
   color?: string
   children?: ReactNode
 }) {
+  if (!color) return <code>{children}</code>
   return (
-    <code style={color && isPreset(color) ? codeColorStyle(color) : undefined}>
+    <code
+      data-color={color}
+      className="md-code-color"
+      style={codeColorStyle(color)}
+    >
       {children}
     </code>
   )
@@ -138,7 +143,7 @@ function NoteEmbedBlock(link: {
 }
 
 const components = {
-  [CODE_COLOR_TAG]: ColoredCode,
+  [CODE_TAG]: HtmlCode,
   [DIAGRAM_TAG]: MermaidDiagram,
   [NOTE_EMBED_TAG]: NoteEmbedBlock,
   [WIKI_LINK_TAG]: WikiLink,
@@ -173,7 +178,9 @@ export function MarkdownPreview({ fileId }: { fileId: string }) {
         ref={contentRef}
         source={source}
         location={file?.location}
+        className="md-code-pickable"
       />
+      <PreviewCodeColors fileId={fileId} contentRef={contentRef} />
     </div>
   )
 }

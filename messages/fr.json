@@ -920,6 +920,8 @@
   "md_table_delete_row": "Supprimer la ligne",
   "md_table_delete_column": "Supprimer la colonne",
   "md_table_delete_table": "Supprimer le tableau",
+  "md_code_color": "Couleur du code",
+  "md_code_color_remove": "Retirer la couleur",
   "paste_type_txt": "Texte brut",
   "file_new_txt": "Nouveau fichier texte",
   "file_untitled_txt": "sans-titre.txt",

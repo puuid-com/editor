@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.33.0] - 2026-11-09
+
+### Changed
+
+- Colored inline code is now an HTML tag: `<code style="color: red">deploy</code>`. Obsidian and VS Code show the color too, and GitHub shows plain code. The `{.red}` tag from 1.32.0 no longer colors code.
+- Click inline code in the editor or the preview to pick its color from the palette. The source is rewritten for you, and the droplet button makes it plain code again.
+- Code with any other CSS color, like `#ff8800`, shows in that color too, in light and dark mode.
+
 ## [1.32.0] - 2026-11-09
 
 ### Added

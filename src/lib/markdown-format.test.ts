@@ -124,7 +124,7 @@ describe('formatMarkdown', () => {
       '',
       'See [[Other note|alias]], ![[image.png|200]], ==marked== and #tag.',
       '',
-      'Run `deploy`{.red}, then `check`{.green}.',
+      'Run <code style="color: red">deploy</code>, then `check`.',
       '',
       '> [!note] Callout',
       '> body',

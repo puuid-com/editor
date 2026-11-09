@@ -62,6 +62,7 @@ import {
 import { Logo } from '#/components/Logo'
 import { colorLabel } from '#/components/highlights/color-label'
 import { codeColorStyle } from '#/components/markdown/code-colors'
+import { CodeColorPicker } from '#/components/markdown/CodeColorPicker'
 import { site } from '#/site'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
@@ -3526,14 +3527,16 @@ function ColoredInlineCode() {
   const typed = (text: string, color: HighlightPreset) => (
     <>
       {fade('`')}
-      <span style={codeColorStyle(color)}>{text}</span>
+      <span className="md-code-color" style={codeColorStyle(color)}>
+        {text}
+      </span>
       {fade('`')}
       {fade(`{.${color}}`)}
     </>
   )
   const shown = (text: string, color: HighlightPreset) => (
     <code
-      className="px-[0.45em] py-[0.2em] font-mono text-[0.85em]"
+      className="md-code-color px-[0.45em] py-[0.2em] font-mono text-[0.85em]"
       style={codeColorStyle(color)}
     >
       {text}
@@ -3550,7 +3553,9 @@ function ColoredInlineCode() {
             <>then {typed('check', 'green')}.</>,
             <>
               Ship {fade('`')}
-              <span style={codeColorStyle('blue')}>today</span>
+              <span className="md-code-color" style={codeColorStyle('blue')}>
+                today
+              </span>
               {fade('`{}')}
             </>,
           ]}
@@ -3584,6 +3589,60 @@ function ColoredInlineCode() {
   )
 }
 
+/** Coloured code as an HTML tag instead of `{.red}`, with the palette above it. */
+function HtmlCodeColors() {
+  const fade = (text: string) => (
+    <span className="text-(--syntax-meta)">{text}</span>
+  )
+  const red = (text: string) => (
+    <span className="md-code-color" style={codeColorStyle('red')}>
+      {text}
+    </span>
+  )
+  return (
+    <BeforeAfter
+      className="h-32"
+      before={
+        <Code
+          format={(line) => line}
+          lines={[
+            '## Release',
+            '',
+            '',
+            <>
+              {fade('`')}
+              {red('deploy')}
+              {fade('`{.red}')} ships today.
+            </>,
+          ]}
+        />
+      }
+      after={
+        <>
+          <Code
+            wrap
+            format={(line) => line}
+            marks={{ 3: 'active' }}
+            lines={[
+              '## Release',
+              '',
+              '',
+              <>
+                {fade('<code style="color: red">')}
+                {red('deploy')}
+                {fade('</code>')} ships today.
+              </>,
+            ]}
+          />
+          <div className="absolute top-[2.125rem] left-8 border bg-popover">
+            <CodeColorPicker value="red" onSelect={() => undefined} />
+          </div>
+        </>
+      }
+    />
+  )
+}
+
 function SqlColoursEverywhere() {
   return (
     <BeforeAfter
@@ -3612,6 +3671,7 @@ function CodeFonts() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.33.0': figure(HtmlCodeColors),
   '1.32.0': figure(ColoredInlineCode),
   '1.31.0': figure(RevealActiveTab),
   '1.30.0': figure(CodeFonts),

@@ -85,7 +85,13 @@ export function TablePicker({
   )
 }
 
-function Hint({ label, children }: { label: string; children: ReactNode }) {
+export function Hint({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>

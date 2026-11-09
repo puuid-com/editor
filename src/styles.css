@@ -414,6 +414,18 @@
   color: inherit;
   background-color: color-mix(in oklch, var(--hl-amber) 30%, transparent);
 }
+/*
+ * Inline code in a colour, `<code style="color: red">`, in the preview and the
+ * editor: an ink and a wash of `--md-code` that read in either theme.
+ */
+.md-code-color {
+  color: oklch(from var(--md-code) var(--hl-ink-l) c h);
+  background-color: color-mix(in oklch, var(--md-code) 10%, transparent);
+}
+/* Clicking the file's own inline code in the preview offers its colours. */
+.md-code-pickable code:not(pre code, a code, [data-note-embed] code) {
+  cursor: pointer;
+}
 /* A task list item shows its checkbox, not a bullet as well. */
 .md-preview li:has(> input[type='checkbox']) {
   list-style: none;

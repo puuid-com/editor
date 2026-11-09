@@ -1,12 +1,9 @@
-import { CompletionContext } from '@codemirror/autocomplete'
 import { ensureSyntaxTree } from '@codemirror/language'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { codeColorCompletion, colorSwatch } from './md-code-colors'
 import { markdownSupport } from './md-language'
-import { HIGHLIGHT_PRESETS } from '#/lib/store/colors'
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -109,70 +106,4 @@ describe('Fenced code as it is typed', () => {
     const { view } = editor('```json\n{"a": 1}\n```\n')
     expect(view.contentDOM.querySelector('[class^="th-"]')).toBeNull()
   })
-})
-
-describe('Coloured code as it is typed', () => {
-  it('colours code like the preview and fades its tag', () => {
-    const { view, names } = editor('`deploy`{.red} and `check`')
-    expect(names).toEqual(expect.arrayContaining(['RedCode', 'CodeColorMark']))
-    expect(styleOf(view, 'deploy')).toContain('var(--hl-red)')
-    expect(styleOf(view, '{.red}')).toContain('var(--syntax-meta)')
-    // Code without a tag stays blue.
-    expect(styleOf(view, 'check')).toContain('var(--sql-keyword)')
-  })
-
-  it('reads code fenced with longer runs of backticks', () => {
-    const { view } = editor('``a ` b``{.teal}')
-    expect(styleOf(view, 'a ` b')).toContain('var(--hl-teal)')
-  })
-
-  it.each([
-    '`a`{.orange}',
-    '`a` {.red}',
-    '`a`\\{.red}',
-    'a{.red}',
-    '`a{.red}`',
-  ])('leaves %s uncoloured', (doc) => {
-    expect(editor(doc).names).not.toContain('CodeColorMark')
-  })
-})
-
-describe('Code colour completion', () => {
-  /** The completion at `^` in `doc`, with its editor. */
-  function complete(doc: string) {
-    const pos = doc.indexOf('^')
-    const { view } = editor(doc.replace('^', ''))
-    const context = new CompletionContext(view.state, pos, false)
-    return { view, pos, result: codeColorCompletion(context) }
-  }
-
-  it('offers the palette on { after inline code', () => {
-    const { result } = complete('Run `deploy`{^}')
-    expect(result?.from).toBe('Run `deploy`'.length)
-    expect(result?.options.map((option) => option.label)).toEqual(
-      HIGHLIGHT_PRESETS.map((color) => `{.${color}}`),
-    )
-    const dot = colorSwatch.render(result!.options[3]) as HTMLElement
-    expect(dot.style.backgroundColor).toBe('var(--hl-red)')
-  })
-
-  it.each([
-    ['the brace closeBrackets added', '`a`{^} after', '`a`{.red} after'],
-    ['a tag being retyped', '`a`{.re^d} after', '`a`{.red} after'],
-    ['an unclosed brace', '`a`{.r^ after', '`a`{.red} after'],
-  ])('completes over %s', (_, doc, after) => {
-    const { view, pos, result } = complete(doc)
-    const red = result!.options.find((option) => option.label === '{.red}')!
-    const apply = red.apply as Exclude<typeof red.apply, string | undefined>
-    apply(view, red, result!.from, pos)
-    expect(view.state.doc.toString()).toBe(after)
-    expect(view.state.selection.main.head).toBe('`a`{.red}'.length)
-  })
-
-  it.each(['`a` {^', 'a`{^', '`a{^`', '```{^', '``{^'])(
-    'offers nothing for %s',
-    (doc) => {
-      expect(complete(doc).result).toBeNull()
-    },
-  )
 })

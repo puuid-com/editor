@@ -88,15 +88,6 @@ const theme = EditorView.theme({
     color: 'var(--foreground)',
     fontWeight: '500',
   },
-  // The colour of a `{.red}` option, as a dot like the highlight swatches.
-  '.cm-completionSwatch': {
-    display: 'inline-block',
-    width: '8px',
-    height: '8px',
-    marginRight: '8px',
-    borderRadius: '9999px',
-    verticalAlign: 'middle',
-  },
   '.cm-completionDetail': {
     fontStyle: 'normal',
     fontFamily: 'var(--font-sans)',

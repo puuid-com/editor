@@ -20,11 +20,7 @@ import type { MarkdownConfig, MarkdownParser } from '@lezer/markdown'
 import type { Parser } from '@lezer/common'
 
 import { codeBlocks } from './md-code'
-import {
-  codeColorCompletion,
-  codeColorStyles,
-  codeColorSyntax,
-} from './md-code-colors'
+import { codeColors, htmlCodeMarkdown } from './md-code-colors'
 import { quoteLines } from './md-quotes'
 import { markdownTables, tableKeymap } from './md-table'
 
@@ -135,7 +131,7 @@ const language = new Language(
     }),
     obsidian,
     singleTilde,
-    codeColorSyntax,
+    htmlCodeMarkdown,
   ]),
   [],
   'markdown',
@@ -163,7 +159,6 @@ const style = HighlightStyle.define(
       color: 'var(--sql-keyword)',
       backgroundColor: 'color-mix(in oklch, var(--hl-blue) 10%, transparent)',
     },
-    ...codeColorStyles,
     {
       tag: highlight,
       backgroundColor: 'color-mix(in oklch, var(--hl-amber) 30%, transparent)',
@@ -192,7 +187,7 @@ export function markdownSupport() {
     quoteLines,
     codeBlocks(new Set(Object.keys(CODE))),
     markdownTables(language),
-    language.data.of({ autocomplete: codeColorCompletion }),
+    codeColors(),
     // Enter continues a list or quote; Backspace removes its marker.
     Prec.high(keymap.of([...tableKeymap, ...markdownKeymap])),
     pasteURLAsLink,
