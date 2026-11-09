@@ -114,7 +114,7 @@ describe('formatMarkdown', () => {
     })
   })
 
-  it('keeps Obsidian syntax, front matter and unused definitions', async () => {
+  it('keeps Obsidian syntax, coloured code, front matter and unused definitions', async () => {
     const doc = [
       '---',
       'tags: [a]',
@@ -123,6 +123,8 @@ describe('formatMarkdown', () => {
       '# Note',
       '',
       'See [[Other note|alias]], ![[image.png|200]], ==marked== and #tag.',
+      '',
+      'Run `deploy`{.red}, then `check`{.green}.',
       '',
       '> [!note] Callout',
       '> body',

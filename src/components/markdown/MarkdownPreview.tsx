@@ -1,5 +1,5 @@
 import { useDeferredValue, useRef } from 'react'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import type { FileLocation } from '#/lib/store/files'
 import { cn } from '#/lib/utils'
 import { Markdown } from '@tanstack/markdown/react'
@@ -11,6 +11,7 @@ import type {
 import type { MarkdownComponents } from '@tanstack/markdown/react'
 
 import { CodeBlock } from './CodeBlock'
+import { CODE_COLOR_TAG, codeColorStyle, codeColors } from './code-colors'
 import { highlightCode } from './highlight'
 import { MermaidDiagram } from './MermaidDiagram'
 import {
@@ -29,6 +30,7 @@ import {
 } from './obsidian-syntax'
 import { usePreviewScroll } from './use-preview-scroll'
 import { useFileContent } from '#/hooks/use-files'
+import { isPreset } from '#/lib/store/colors'
 import { wikilinkText } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
@@ -96,7 +98,22 @@ function toBlock(node: BlockNode): BlockNode {
   return node
 }
 
-const EXTENSIONS = [blocks, obsidianSyntax]
+const EXTENSIONS = [blocks, obsidianSyntax, codeColors]
+
+/** `` `code`{.red} ``: inline code in a colour of the palette. */
+function ColoredCode({
+  color,
+  children,
+}: {
+  color?: string
+  children?: ReactNode
+}) {
+  return (
+    <code style={color && isPreset(color) ? codeColorStyle(color) : undefined}>
+      {children}
+    </code>
+  )
+}
 
 /** `![[target]]` on its own line: the note's text, or as inline when it isn't a note. */
 function NoteEmbedBlock(link: {
@@ -121,6 +138,7 @@ function NoteEmbedBlock(link: {
 }
 
 const components = {
+  [CODE_COLOR_TAG]: ColoredCode,
   [DIAGRAM_TAG]: MermaidDiagram,
   [NOTE_EMBED_TAG]: NoteEmbedBlock,
   [WIKI_LINK_TAG]: WikiLink,

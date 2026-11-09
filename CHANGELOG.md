@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.32.0] - 2026-11-09
+
+### Added
+
+- Color inline code in Markdown with a tag right after it: `` `deploy`{.red} ``. Blue, purple, pink, red, amber, green, teal and gray work in the editor, the preview and PDF exports. Code without a tag stays blue.
+- Type `{` right after inline code to pick a color from a list.
+- The tag is Pandoc's attribute syntax, so other Markdown apps still show the code, followed by `{.red}` as plain text.
+
 ## [1.31.0] - 2026-11-09
 
 ### Changed

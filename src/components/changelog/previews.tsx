@@ -60,6 +60,8 @@ import {
   sql,
 } from './kit'
 import { Logo } from '#/components/Logo'
+import { colorLabel } from '#/components/highlights/color-label'
+import { codeColorStyle } from '#/components/markdown/code-colors'
 import { site } from '#/site'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
@@ -67,6 +69,8 @@ import { Kbd } from '#/components/ui/kbd'
 import { Switch } from '#/components/ui/switch'
 import { CODE_FONT_PROPERTY, codeFonts } from '#/lib/code-font'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
+import { HIGHLIGHT_PRESETS, highlightCss } from '#/lib/store/colors'
+import type { HighlightPreset } from '#/lib/store/colors'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
@@ -3514,6 +3518,72 @@ function RuledTables() {
   return <BeforeAfter before={table()} after={table(true)} />
 }
 
+/** `` `code`{.colour} `` as typed, with the colours offered on `{`, and as previewed. */
+function ColoredInlineCode() {
+  const fade = (text: string) => (
+    <span className="text-(--syntax-meta)">{text}</span>
+  )
+  const typed = (text: string, color: HighlightPreset) => (
+    <>
+      {fade('`')}
+      <span style={codeColorStyle(color)}>{text}</span>
+      {fade('`')}
+      {fade(`{.${color}}`)}
+    </>
+  )
+  const shown = (text: string, color: HighlightPreset) => (
+    <code
+      className="px-[0.45em] py-[0.2em] font-mono text-[0.85em]"
+      style={codeColorStyle(color)}
+    >
+      {text}
+    </code>
+  )
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Shot className="h-40">
+        <Code
+          format={(line) => line}
+          marks={{ 2: 'active' }}
+          lines={[
+            <>Run {typed('deploy', 'red')},</>,
+            <>then {typed('check', 'green')}.</>,
+            <>
+              Ship {fade('`')}
+              <span style={codeColorStyle('blue')}>today</span>
+              {fade('`{}')}
+            </>,
+          ]}
+        />
+        <ul className="absolute top-[4.25rem] left-[6.5rem] border bg-popover p-1 font-mono text-[11px] leading-6">
+          {HIGHLIGHT_PRESETS.slice(0, 3).map((color, i) => (
+            <li
+              key={color}
+              className={cn(
+                'flex items-center px-2 text-muted-foreground',
+                i === 1 && 'bg-secondary',
+              )}
+            >
+              <span
+                className="mr-2 size-2 rounded-full"
+                style={{ backgroundColor: highlightCss(color) }}
+              />
+              <span className="text-foreground">{`{.${color}}`}</span>
+              <span className="ml-4 font-sans">{colorLabel(color)}</span>
+            </li>
+          ))}
+        </ul>
+      </Shot>
+      <Shot className="grid h-40 content-start gap-3 p-4 text-[13px]">
+        <p>
+          Run {shown('deploy', 'red')}, then {shown('check', 'green')}.
+        </p>
+        <p>Ship {shown('today', 'purple')}.</p>
+      </Shot>
+    </div>
+  )
+}
+
 function SqlColoursEverywhere() {
   return (
     <BeforeAfter
@@ -3542,6 +3612,7 @@ function CodeFonts() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.32.0': figure(ColoredInlineCode),
   '1.31.0': figure(RevealActiveTab),
   '1.30.0': figure(CodeFonts),
   '1.29.0': figure(SqlColoursEverywhere),

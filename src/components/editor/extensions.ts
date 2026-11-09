@@ -57,6 +57,7 @@ import { docLanguage } from './language'
 import { shortenLongValues } from './long-values'
 import { zplLinks } from './zpl-links'
 import { zplBase64Input } from '#/components/zpl/editor-support'
+import { colorSwatch } from '#/components/markdown/md-code-colors'
 import { pasteOverStarter, pastedWhole } from './paste'
 import { searchNoAutofill } from './search'
 import { namesParent, treeChanged } from './syntax'
@@ -290,7 +291,11 @@ export function editorExtensions(
     tooltips({
       parent: typeof document === 'undefined' ? undefined : document.body,
     }),
-    autocompletion({ icons: false, positionInfo: dockInfo }),
+    autocompletion({
+      icons: false,
+      positionInfo: dockInfo,
+      addToOptions: [colorSwatch],
+    }),
     dynamicVarCompletions,
     varValues(values),
     rectangularSelection(),
