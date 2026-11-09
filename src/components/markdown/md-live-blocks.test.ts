@@ -147,6 +147,21 @@ describe('tables in live preview', () => {
     expect(cell.textContent).toBe('Annabel | Lee')
   })
 
+  it('draws the Markdown in cells, and shows it as written while editing', () => {
+    const view = editor(
+      '| A | B |\n| - | - |\n| **bold** and *it* | `a\\|b` [docs](https://x.dev) <code style="color: red">hot</code> |',
+    )
+    const [, , first, second] = cells(view)
+    expect(first.innerHTML).toBe('<strong>bold</strong> and <em>it</em>')
+    expect(second.querySelector('code')?.textContent).toBe('a|b')
+    expect(second.textContent).toBe('a|b docs hot')
+    expect(second.querySelector('.md-code-color')).not.toBeNull()
+    first.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    expect(first.textContent).toBe('**bold** and *it*')
+    first.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    expect(first.querySelector('strong')).not.toBeNull()
+  })
+
   it('keeps text typed under a table out of it', () => {
     const view = editor(doc.replace('\n\nEnd', '\n^\nEnd'))
     type(view, 'Note')

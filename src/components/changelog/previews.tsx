@@ -3847,7 +3847,48 @@ function LiveCodeAndTables() {
   )
 }
 
+/** A live preview table: cells as written before, drawn as they read after. */
+function LiveTableCells() {
+  const MUTED = 'bg-foreground/4'
+  const grid = (cells: [ReactNode, ReactNode]) => (
+    <table className="m-3 w-auto border-collapse font-mono text-[11px] leading-5 whitespace-nowrap">
+      <thead>
+        <tr>
+          <th className={cn('border px-2.5 text-left font-semibold', MUTED)}>
+            Task
+          </th>
+          <th className={cn('border px-2.5 text-left font-semibold', MUTED)}>
+            Notes
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td className="border px-2.5">{cells[0]}</td>
+          <td className="border px-2.5">{cells[1]}</td>
+        </tr>
+      </tbody>
+    </table>
+  )
+  return (
+    <BeforeAfter
+      before={grid(['**Ship** it', 'Run `deploy` on ==Friday=='])}
+      after={grid([
+        <>
+          <strong>Ship</strong> it
+        </>,
+        <>
+          Run{' '}
+          <span className="bg-(--hl-blue)/10 text-(--sql-keyword)">deploy</span>{' '}
+          on <span className="bg-(--hl-amber)/30">Friday</span>
+        </>,
+      ])}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.37.0': figure(LiveTableCells),
   '1.36.0': figure(LiveCodeAndTables),
   '1.35.0': figure(MarkdownLivePreview),
   '1.34.0': figure(HtmlCodeAsBackticks),

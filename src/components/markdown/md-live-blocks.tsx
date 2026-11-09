@@ -4,6 +4,7 @@ import {
   Annotation,
   ChangeSet,
   EditorState,
+  Facet,
   MapMode,
   Prec,
   RangeSet,
@@ -23,7 +24,9 @@ import { createRoot } from 'react-dom/client'
 import type { ChangeSpec, Extension, Range } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 import type { Root } from 'react-dom/client'
+import type { Parser } from '@lezer/common'
 
+import { renderCell } from './md-cell'
 import { isLive, setMarkdownLive } from './md-live'
 import { TableToolbar } from './TableControls'
 import type { TableToolbarInfo } from './TableControls'
@@ -74,6 +77,11 @@ const NONE: LiveBlocks = {
   decorations: Decoration.none,
   atomic: RangeSet.empty,
 }
+
+/** The Markdown parser, which draws the text of a table's cells. */
+const cellParser = Facet.define<Parser, Parser | null>({
+  combine: (parsers) => parsers[0] ?? null,
+})
 
 /** Marks a change made from a block's own controls, which can rewrite it. */
 const ownEdit = Annotation.define<boolean>()
@@ -484,6 +492,16 @@ function caretOffset(el: HTMLElement) {
   return before.toString().length
 }
 
+function caretToEnd(el: HTMLElement) {
+  const selection = el.ownerDocument.getSelection()
+  if (!selection) return
+  const range = el.ownerDocument.createRange()
+  range.selectNodeContents(el)
+  range.collapse(false)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
 /** A table as a grid of cells typed in directly, with its toolbar on top. */
 class TableGrid {
   cell: TableCell | null = null
@@ -512,7 +530,14 @@ class TableGrid {
     this.grid.addEventListener('input', (event) => this.onInput(event))
     this.grid.addEventListener('keydown', (event) => this.onKey(event))
     dom.addEventListener('focusin', (event) => this.onFocus(event))
-    dom.addEventListener('focusout', () => queueMicrotask(() => this.onBlur()))
+    dom.addEventListener('focusout', (event) => {
+      const el = event.target as HTMLElement
+      if (el.dataset.editing) {
+        delete el.dataset.editing
+        this.show(el, el.dataset.raw ?? '')
+      }
+      queueMicrotask(() => this.onBlur())
+    })
     this.render()
   }
 
@@ -538,7 +563,7 @@ class TableGrid {
         td.spellcheck = false
         td.dataset.row = String(index)
         td.dataset.col = String(col)
-        td.textContent = shownText(cells[col] ?? '')
+        this.show(td, cells[col] ?? '')
         td.style.textAlign = aligns[col] ?? 'start'
         tr.appendChild(td)
       }
@@ -549,6 +574,17 @@ class TableGrid {
     const body = document.createElement('tbody')
     rows.slice(1).forEach((cells, i) => body.appendChild(row(cells, i + 1)))
     this.grid.replaceChildren(head, body)
+  }
+
+  /**
+   * Shows a cell's Markdown, drawn as it reads, or as written while it is
+   * being typed in.
+   */
+  private show(el: HTMLElement, raw: string) {
+    el.dataset.raw = raw
+    const parser = this.view.state.facet(cellParser)
+    if (el.dataset.editing || !parser) el.textContent = shownText(raw)
+    else renderCell(parser, raw, el)
   }
 
   /** Shows the table's latest text, leaving the cell being typed in alone. */
@@ -563,10 +599,15 @@ class TableGrid {
     } else
       for (const el of this.grid.querySelectorAll<HTMLElement>('[data-row]')) {
         const cell = this.cellOf(el)!
-        const text = shownText(table.rows[cell.row]?.[cell.col] ?? '')
+        const raw = table.rows[cell.row]?.[cell.col] ?? ''
         el.style.textAlign = table.aligns[cell.col] ?? 'start'
-        if (el.textContent.trim() === text) continue
-        el.textContent = text
+        if (el.dataset.raw === raw) continue
+        // The cell being typed in already shows the text, save padding.
+        if (el.dataset.editing && el.textContent.trim() === shownText(raw)) {
+          el.dataset.raw = raw
+          continue
+        }
+        this.show(el, raw)
         if (el === document.activeElement) this.focusCell(cell)
       }
     this.renderBar()
@@ -581,14 +622,7 @@ class TableGrid {
     const el = this.cellEl(cell)
     if (!el) return
     el.focus()
-    const selection = el.ownerDocument.getSelection()
-    if (selection) {
-      const range = el.ownerDocument.createRange()
-      range.selectNodeContents(el)
-      range.collapse(false)
-      selection.removeAllRanges()
-      selection.addRange(range)
-    }
+    caretToEnd(el)
     this.cell = cell
     this.renderBar()
   }
@@ -755,6 +789,22 @@ class TableGrid {
   private onFocus(event: FocusEvent) {
     const cell = this.cellOf(event.target)
     if (!cell) return
+    const el = event.target as HTMLElement
+    if (!el.dataset.editing) {
+      el.dataset.editing = 'true'
+      el.textContent = shownText(el.dataset.raw ?? '')
+      // The caret was in the drawn text, which is gone; and a click sets it
+      // after focus, possibly in the old nodes.
+      caretToEnd(el)
+      requestAnimationFrame(() => {
+        const selection = el.ownerDocument.getSelection()
+        if (
+          document.activeElement === el &&
+          !(selection?.anchorNode && el.contains(selection.anchorNode))
+        )
+          caretToEnd(el)
+      })
+    }
     this.cell = cell
     this.bar.hidden = false
     this.renderBar()
@@ -825,8 +875,9 @@ class TableGrid {
 
 const MUTED = 'color-mix(in oklch, var(--foreground) 4%, transparent)'
 
-export function markdownLiveBlocks(): Extension {
+export function markdownLiveBlocks(parser: Parser): Extension {
   return [
+    cellParser.of(parser),
     liveBlocks,
     keepBlocks,
     moveKeys,
@@ -871,6 +922,24 @@ export function markdownLiveBlocks(): Extension {
       },
       '.cm-md-table :is(th, td):focus': {
         boxShadow: 'inset 0 0 0 1px var(--ring)',
+      },
+      '.cm-md-table :is(th, td) code': {
+        color: 'var(--sql-keyword)',
+        backgroundColor: 'color-mix(in oklch, var(--hl-blue) 10%, transparent)',
+      },
+      '.cm-md-table :is(th, td) code.md-code-color': {
+        color: 'oklch(from var(--md-code) var(--hl-ink-l) c h)',
+        backgroundColor: 'color-mix(in oklch, var(--md-code) 10%, transparent)',
+      },
+      '.cm-md-table :is(th, td) mark': {
+        color: 'inherit',
+        backgroundColor:
+          'color-mix(in oklch, var(--hl-amber) 30%, transparent)',
+      },
+      '.cm-md-table :is(th, td) strong': { fontWeight: '700' },
+      '.cm-md-cell-link': {
+        textDecoration: 'underline',
+        textUnderlineOffset: '2px',
       },
       '.cm-md-table-bar': {
         position: 'absolute',

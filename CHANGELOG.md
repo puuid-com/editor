@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.37.0] - 2026-11-09
+
+### Changed
+
+- Table cells in live preview show their formatting: bold, italic, struck and highlighted text, inline code (colored code too) and links as their text. Click a cell to edit its Markdown as written; it is drawn again when you leave it.
+
 ## [1.36.0] - 2026-11-09
 
 ### Added

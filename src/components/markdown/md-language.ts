@@ -191,7 +191,7 @@ export function markdownSupport() {
     markdownTables(language),
     codeColors(),
     markdownLivePreview(),
-    markdownLiveBlocks(),
+    markdownLiveBlocks(language.parser),
     // Enter continues a list or quote; Backspace removes its marker.
     Prec.high(keymap.of([...tableKeymap, ...markdownKeymap])),
     pasteURLAsLink,
