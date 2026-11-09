@@ -4,6 +4,7 @@ import {
   Decoration,
   EditorView,
   ViewPlugin,
+  WidgetType,
   showTooltip,
 } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
@@ -30,9 +31,10 @@ import { treeChanged } from '#/components/editor/syntax'
 import { highlightCss } from '#/lib/store/colors'
 import type { HighlightPreset } from '#/lib/store/colors'
 
-// Inline code as it is typed: `<code style="color: red">` reads as code in
-// its colour, its tags faded like the rest of the markup, and the code the
-// caret is in, plain or HTML, gets the palette above it.
+// Inline code as it is typed: `<code style="color: red">deploy</code>` shows
+// as `deploy` in its colour, its tags drawn as backticks until the selection
+// touches it, when the real tags come back to edit. The code the caret is in,
+// plain or HTML, gets the palette above it.
 
 const LESS_THAN = 60
 
@@ -201,9 +203,35 @@ function colorAtCaret(view: EditorView, color: HighlightPreset | null) {
 
 /* ---------------- The editor ---------------- */
 
+/** A backtick standing in for a `<code>` tag, faded like a code span's own. */
+class TagAsBacktick extends WidgetType {
+  eq() {
+    return true
+  }
+  toDOM() {
+    const mark = document.createElement('span')
+    mark.className = 'cm-md-code-tag'
+    mark.textContent = '`'
+    return mark
+  }
+  ignoreEvent() {
+    return false
+  }
+}
+
+const tagAsBacktick = Decoration.replace({ widget: new TagAsBacktick() })
+
+/** Whether the selection touches `from`–`to`, its ends included. */
+function touched(state: EditorState, from: number, to: number) {
+  return state.selection.ranges.some(
+    (range) => range.from <= to && range.to >= from,
+  )
+}
+
 function colorMarks(view: EditorView) {
   const marks = new RangeSetBuilder<Decoration>()
-  const tree = syntaxTree(view.state)
+  const { state } = view
+  const tree = syntaxTree(state)
   let done = -1
   for (const { from, to } of view.visibleRanges)
     tree.iterate({
@@ -214,8 +242,16 @@ function colorMarks(view: EditorView) {
         // A node across two visible ranges comes up in both.
         if (node.from < done) return false
         done = node.to
-        const code = readHtmlCode(view.state.sliceDoc(node.from, node.to))
-        if (code && code.textTo > code.textFrom)
+        const source = state.sliceDoc(node.from, node.to)
+        const code = readHtmlCode(source)
+        if (!code) return false
+        const open = source.slice(0, code.textFrom)
+        const close = source.slice(code.textTo)
+        // A tag over two lines can't be replaced from a plugin.
+        const hide =
+          !touched(state, node.from, node.to) && !/\n/.test(open + close)
+        if (hide) marks.add(node.from, node.from + code.textFrom, tagAsBacktick)
+        if (code.textTo > code.textFrom)
           marks.add(
             node.from + code.textFrom,
             node.from + code.textTo,
@@ -226,6 +262,7 @@ function colorMarks(view: EditorView) {
               },
             }),
           )
+        if (hide) marks.add(node.from + code.textTo, node.to, tagAsBacktick)
         return false
       },
     })
@@ -239,7 +276,12 @@ const htmlCodeColors = ViewPlugin.fromClass(
       this.marks = colorMarks(view)
     }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || treeChanged(update))
+      if (
+        update.docChanged ||
+        update.selectionSet ||
+        update.viewportChanged ||
+        treeChanged(update)
+      )
         this.marks = colorMarks(update.view)
     }
   },
@@ -295,5 +337,8 @@ export function codeColors(): Extension {
       ),
     ),
     picker,
+    EditorView.baseTheme({
+      '.cm-md-code-tag': { color: 'var(--syntax-meta)' },
+    }),
   ]
 }

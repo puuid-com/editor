@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.34.0] - 2026-11-09
+
+### Changed
+
+- Colored inline code reads like normal code in the editor: `<code style="color: red">deploy</code>` shows as `deploy` between backticks, in its color. Put the caret in it, or select it, to see and edit the real tag.
+
 ## [1.33.0] - 2026-11-09
 
 ### Changed

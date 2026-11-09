@@ -3643,6 +3643,45 @@ function HtmlCodeColors() {
   )
 }
 
+function HtmlCodeAsBackticks() {
+  const fade = (text: string) => (
+    <span className="text-(--syntax-meta)">{text}</span>
+  )
+  const red = (text: string) => (
+    <span className="md-code-color" style={codeColorStyle('red')}>
+      {text}
+    </span>
+  )
+  const line = (open: string, close: string) => (
+    <>
+      Run {fade(open)}
+      {red('deploy')}
+      {fade(close)} today.
+    </>
+  )
+  return (
+    <BeforeAfter
+      className="h-24"
+      before={
+        <Code
+          format={(text) => text}
+          lines={[
+            '## Release',
+            '',
+            line('<code style="color: red">', '</code>'),
+          ]}
+        />
+      }
+      after={
+        <Code
+          format={(text) => text}
+          lines={['## Release', '', line('`', '`')]}
+        />
+      }
+    />
+  )
+}
+
 function SqlColoursEverywhere() {
   return (
     <BeforeAfter
@@ -3671,6 +3710,7 @@ function CodeFonts() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.34.0': figure(HtmlCodeAsBackticks),
   '1.33.0': figure(HtmlCodeColors),
   '1.32.0': figure(ColoredInlineCode),
   '1.31.0': figure(RevealActiveTab),

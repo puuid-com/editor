@@ -50,7 +50,7 @@ const spans = (view: EditorView, text: string) =>
   )
 
 describe('HTML code as it is typed', () => {
-  it('shows the text in its colour and fades the tags', () => {
+  it('shows the text in its colour, its tags as backticks', () => {
     const view = editor(
       'A <code style="color: red">deploy</code> <code>plain</code> <code style="color: #f80">own</code>',
     )
@@ -63,9 +63,24 @@ describe('HTML code as it is typed', () => {
     expect(spans(view, 'own')[0].style.getPropertyValue('--md-code')).toBe(
       '#f80',
     )
-    // The tags are markup, faded like the backticks of code.
+    // The tags read as a code span's backticks.
+    expect(view.contentDOM.textContent).toBe('A `deploy` `plain` `own`')
+    expect(view.contentDOM.querySelectorAll('.cm-md-code-tag')).toHaveLength(6)
+  })
+
+  it('shows the real tags while the selection touches the code', () => {
+    const view = editor(
+      'A <code style="color: red">dep^loy</code> <code>plain</code>',
+    )
+    expect(view.contentDOM.textContent).toBe(
+      'A <code style="color: red">deploy</code> `plain`',
+    )
     expect(spans(view, '<code style="color: red">')).toHaveLength(1)
-    expect(spans(view, '</code>')).toHaveLength(3)
+    view.dispatch({ selection: { anchor: 0 } })
+    expect(view.contentDOM.textContent).toBe('A `deploy` `plain`')
+    // At its edge, the code opens for editing too.
+    view.dispatch({ selection: { anchor: 2 } })
+    expect(spans(view, '<code style="color: red">')).toHaveLength(1)
   })
 
   it.each([
