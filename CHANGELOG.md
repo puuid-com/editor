@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.29.0] - 2026-11-08
+
+### Changed
+
+- XML, JSON and ZPL files now use the same colors as SQL: blue for tags that hold other elements and for ZPL commands, teal for other tags, purple for attributes, red for values, amber for numbers and green for comments. The structure tree matches.
+- Text between tags and Markdown prose stay neutral.
+
 ## [1.28.1] - 2026-11-08
 
 ### Changed

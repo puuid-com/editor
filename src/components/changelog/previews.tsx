@@ -99,7 +99,11 @@ const ORDER = [
 function SqlColours() {
   return (
     <BeforeAfter
-      before={<Code lines={sql(QUERY, 'grey')} />}
+      before={
+        <div className="syntax-greyscale">
+          <Code lines={sql(QUERY, 'grey')} />
+        </div>
+      }
       after={<Code lines={sql(QUERY, 'roles')} />}
     />
   )
@@ -1149,7 +1153,11 @@ function GreyscaleSyntax() {
           <Code lines={ORDER} />
         </div>
       }
-      after={<Code lines={ORDER} />}
+      after={
+        <div className="syntax-greyscale">
+          <Code lines={ORDER} />
+        </div>
+      }
     />
   )
 }
@@ -1603,7 +1611,7 @@ function markdownLine(line: string): ReactNode {
     return (
       <>
         <Syn k="comment">{heading[1]}</Syn>
-        <span className="font-semibold text-(--syntax-tag)">{heading[2]}</span>
+        <span className="font-semibold text-foreground">{heading[2]}</span>
       </>
     )
   const strong = /^(.*)\*\*(.+)\*\*(.*)$/.exec(line)
@@ -3180,7 +3188,7 @@ function MarkdownLines({ formatted }: { formatted?: boolean }) {
           {meta('# ')}
           <span
             className={cn(
-              'font-semibold text-(--syntax-tag)',
+              'font-semibold text-foreground',
               style('text-[1.5em] leading-none'),
             )}
           >
@@ -3486,7 +3494,21 @@ function RuledTables() {
   return <BeforeAfter before={table()} after={table(true)} />
 }
 
+function SqlColoursEverywhere() {
+  return (
+    <BeforeAfter
+      before={
+        <div className="syntax-greyscale">
+          <Code lines={ORDER} />
+        </div>
+      }
+      after={<Code lines={ORDER} />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.29.0': figure(SqlColoursEverywhere),
   '1.28.0': figure(RuledTables),
   '1.27.0': figure(TableHelpers),
   '1.26.0': figure(SingleTildeStrike),

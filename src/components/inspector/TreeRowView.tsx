@@ -220,9 +220,11 @@ function TagLabel({
           'shrink-0 font-medium',
           color
             ? 'hl-ink'
-            : hasName(el)
-              ? 'text-syntax-tag'
-              : 'text-muted-foreground',
+            : !hasName(el)
+              ? 'text-muted-foreground'
+              : isLeaf(el)
+                ? 'text-syntax-leaf'
+                : 'text-syntax-tag',
         )}
       >
         <Highlighted text={el.name} />

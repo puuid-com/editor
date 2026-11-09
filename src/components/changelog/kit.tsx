@@ -95,9 +95,9 @@ function text(value: string, key: number): ReactNode {
     /^(?:<<[\w$]+>>|\$\{[\w$]+\})$/.test(part) ? (
       <VarChip key={`${key}-${i}`}>{part}</VarChip>
     ) : (
-      <Syn key={`${key}-${i}`} k="value">
+      <span key={`${key}-${i}`} className="text-foreground">
         {part}
-      </Syn>
+      </span>
     ),
   )
 }
@@ -105,6 +105,8 @@ function text(value: string, key: number): ReactNode {
 /** A one-line XML tokenizer coloured with the editor's syntax tokens. */
 function xml(line: string): ReactNode[] {
   const out: ReactNode[] = []
+  // A tag closed on its own line holds no other elements.
+  const leaf = /^\s*<[^/][^>]*>.*<\/|\/>\s*$/.test(line)
   let rest = line
   let inTag = false
   let named = false
@@ -138,7 +140,7 @@ function xml(line: string): ReactNode[] {
         )
       else {
         out.push(
-          <Syn key={key} k={named ? 'attr' : 'tag'}>
+          <Syn key={key} k={named ? 'attr' : leaf ? 'leaf' : 'tag'}>
             {token}
           </Syn>,
         )

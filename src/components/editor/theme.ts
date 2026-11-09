@@ -247,7 +247,7 @@ const highlightStyle = HighlightStyle.define([
   // JSON
   { tag: t.propertyName, color: 'var(--syntax-leaf)' },
   { tag: t.string, color: 'var(--syntax-value)' },
-  { tag: [t.number, t.bool, t.null], color: 'var(--syntax-attr)' },
+  { tag: [t.number, t.bool, t.null], color: 'var(--sql-number)' },
   {
     tag: [t.separator, t.brace, t.squareBracket],
     color: 'var(--syntax-punct)',

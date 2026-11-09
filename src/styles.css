@@ -46,16 +46,16 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Syntax palette, shared by editor and tree. Greyscale, so structure reads
-     by weight and lightness and the tag highlights carry the colour. */
-  --syntax-tag: oklch(0.25 0 0);
-  --syntax-leaf: oklch(0.45 0 0);
-  --syntax-attr: oklch(0.55 0 0);
-  --syntax-value: oklch(0.2 0 0);
+  /* Syntax palette, shared by editor and tree. Every language inks with the
+     SQL roles below, so all files read alike. */
+  --syntax-tag: var(--sql-keyword);
+  --syntax-leaf: var(--sql-table);
+  --syntax-attr: var(--sql-alias);
+  --syntax-value: var(--sql-string);
   --syntax-punct: oklch(0.75 0 0);
-  --syntax-comment: oklch(0.68 0 0);
-  --syntax-meta: oklch(0.65 0 0);
-  --syntax-entity: oklch(0.45 0 0);
+  --syntax-comment: var(--sql-comment);
+  --syntax-meta: var(--sql-operator);
+  --syntax-entity: var(--sql-number);
   --syntax-var: oklch(0.5 0 0);
   --syntax-default: oklch(0.55 0.15 245);
   --syntax-gutter: oklch(0.72 0 0);
@@ -125,14 +125,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
-  --syntax-tag: oklch(0.93 0 0);
-  --syntax-leaf: oklch(0.72 0 0);
-  --syntax-attr: oklch(0.62 0 0);
-  --syntax-value: oklch(0.95 0 0);
   --syntax-punct: oklch(0.45 0 0);
-  --syntax-comment: oklch(0.5 0 0);
-  --syntax-meta: oklch(0.55 0 0);
-  --syntax-entity: oklch(0.72 0 0);
   --syntax-var: oklch(0.7 0 0);
   --syntax-default: oklch(0.74 0.12 245);
   --syntax-gutter: oklch(0.42 0 0);
@@ -329,6 +322,22 @@
   text-decoration: underline wavy var(--syntax-default);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+
+/* The greyscale palette, for changelog pictures of the releases that had it. */
+.syntax-greyscale {
+  --syntax-tag: oklch(0.25 0 0);
+  --syntax-leaf: oklch(0.45 0 0);
+  --syntax-attr: oklch(0.55 0 0);
+  --syntax-value: oklch(0.2 0 0);
+  --syntax-comment: oklch(0.68 0 0);
+}
+.dark .syntax-greyscale {
+  --syntax-tag: oklch(0.93 0 0);
+  --syntax-leaf: oklch(0.72 0 0);
+  --syntax-attr: oklch(0.62 0 0);
+  --syntax-value: oklch(0.95 0 0);
+  --syntax-comment: oklch(0.5 0 0);
 }
 
 /* A tag that holds other elements; leaf tags keep `--syntax-leaf`. */

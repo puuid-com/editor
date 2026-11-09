@@ -57,10 +57,10 @@ const zplStreamLanguage = StreamLanguage.define<ZplTokenState>({
 })
 
 const zplHighlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: 'var(--foreground)', fontWeight: '600' },
-  { tag: tags.number, color: 'var(--muted-foreground)' },
-  { tag: tags.string, color: 'var(--foreground)' },
-  { tag: tags.comment, color: 'var(--muted-foreground)', fontStyle: 'italic' },
+  { tag: tags.keyword, color: 'var(--sql-keyword)', fontWeight: '600' },
+  { tag: tags.number, color: 'var(--sql-number)' },
+  { tag: tags.string, color: 'var(--sql-string)' },
+  { tag: tags.comment, color: 'var(--sql-comment)', fontStyle: 'italic' },
 ])
 
 /** The printer dpi the explanations convert dots to inches with. */
