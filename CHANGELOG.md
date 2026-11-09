@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.28.1] - 2026-11-08
+
+### Changed
+
+- Replace the previous feature roadmap with five scoped proposals based on the current editor, including their rationale, acceptance criteria, and recommended coding models and reasoning effort.
+
 ## [1.28.0] - 2026-11-08
 
 ### Changed
