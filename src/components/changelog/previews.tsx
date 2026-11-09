@@ -14,6 +14,7 @@ import {
   IconColumnsOff,
   IconDots,
   IconDownload,
+  IconEyeEdit,
   IconFileCode,
   IconFileDots,
   IconFilePlus,
@@ -3709,7 +3710,81 @@ function CodeFonts() {
   )
 }
 
+/** A note in source with the preview beside it, then live: rendered in place, the caret's line as written. */
+function MarkdownLivePreview() {
+  const lines = (live: boolean) => {
+    const mark = (text: string) => (live ? null : meta(text))
+    return [
+      <>
+        {mark('# ')}
+        <span className="text-[1.5em] leading-none font-semibold text-foreground">
+          Release
+        </span>
+      </>,
+      <>
+        {live ? <span className="text-muted-foreground">•</span> : meta('-')}{' '}
+        Ships {mark('**')}
+        <span className="font-bold">today</span>
+        {mark('**')}
+      </>,
+      <>
+        {live ? (
+          <input
+            type="checkbox"
+            readOnly
+            className="mr-1.5 align-[-0.1em] accent-foreground"
+          />
+        ) : (
+          meta('- [ ] ')
+        )}
+        Run {mark('`')}
+        <span className="bg-(--hl-blue)/10 text-(--sql-keyword)">deploy</span>
+        {mark('`')}
+      </>,
+      <>
+        See {meta('[')}
+        <span className="underline underline-offset-2">notes</span>
+        {meta('](./notes.md)')}
+      </>,
+    ]
+  }
+  const bar = (on: boolean) => (
+    <StatusBar className="justify-end">
+      <span
+        className={cn(
+          'inline-flex h-6 items-center gap-1 px-2',
+          on && 'bg-muted text-foreground',
+        )}
+      >
+        <IconEyeEdit className="size-3.5" />
+        {m.md_live_toggle()}
+      </span>
+    </StatusBar>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <>
+          <Code format={(text) => text} lines={lines(false)} />
+          {bar(false)}
+        </>
+      }
+      after={
+        <>
+          <Code
+            format={(text) => text}
+            lines={lines(true)}
+            marks={{ 3: 'active' }}
+          />
+          {bar(true)}
+        </>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.35.0': figure(MarkdownLivePreview),
   '1.34.0': figure(HtmlCodeAsBackticks),
   '1.33.0': figure(HtmlCodeColors),
   '1.32.0': figure(ColoredInlineCode),

@@ -3,6 +3,7 @@ import { imageMime, isImageData } from '#/lib/image-file'
 import { Fragment, Suspense, lazy, useEffect } from 'react'
 import { useSelector } from '@tanstack/react-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
+import { editorPrefs } from '#/components/editor/word-wrap'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -109,13 +110,18 @@ function FilePane({
   const language = languageOf(file?.name ?? '', file?.content ?? '')
   const image = !!file && (!!imageMime(file.name) || isImageData(file.content))
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
+  const live = useSelector(editorPrefs, (s) => s.markdownLive)
   const files = useOpenFiles()
-  // ZPL has its own label preview; SQL and plain text have nothing to show
-  // beside them.
-  const hasPanel =
-    !image && language !== 'zpl' && language !== 'sql' && language !== 'txt'
-  const showPanel = active && panelOpen && hasPanel && !!file?.content
   const markdown = language === 'md'
+  // ZPL has its own label preview; SQL and plain text have nothing to show
+  // beside them, and live Markdown renders in the editor itself.
+  const hasPanel =
+    !image &&
+    language !== 'zpl' &&
+    language !== 'sql' &&
+    language !== 'txt' &&
+    !(markdown && live)
+  const showPanel = active && panelOpen && hasPanel && !!file?.content
   return (
     <section
       aria-label={file?.name}

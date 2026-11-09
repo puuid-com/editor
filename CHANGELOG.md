@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.35.0] - 2026-11-09
+
+### Added
+
+- Live preview for Markdown, as in Obsidian: turn it on from the bottom bar or the command menu and notes render right in the editor, with no preview panel. Headings lose their `#`, bold and italic their stars, links show only their text, bullets and rules are drawn, and tasks become checkboxes you can tick.
+- Click or move the caret into any part to see and edit its real Markdown: the line for headings, quotes and lists, the span for bold, code and links.
+
 ## [1.34.0] - 2026-11-09
 
 ### Changed

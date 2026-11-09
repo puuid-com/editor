@@ -8,6 +8,7 @@ import { ActionBar, FormatButton } from './ActionBar'
 import { CodeFontMenu } from './CodeFontMenu'
 import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
+import { MarkdownLiveToggle } from './MarkdownLiveToggle'
 import { ArchiveButton } from './ArchiveDialog'
 import { StatusNotice } from './StatusNotice'
 import { ThemeToggle } from './ThemeToggle'
@@ -90,6 +91,7 @@ export function StatusBar({
           />
         </>
       )}
+      {activeId && markdown && <MarkdownLiveToggle />}
       {activeId && markdown && (
         <Button
           variant="ghost"

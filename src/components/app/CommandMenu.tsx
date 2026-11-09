@@ -27,6 +27,7 @@ import {
   IconReplace,
   IconTrash,
   IconUserCircle,
+  IconEyeEdit,
   IconMarkdown,
   IconTxt,
   IconVariable,
@@ -102,6 +103,7 @@ import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
 import { setCodeFont } from '#/components/editor/code-font'
 import { editorPrefs, toggleWordWrap } from '#/components/editor/word-wrap'
+import { toggleMarkdownLive } from '#/components/markdown/md-live'
 import { codeFonts } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 import { isPlain } from '#/lib/document'
@@ -641,6 +643,7 @@ function Workspace({
   const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
   const canOpenFolders = useCanOpenFolders()
   const codeFont = useSelector(editorPrefs, (s) => s.codeFont)
+  const markdownLive = useSelector(editorPrefs, (s) => s.markdownLive)
   return (
     <>
       <CommandSeparator />
@@ -711,6 +714,13 @@ function Workspace({
           <IconTextWrap />
           {m.word_wrap_toggle()}
           <CommandShortcut>{shortcutLabel(shortcuts.wordWrap)}</CommandShortcut>
+        </CommandItem>
+        <CommandItem onSelect={() => run(toggleMarkdownLive)}>
+          <IconEyeEdit />
+          {m.md_live_toggle()}
+          {markdownLive && (
+            <IconCheck className="size-3 text-muted-foreground" />
+          )}
         </CommandItem>
         {codeFonts.map((font) => (
           <CommandItem

@@ -21,6 +21,7 @@ import type { Parser } from '@lezer/common'
 
 import { codeBlocks } from './md-code'
 import { codeColors, htmlCodeMarkdown } from './md-code-colors'
+import { markdownLivePreview } from './md-live'
 import { quoteLines } from './md-quotes'
 import { markdownTables, tableKeymap } from './md-table'
 
@@ -188,6 +189,7 @@ export function markdownSupport() {
     codeBlocks(new Set(Object.keys(CODE))),
     markdownTables(language),
     codeColors(),
+    markdownLivePreview(),
     // Enter continues a list or quote; Backspace removes its marker.
     Prec.high(keymap.of([...tableKeymap, ...markdownKeymap])),
     pasteURLAsLink,

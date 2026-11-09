@@ -20,6 +20,7 @@ import type { SyntaxNode } from '@lezer/common'
 import type { MarkdownConfig } from '@lezer/markdown'
 
 import { CodeColorPicker } from './CodeColorPicker'
+import { isLive, liveChanged, touched } from './md-live'
 import {
   codeSpan,
   codeSpanText,
@@ -221,17 +222,12 @@ class TagAsBacktick extends WidgetType {
 
 const tagAsBacktick = Decoration.replace({ widget: new TagAsBacktick() })
 
-/** Whether the selection touches `from`–`to`, its ends included. */
-function touched(state: EditorState, from: number, to: number) {
-  return state.selection.ranges.some(
-    (range) => range.from <= to && range.to >= from,
-  )
-}
-
 function colorMarks(view: EditorView) {
   const marks = new RangeSetBuilder<Decoration>()
   const { state } = view
   const tree = syntaxTree(state)
+  // Live preview hides the tags; otherwise they read as backticks.
+  const tag = isLive(state) ? Decoration.replace({}) : tagAsBacktick
   let done = -1
   for (const { from, to } of view.visibleRanges)
     tree.iterate({
@@ -250,7 +246,7 @@ function colorMarks(view: EditorView) {
         // A tag over two lines can't be replaced from a plugin.
         const hide =
           !touched(state, node.from, node.to) && !/\n/.test(open + close)
-        if (hide) marks.add(node.from, node.from + code.textFrom, tagAsBacktick)
+        if (hide) marks.add(node.from, node.from + code.textFrom, tag)
         if (code.textTo > code.textFrom)
           marks.add(
             node.from + code.textFrom,
@@ -262,7 +258,7 @@ function colorMarks(view: EditorView) {
               },
             }),
           )
-        if (hide) marks.add(node.from + code.textTo, node.to, tagAsBacktick)
+        if (hide) marks.add(node.from + code.textTo, node.to, tag)
         return false
       },
     })
@@ -280,7 +276,8 @@ const htmlCodeColors = ViewPlugin.fromClass(
         update.docChanged ||
         update.selectionSet ||
         update.viewportChanged ||
-        treeChanged(update)
+        treeChanged(update) ||
+        liveChanged(update)
       )
         this.marks = colorMarks(update.view)
     }

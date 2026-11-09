@@ -24,6 +24,7 @@ import { replayDraftEdits } from './draft'
 import { setVarValues } from './dynamic-vars'
 import { editorExtensions, setDefaultRules, fileIdField } from './extensions'
 import { imagePaste } from '#/components/markdown/image-paste'
+import { setMarkdownLive } from '#/components/markdown/md-live'
 import { setLongValueLimit } from './long-values'
 import { setZplTags } from './zpl-links'
 import { setTagHighlights } from './tag-highlights'
@@ -143,7 +144,20 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     useSelector(editorPrefs, (s) => s.wordWrap),
     setWordWrap,
   )
-  const settings = [highlights, defaults, values, shortenAt, zplTags, wrap]
+  const live = useViewSetting(
+    viewRef,
+    useSelector(editorPrefs, (s) => s.markdownLive),
+    (on) => setMarkdownLive.of(on),
+  )
+  const settings = [
+    highlights,
+    defaults,
+    values,
+    shortenAt,
+    zplTags,
+    wrap,
+    live,
+  ]
   const sessionRef = useRef<ReturnType<typeof createEditorSession> | null>(null)
 
   useEffect(() => {

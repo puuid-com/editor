@@ -10,6 +10,8 @@ export const editorPrefs = persistedStore(
   {
     wordWrap: false,
     codeFont: 'geist-mono',
+    /** Markdown renders in the editor, as Obsidian's live preview, with no preview panel. */
+    markdownLive: false,
   },
 )
 
