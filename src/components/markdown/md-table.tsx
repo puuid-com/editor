@@ -48,6 +48,7 @@ import type {
   TableCell,
   TableEdit,
 } from '#/lib/markdown-table'
+import { isGridTable } from './md-live-blocks'
 import { m } from '#/paraglide/messages'
 
 // Helpers for writing GFM tables in the Markdown editor: `/table` opens a size
@@ -99,6 +100,8 @@ function tableAtCaret(state: EditorState) {
   const { from, to, head } = state.selection.main
   const found = tableAt(state, head)
   if (!found || from < found.from || to > found.to) return null
+  // Live preview's grid has its own keys and toolbar.
+  if (isGridTable(state, found.from)) return null
   const line = state.doc.lineAt(head)
   const cell: TableCell = {
     row: rowOfLine(line.number - found.firstLine),

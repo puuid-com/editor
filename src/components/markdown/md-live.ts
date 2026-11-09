@@ -177,6 +177,8 @@ function liveDecorations(view: EditorView): DecorationSet {
     enter: (ref) => {
       const { name } = ref
       if (SKIP.has(name)) return false
+      // A table at the top level shows as a grid instead.
+      if (name === 'Table' && ref.node.parent?.name === 'Document') return false
       const node = ref.node
       const mark = INLINE[name] as string | undefined
       if (mark) {

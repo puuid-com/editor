@@ -8,6 +8,17 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.36.0] - 2026-11-09
+
+### Added
+
+- Live preview shows code blocks and tables as they render, and you edit them in place. A code block shows just its code, with its language in a header you can rename. A table is a grid: click a cell and type.
+- In a table, Tab and Enter move between cells and add a row at the end, the arrow keys move around and out, and the table toolbar adds, aligns and deletes rows and columns.
+
+### Changed
+
+- In live preview, fences, pipes and the row under a table's header never show. The arrow keys step over them, and typing next to a block starts a new line instead of breaking it.
+
 ## [1.35.0] - 2026-11-09
 
 ### Added

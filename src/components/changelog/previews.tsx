@@ -3783,7 +3783,72 @@ function MarkdownLivePreview() {
   )
 }
 
+/** Live preview's code and tables: as written before, as a block and a grid after. */
+function LiveCodeAndTables() {
+  const MUTED = 'bg-foreground/4'
+  return (
+    <BeforeAfter
+      before={
+        <Code
+          format={(text) => text}
+          lines={[
+            meta('```sql'),
+            'select * from orders',
+            meta('```'),
+            '',
+            <>
+              {meta('| ')}Name{meta(' | ')}Qty{meta(' |')}
+            </>,
+            meta('| ---- | --: |'),
+            <>
+              {meta('| ')}Pen {meta(' | ')} 12{meta(' |')}
+            </>,
+          ]}
+        />
+      }
+      after={
+        <div className="grid gap-2 py-2 font-mono text-[11px] leading-5">
+          <div className={cn('mx-0 border-y', MUTED)}>
+            <div className="px-3 text-[0.85em] text-muted-foreground">sql</div>
+            <div className="px-3 pb-1">
+              <span className="text-(--sql-keyword)">select</span> * from orders
+            </div>
+          </div>
+          <table className="mx-3 w-auto border-collapse">
+            <thead>
+              <tr>
+                <th
+                  className={cn('border px-2.5 text-left font-semibold', MUTED)}
+                >
+                  Name
+                </th>
+                <th
+                  className={cn(
+                    'border px-2.5 text-right font-semibold',
+                    MUTED,
+                  )}
+                >
+                  Qty
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border px-2.5 shadow-[inset_0_0_0_1px_var(--ring)]">
+                  Pen
+                </td>
+                <td className="border px-2.5 text-right">12</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.36.0': figure(LiveCodeAndTables),
   '1.35.0': figure(MarkdownLivePreview),
   '1.34.0': figure(HtmlCodeAsBackticks),
   '1.33.0': figure(HtmlCodeColors),
