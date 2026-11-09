@@ -40,6 +40,11 @@ export const rowButtonClass =
 /** The selected row: the file in the editor. */
 export const activeRowClass = 'bg-muted text-foreground hover:bg-muted'
 
+/** Set on the selected row, so the explorer scrolls to it as it opens. */
+export function scrollToRow(node: HTMLElement | null) {
+  node?.scrollIntoView({ block: 'nearest' })
+}
+
 /** The "…" menu: on wide screens it shows on hover or focus, in its own space. */
 const rowMenuClass =
   'shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10 md:opacity-0 md:group-focus-within/row:opacity-100 md:group-hover/row:opacity-100 md:aria-expanded:opacity-100 dark:hover:bg-foreground/10'

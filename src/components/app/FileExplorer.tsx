@@ -28,6 +28,7 @@ import {
   activeRowClass,
   rowButtonClass,
   rowClass,
+  scrollToRow,
 } from './explorer-parts'
 import type { NameRequest } from './explorer-parts'
 import { importFiles, closeTabs } from './files'
@@ -191,6 +192,27 @@ export function FileExplorer({
     })
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [browserOpen, setBrowserOpen] = useState(true)
+  // The tab in the editor shows in the tree: open its workspace and folders
+  // whenever another one becomes active, then leave them as you set them.
+  const activeFile = files.find((file) => file.id === activeId)
+  const [revealed, setRevealed] = useState<string | null>(null)
+  if ((activeFile?.id ?? null) !== revealed) {
+    setRevealed(activeFile?.id ?? null)
+  }
+  if (activeFile && activeFile.id !== revealed) {
+    setBrowserOpen(true)
+    setCollapsed((previous) => {
+      const next = new Set(previous)
+      const seen = new Set<string>()
+      let id = activeFile.folderId
+      while (id && !seen.has(id)) {
+        seen.add(id)
+        next.delete(id)
+        id = foldersCollection.get(id)?.parentId ?? null
+      }
+      return next
+    })
+  }
   const [expanded, setVisible] = useState<boolean | null>(null)
   const wide = useMediaQuery('(min-width: 768px)')
   const visible = expanded ?? wide
@@ -339,6 +361,7 @@ export function FileExplorer({
   const fileRow = (file: (typeof files)[number]) => (
     <div
       key={file.id}
+      ref={file.id === activeId ? scrollToRow : undefined}
       className={cn(rowClass, file.id === activeId && activeRowClass)}
       draggable
       onDragStart={(e) => drag(e, 'file', file.id)}

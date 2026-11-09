@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.31.0] - 2026-11-09
+
+### Changed
+
+- Switching tabs now shows the file in the explorer: its workspace and folders open and the list scrolls to it, for browser files and files in folders opened from disk.
+
 ## [1.30.0] - 2026-11-08
 
 ### Added

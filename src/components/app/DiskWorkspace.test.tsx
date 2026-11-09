@@ -7,7 +7,12 @@ import { TooltipProvider } from '#/components/ui/tooltip'
 import type { DiskRoot } from '#/lib/store/disk'
 import { fakeFolder } from '#/test/fake-fs'
 
-function show(tree: Parameters<typeof fakeFolder>[1], search = '') {
+function show(
+  tree: Parameters<typeof fakeFolder>[1],
+  search = '',
+  tabs: ReadonlyMap<string, string> = new Map(),
+  activeId: string | null = null,
+) {
   const root: DiskRoot = {
     id: 'root',
     name: 'Notes',
@@ -19,8 +24,8 @@ function show(tree: Parameters<typeof fakeFolder>[1], search = '') {
       <TooltipProvider>
         <DiskWorkspace
           root={root}
-          tabs={new Map()}
-          activeId={null}
+          tabs={tabs}
+          activeId={activeId}
           search={search}
           askName={() => undefined}
           onOpened={() => undefined}
@@ -69,5 +74,18 @@ describe('an Obsidian vault in the explorer', () => {
       await screen.findByText(', Folder on this device'),
     ).toBeInTheDocument()
     expect(await screen.findByText('assets')).toBeInTheDocument()
+  })
+})
+
+describe('the active tab in the explorer', () => {
+  it('opens the folders down to its file', async () => {
+    show(
+      { invoices: { '2026': { 'order.xml': '' } }, 'rates.json': '' },
+      '',
+      new Map([['invoices/2026/order.xml', 'tab']]),
+      'tab',
+    )
+    const row = await screen.findByText('order.xml')
+    expect(row.closest('button')).toHaveAttribute('aria-current', 'page')
   })
 })

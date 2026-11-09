@@ -2652,45 +2652,64 @@ function ExplorerHover() {
 }
 
 function FolderWorkspaces() {
+  return (
+    <Shot>
+      <WorkspacesView />
+    </Shot>
+  )
+}
+
+/** Since 1.31.0 the active tab's folders open in the explorer. */
+function RevealActiveTab() {
+  return (
+    <BeforeAfter
+      before={<WorkspacesView closed />}
+      after={<WorkspacesView />}
+    />
+  )
+}
+
+/** The editor beside an explorer holding a folder opened from disk. */
+function WorkspacesView({ closed }: { closed?: boolean }) {
   const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
   const nested = 'ml-3 border-l pl-1 text-muted-foreground'
   return (
-    <Shot>
-      <div className="flex">
-        <div className="min-w-0 flex-1">
-          <Tabs>
-            <Tab name="order.xml" active />
-            <Tab name="rates.json" />
-          </Tabs>
-          <Code lines={ORDER} />
+    <div className="flex">
+      <div className="min-w-0 flex-1">
+        <Tabs>
+          <Tab name="order.xml" active />
+          <Tab name="rates.json" />
+        </Tabs>
+        <Code lines={ORDER} />
+      </div>
+      <div className="w-44 shrink-0 border-l">
+        <div className="border-b px-3 py-2 font-medium">
+          {m.explorer_title()}
         </div>
-        <div className="w-44 shrink-0 border-l">
-          <div className="border-b px-3 py-2 font-medium">
-            {m.explorer_title()}
+        <div className="p-2">
+          <div className={cn(row, 'font-medium')}>
+            <IconChevronDown />
+            <IconBrowser />
+            {m.explorer_browser()}
           </div>
-          <div className="p-2">
-            <div className={cn(row, 'font-medium')}>
-              <IconChevronDown />
-              <IconBrowser />
-              {m.explorer_browser()}
+          <div className={nested}>
+            <div className={row}>
+              <IconFileCode />
+              notes.xml
             </div>
-            <div className={nested}>
-              <div className={row}>
-                <IconFileCode />
-                notes.xml
-              </div>
+          </div>
+          <div className={cn(row, 'mt-2 font-medium')}>
+            <IconChevronDown />
+            <IconFolderRoot />
+            invoices
+          </div>
+          <div className={nested}>
+            <div className={row}>
+              {closed ? <IconChevronRight /> : <IconChevronDown />}
+              <IconFolder />
+              2026
             </div>
-            <div className={cn(row, 'mt-2 font-medium')}>
-              <IconChevronDown />
-              <IconFolderRoot />
-              invoices
-            </div>
-            <div className={nested}>
-              <div className={row}>
-                <IconChevronDown />
-                <IconFolder />
-                2026
-              </div>
+            {!closed && (
               <div className={nested}>
                 <div
                   className={cn(row, 'bg-muted font-medium text-foreground')}
@@ -2699,20 +2718,20 @@ function FolderWorkspaces() {
                   order.xml
                 </div>
               </div>
-              <div className={row}>
-                <IconJson />
-                rates.json
-              </div>
+            )}
+            <div className={row}>
+              <IconJson />
+              rates.json
             </div>
-            <div className={cn(row, 'mt-2 font-medium')}>
-              <IconChevronRight />
-              <IconFolderRoot />
-              labels
-            </div>
+          </div>
+          <div className={cn(row, 'mt-2 font-medium')}>
+            <IconChevronRight />
+            <IconFolderRoot />
+            labels
           </div>
         </div>
       </div>
-    </Shot>
+    </div>
   )
 }
 
@@ -3523,6 +3542,7 @@ function CodeFonts() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.31.0': figure(RevealActiveTab),
   '1.30.0': figure(CodeFonts),
   '1.29.0': figure(SqlColoursEverywhere),
   '1.28.0': figure(RuledTables),

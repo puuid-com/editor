@@ -34,6 +34,7 @@ import {
   activeRowClass,
   rowButtonClass,
   rowClass,
+  scrollToRow,
 } from './explorer-parts'
 import type { NameRequest } from './explorer-parts'
 import { FileIcon } from './FileIcon'
@@ -120,6 +121,23 @@ export function DiskWorkspace({
     queryClient.invalidateQueries({ queryKey: diskKeys.root(root.id) })
   const expand = (path: string) =>
     setExpanded((previous) => new Set(previous).add(path))
+  // The tab in the editor shows in the tree: open the workspace and the
+  // folders down to its file whenever another one becomes active.
+  let activePath: string | null = null
+  for (const [path, id] of tabs) if (id === activeId) activePath = path
+  const [revealed, setRevealed] = useState<string | null>(null)
+  if (activePath !== revealed) {
+    setRevealed(activePath)
+    if (activePath !== null) {
+      setOpen(true)
+      setExpanded((previous) => {
+        const next = new Set(previous)
+        for (let up = parentPath(activePath); up; up = parentPath(up))
+          next.add(up)
+        return next
+      })
+    }
+  }
 
   const tree: Tree = {
     root,
@@ -394,7 +412,10 @@ function FileRow({
   const editable = isEditableName(entry.name)
   const title = `${tree.root.name}/${entry.path}`
   return (
-    <div className={cn(rowClass, active && activeRowClass)}>
+    <div
+      ref={active ? scrollToRow : undefined}
+      className={cn(rowClass, active && activeRowClass)}
+    >
       <Button
         variant="ghost"
         className={cn(
