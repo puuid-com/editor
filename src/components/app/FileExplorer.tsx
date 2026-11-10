@@ -31,10 +31,10 @@ import {
   scrollToRow,
 } from './explorer-parts'
 import type { NameRequest } from './explorer-parts'
-import { importFiles, closeTabs } from './files'
+import { deleteFiles, importFiles, openFileIds, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
-import { askClose } from './ui-store'
+import { askDelete, closeTab } from './ui-store'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
 import { Button } from '#/components/ui/button'
@@ -65,7 +65,7 @@ import {
   DialogFooter,
 } from '#/components/ui/dialog'
 import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
-import { useOpenFiles } from '#/hooks/use-files'
+import { useWorkspaceFiles } from '#/hooks/use-files'
 import { createFile, filesCollection, renameFile } from '#/lib/store/files'
 import {
   foldersCollection,
@@ -87,6 +87,8 @@ type Edit = {
   id?: string
   parentId: string | null
   name: string
+  /** A file whose tab is closed. */
+  closed?: boolean
 }
 
 /** The name dialog for a new or renamed entry of the browser's workspace. */
@@ -143,7 +145,7 @@ export function FileExplorer({
   activeId: string | null
   onImport: () => void
 }) {
-  const allFiles = useOpenFiles()
+  const allFiles = useWorkspaceFiles()
   const roots = useSelector(rootsStore, (state) => state)
   const canOpenFolders = useCanOpenFolders()
   // Tabs of open folders show in their own workspace, the rest in the browser's.
@@ -330,8 +332,16 @@ export function FileExplorer({
           >
             {m.explorer_download()}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => askClose(entry.id)}>
-            {m.close_confirm()}
+          {!entry.closed && (
+            <DropdownMenuItem onSelect={() => closeTab(entry.id)}>
+              {m.tabs_close()}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={() => askDelete(entry.id)}
+          >
+            {m.explorer_delete_file()}
           </DropdownMenuItem>
         </>
       )}
@@ -368,11 +378,16 @@ export function FileExplorer({
     >
       <Button
         variant="ghost"
-        className={cn(rowButtonClass, file.id === activeId && 'font-medium')}
+        className={cn(
+          rowButtonClass,
+          file.id === activeId && 'font-medium',
+          // Closed tabs stay listed, quieter than the open ones.
+          file.closed && 'text-muted-foreground',
+        )}
         aria-current={file.id === activeId ? 'page' : undefined}
         title={`${folderPath(file.folderId)} / ${file.name}`}
         onClick={() => {
-          setActive(file.id)
+          run(() => showFile(file.id))
           if (!wide) setVisible(false)
         }}
         onDoubleClick={() =>
@@ -393,6 +408,7 @@ export function FileExplorer({
         id: file.id,
         parentId: file.folderId,
         name: file.name,
+        closed: file.closed,
       })}
     </div>
   )
@@ -471,9 +487,9 @@ export function FileExplorer({
       const children = files.filter(
         (file) => file.folderId && ids.has(file.folderId),
       )
-      await closeTabs(
+      await deleteFiles(
         children.map((file) => file.id),
-        files.map((file) => file.id),
+        openFileIds(),
       )
       for (const id of [...ids].reverse()) {
         if (!(await deleteFolder(id)))

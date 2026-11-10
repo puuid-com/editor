@@ -2,7 +2,7 @@ import { IconChevronDown, IconX } from '@tabler/icons-react'
 
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
-import { askClose, setTabListOpen } from './ui-store'
+import { closeTab, setTabListOpen } from './ui-store'
 import { UnsavedMark } from './UnsavedMark'
 import {
   Command,
@@ -73,7 +73,7 @@ export function TabList({
                     aria-label={m.tab_close({ name: file.name })}
                     onClick={(e) => {
                       e.stopPropagation()
-                      askClose(file.id)
+                      closeTab(file.id)
                     }}
                     className="grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground opacity-0 group-hover/command-item:opacity-100 group-data-selected/command-item:opacity-100 hover:bg-background hover:text-foreground"
                   >
@@ -89,7 +89,7 @@ export function TabList({
                 keywords={[m.tabs_close_all()]}
                 onSelect={() => {
                   setTabListOpen(false)
-                  askClose(files.map((f) => f.id))
+                  closeTab(files.map((f) => f.id))
                 }}
               >
                 {m.tabs_close_all()}

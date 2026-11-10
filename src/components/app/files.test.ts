@@ -1,9 +1,17 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { ACCEPTED_TYPES, TEMPLATE_TYPES, importFiles, survivor } from './files'
-import { filesCollection } from '#/lib/store/files'
+import {
+  ACCEPTED_TYPES,
+  TEMPLATE_TYPES,
+  closeTabs,
+  importFiles,
+  openFileIds,
+  showFile,
+  survivor,
+} from './files'
+import { createFile, filesCollection } from '#/lib/store/files'
 import { settleWrites } from '#/lib/store/persist'
-import { sessionStore } from '#/lib/store/session'
+import { sessionStore, setActive } from '#/lib/store/session'
 import { workspaceReady } from '#/lib/store/workspace'
 import { encodeBase64 } from '#/lib/zpl/base64'
 
@@ -54,5 +62,30 @@ describe('importFiles', () => {
     expect(byName('a.xml')?.content).toBe('<a/>')
     expect(byName('label.txt')?.content).toBe(label)
     expect(sessionStore.state.activeId).toBe(byName('label.txt')?.id)
+  })
+})
+
+describe('closing a browser tab', () => {
+  beforeAll(() => workspaceReady())
+  afterEach(() => settleWrites())
+
+  it('keeps the file, and showing it gives its tab back at the end', async () => {
+    const [a, b] = ['keep-a.xml', 'keep-b.xml'].map((name) =>
+      createFile(name, '<a/>'),
+    )
+    setActive(a.id)
+    await closeTabs([a.id], openFileIds())
+    expect(filesCollection.get(a.id)).toMatchObject({
+      deletedAt: null,
+      closed: true,
+      content: '<a/>',
+    })
+    expect(openFileIds()).not.toContain(a.id)
+    expect(sessionStore.state.activeId).toBe(b.id)
+
+    await showFile(a.id)
+    expect(filesCollection.get(a.id)?.closed).toBe(false)
+    expect(openFileIds().at(-1)).toBe(a.id)
+    expect(sessionStore.state.activeId).toBe(a.id)
   })
 })

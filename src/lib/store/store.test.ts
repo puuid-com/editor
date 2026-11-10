@@ -6,7 +6,7 @@ import {
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  closeFile,
+  archiveFile,
   archivedFiles,
   ARCHIVE_LIMIT,
   createFile,
@@ -96,7 +96,7 @@ describe('files', () => {
   it('archives the file when its tab closes, including its contents', async () => {
     const a = createFile('a.xml', '<a/>')
     createFile('b.xml')
-    await closeFile(a.id)
+    await archiveFile(a.id)
     expect(openOrder()).toEqual(['b.xml'])
     expect(archivedFiles()).toEqual([
       expect.objectContaining({ id: a.id, name: 'a.xml', content: '<a/>' }),
@@ -109,7 +109,7 @@ describe('files', () => {
     try {
       for (let i = 0; i < 12; i++) {
         const file = createFile(`file-${i}.xml`, `<root>${i}</root>`)
-        await closeFile(file.id)
+        await archiveFile(file.id)
       }
       expect(archivedFiles()).toHaveLength(ARCHIVE_LIMIT)
       expect(archivedFiles().map((file) => file.name)).toEqual(
@@ -124,7 +124,7 @@ describe('files', () => {
 
   it('restores at the end, preserves contents, and resolves open-name collisions', async () => {
     const original = createFile('a.json', '{"value":42}')
-    await closeFile(original.id)
+    await archiveFile(original.id)
     createFile('a.json', '{}')
     createFile('b.xml', '<b/>')
     expect(await restoreFile(original.id)).toBe(original.id)
@@ -132,14 +132,14 @@ describe('files', () => {
     expect(filesCollection.get(original.id)?.content).toBe('{"value":42}')
     expect(archivedFiles()).toHaveLength(0)
     expect(await restoreFile(original.id)).toBeUndefined()
-    await closeFile(original.id)
+    await archiveFile(original.id)
     expect(archivedFiles()[0].name).toBe('a-2.json')
   })
 
   it('keeps the latest edit when closing before the debounced save completes', async () => {
     const file = createFile('typing.xml', '<old/>')
     const pending = saveContent({ id: file.id, content: '<latest/>' })
-    await closeFile(file.id)
+    await archiveFile(file.id)
     await pending.isPersisted.promise
     expect(openOrder()).toEqual([])
     expect(archivedFiles()[0].content).toBe('<latest/>')
@@ -230,7 +230,7 @@ describe('files', () => {
   it.each([
     {
       action: 'closing',
-      run: closeFile,
+      run: archiveFile,
       expected: { deletedAt: expect.any(Number) },
     },
     {
@@ -334,7 +334,7 @@ describe('files', () => {
   it('rolls back archival and eviction if storage is full', async () => {
     for (let i = 0; i < 10; i++) {
       const file = createFile(`archived-${i}.xml`)
-      await closeFile(file.id)
+      await archiveFile(file.id)
     }
     const file = createFile('keep-open.xml', '<keep/>')
     await vi.waitFor(async () =>
@@ -343,7 +343,7 @@ describe('files', () => {
     const before = archivedFiles().map((entry) => entry.id)
     const write = refuseWrites()
     try {
-      await expect(closeFile(file.id)).rejects.toThrow()
+      await expect(archiveFile(file.id)).rejects.toThrow()
       expect(openOrder()).toEqual(['keep-open.xml'])
       expect(archivedFiles().map((entry) => entry.id)).toEqual(before)
     } finally {

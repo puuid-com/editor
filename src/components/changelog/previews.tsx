@@ -2741,6 +2741,55 @@ function WorkspacesView({ closed }: { closed?: boolean }) {
   )
 }
 
+/** Since 1.38.0 a browser file whose tab closes stays in the explorer. */
+function ClosedTabsKept() {
+  return (
+    <BeforeAfter
+      before={<ClosedTabView kept={false} />}
+      after={<ClosedTabView kept />}
+    />
+  )
+}
+
+/** The editor after closing notes.xml, beside the browser's files. */
+function ClosedTabView({ kept }: { kept: boolean }) {
+  const row = 'flex items-center gap-1.5 px-2 py-1 [&_svg]:size-3.5'
+  return (
+    <div className="flex">
+      <div className="min-w-0 flex-1">
+        <Tabs>
+          <Tab name="order.xml" active />
+        </Tabs>
+        <Code lines={ORDER} />
+      </div>
+      <div className="w-36 shrink-0 border-l">
+        <div className="border-b px-3 py-2 font-medium">
+          {m.explorer_title()}
+        </div>
+        <div className="p-2">
+          <div className={cn(row, 'font-medium')}>
+            <IconChevronDown />
+            <IconBrowser />
+            {m.explorer_browser()}
+          </div>
+          <div className="ml-3 border-l pl-1">
+            {kept && (
+              <div className={cn(row, 'text-muted-foreground')}>
+                <IconFileCode />
+                notes.xml
+              </div>
+            )}
+            <div className={cn(row, 'bg-muted font-medium')}>
+              <IconFileCode />
+              order.xml
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ExplorerHints() {
   const icon = 'flex size-6 items-center justify-center [&_svg]:size-3.5'
   return (
@@ -3888,6 +3937,7 @@ function LiveTableCells() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.38.0': figure(ClosedTabsKept),
   '1.37.0': figure(LiveTableCells),
   '1.36.0': figure(LiveCodeAndTables),
   '1.35.0': figure(MarkdownLivePreview),

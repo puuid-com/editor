@@ -124,7 +124,7 @@ describe('folders opened from disk', () => {
     expect(filesCollection.has(id)).toBe(false)
   })
 
-  it('archives a tab whose edits cannot reach disk', async () => {
+  it('keeps a tab whose edits cannot reach disk in the browser', async () => {
     const { root, entry } = await openFolder({ 'a.xml': '<a/>' })
     const id = (await openDiskFile(root, await entry('a.xml')))!
     rootsStore.setState((roots) =>
@@ -133,7 +133,8 @@ describe('folders opened from disk', () => {
     saveContent({ id, content: '<a>offline</a>' })
     await closeTabs([id], [id])
     const file = filesCollection.get(id)
-    expect(file?.deletedAt).not.toBeNull()
+    expect(file?.deletedAt).toBeNull()
+    expect(file?.closed).toBe(true)
     expect(file?.location).toBeUndefined()
     expect(file?.content).toBe('<a>offline</a>')
   })

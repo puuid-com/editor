@@ -12,7 +12,7 @@ import {
   createFile,
   filesCollection,
   saveContent,
-  closeFile,
+  archiveFile,
   restoreFile,
 } from './files'
 import { createBackup, parseBackup, restoreBackup } from './backup'
@@ -50,11 +50,11 @@ it('moves files without losing pending content and retains location on restore',
     content: '<saved />',
     folderId: target,
   })
-  await closeFile(file.id)
+  await archiveFile(file.id)
   await restoreFile(file.id)
   expect(filesCollection.get(file.id)?.folderId).toBe(target)
   expect(await deleteFolder(target)).toBe(false)
-  await closeFile(file.id)
+  await archiveFile(file.id)
   expect(await deleteFolder(target)).toBe(true)
   expect(filesCollection.get(file.id)?.folderId).toBeNull()
 })

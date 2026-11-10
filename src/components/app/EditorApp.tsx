@@ -9,7 +9,7 @@ import { keepWorkspaceSafe, reportSaveFailed } from './backup'
 import { CommandMenu } from './CommandMenu'
 import { startDiskSync } from './disk-workspace'
 import { DefaultsConfirmDialog, VarsConfirmDialog } from './ChangesDialogs'
-import { CloseDialog } from './CloseDialog'
+import { DeleteDialog } from './DeleteDialog'
 import {
   ACCEPTED_TYPES,
   canOpenFromDisk,
@@ -151,7 +151,7 @@ export function EditorApp() {
       <RenameDialog />
       <ArchiveDialog />
       <CommandMenu activeId={activeId} onOpenFromDisk={openFromDisk} />
-      <CloseDialog openIds={files.map((f) => f.id)} />
+      <DeleteDialog openIds={files.map((f) => f.id)} />
       <DefaultsConfirmDialog />
       <VarsConfirmDialog />
       <RestoreDialog />

@@ -1,6 +1,6 @@
 import { Store } from '@tanstack/store'
 import { languageOf } from '#/lib/document'
-import { filesCollection, saveZplSettings } from '#/lib/store/files'
+import { filesCollection, isOpen, saveZplSettings } from '#/lib/store/files'
 import { persistedStore } from '#/lib/store/persist'
 import { DEFAULT_SETTINGS } from '#/lib/zpl/settings'
 import type { LabelSettings } from '#/lib/zpl/settings'
@@ -69,9 +69,6 @@ export function setCompareTarget(id: string, target: string | null) {
 /** The other open ZPL files a file can compare with or sync zoom with. */
 export function zplCandidates(state: { files: Array<XmlFile> }, id: string) {
   return state.files.filter(
-    (f) =>
-      f.id !== id &&
-      f.deletedAt === null &&
-      languageOf(f.name, f.content) === 'zpl',
+    (f) => f.id !== id && isOpen(f) && languageOf(f.name, f.content) === 'zpl',
   )
 }

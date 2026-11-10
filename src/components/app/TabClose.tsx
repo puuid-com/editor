@@ -1,7 +1,7 @@
 import { IconX } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
-import { askClose } from './ui-store'
+import { closeTab } from './ui-store'
 import { useFileContent } from '#/hooks/use-files'
 import { diskStore } from '#/lib/store/disk'
 import { cn } from '#/lib/utils'
@@ -47,7 +47,7 @@ function CloseButton({
     <button
       type="button"
       aria-label={m.tab_close({ name: file.name })}
-      onClick={() => askClose(file.id)}
+      onClick={() => closeTab(file.id)}
       className={cn(
         'group/close relative grid size-5 shrink-0 place-items-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-1.5 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-md:after:-inset-3',
         !active &&

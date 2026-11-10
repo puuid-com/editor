@@ -8,7 +8,7 @@ import { newFile } from './files'
 import { TabClose } from './TabClose'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
-import { askClose, askRename, uiStore } from './ui-store'
+import { closeTab, askRename, uiStore } from './ui-store'
 import { UnsavedMark } from './UnsavedMark'
 import { focusFileView } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
@@ -172,7 +172,7 @@ export function TabStrip({
                       onClick={() => focusFileView(file.id)}
                       onDoubleClick={() => askRename(file.id)}
                       onAuxClick={(e) => {
-                        if (e.button === 1) askClose(file.id)
+                        if (e.button === 1) closeTab(file.id)
                       }}
                       className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1.5 pl-3 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none"
                     >
@@ -261,22 +261,22 @@ function TabContextMenu({
       )}
       <TypeSubMenu file={file} />
       <ContextMenuSeparator />
-      <ContextMenuItem onSelect={() => askClose(file.id)}>
+      <ContextMenuItem onSelect={() => closeTab(file.id)}>
         {m.tabs_close()}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={!others.length}
-        onSelect={() => askClose(others)}
+        onSelect={() => closeTab(others)}
       >
         {m.tabs_close_others()}
       </ContextMenuItem>
       <ContextMenuItem
         disabled={!right.length}
-        onSelect={() => askClose(right)}
+        onSelect={() => closeTab(right)}
       >
         {m.tabs_close_right()}
       </ContextMenuItem>
-      <ContextMenuItem onSelect={() => askClose(files.map((f) => f.id))}>
+      <ContextMenuItem onSelect={() => closeTab(files.map((f) => f.id))}>
         {m.tabs_close_all()}
       </ContextMenuItem>
     </ContextMenuContent>

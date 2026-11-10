@@ -16,7 +16,7 @@ import {
   restoreBackup,
 } from './backup'
 import { defaultsCollection, setDefault } from './defaults'
-import { closeFile, createFile, filesCollection } from './files'
+import { archiveFile, createFile, filesCollection } from './files'
 import { highlightsCollection, setHighlight } from './highlights'
 import { settleWrites } from './persist'
 import { pinTag, pinsCollection } from './pins'
@@ -94,7 +94,7 @@ describe('workspace backup', () => {
   it('restores the same files, archive, profiles and rules', async () => {
     const a = createFile('a.xml', '<a/>')
     const b = createFile('b.xml', '<b/>')
-    await closeFile(b.id)
+    await archiveFile(b.id)
     const staging = await createProfile({ name: 'Staging' })
     setHighlight('soap:Body', 'blue')
     pinTag('id')

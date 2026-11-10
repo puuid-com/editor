@@ -11,7 +11,7 @@ import {
   filesCollection,
   saveContent,
   saveZplSettings,
-  closeFile,
+  archiveFile,
   restoreFile,
 } from '#/lib/store/files'
 import { workspaceReady } from '#/lib/store/workspace'
@@ -42,7 +42,7 @@ describe('ZPL in the shared workspace', () => {
     await settleWrites()
     saveContent({ id: file.id, content: source + '\n' })
     saveZplSettings(file.id, settings)
-    await closeFile(file.id)
+    await archiveFile(file.id)
     await restoreFile(file.id)
     expect(filesCollection.get(file.id)).toMatchObject({
       content: source + '\n',

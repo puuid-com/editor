@@ -236,7 +236,7 @@ export async function deleteDiskEntry(
   return true
 }
 
-/** Closes a folder's workspace. Tabs with edits not on disk are archived. */
+/** Closes a folder's workspace. Tabs with edits not on disk stay in the browser. */
 export async function closeFolder(root: DiskRoot) {
   await closeTabs(
     tabsOf(root.id).map((file) => file.id),
@@ -258,8 +258,8 @@ async function dropTabs(ids: ReadonlyArray<string>) {
 
 /**
  * Closes the tab of a file on disk once its edits are written. Returns false
- * when they couldn't be: the tab then stays in the browser only, to be
- * archived like any other.
+ * when they couldn't be: the file then stays in the browser only, kept in
+ * its explorer like any other.
  */
 export async function closeDiskFile(id: string) {
   await flushDiskSave(id)

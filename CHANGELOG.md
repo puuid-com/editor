@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.38.0] - 2026-11-09
+
+### Changed
+
+- Closing the tab of a file kept in the browser no longer deletes it. The file stays in the explorer, dimmed, and opens again in a tab when you click it.
+- Deleting a browser file is now its own action: "Delete…" in the file's explorer menu moves it to Deleted files, after asking.
+
 ## [1.37.1] - 2026-11-09
 
 ### Changed

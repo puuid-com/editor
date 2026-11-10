@@ -1,11 +1,18 @@
 import { readFileContent, IMAGE_TYPES } from '#/lib/image-file'
 import { foldersCollection, saveFolder, moveFile } from '#/lib/store/folders'
 import { notify } from './notice-store'
-import { diskRoot, setDiskLink } from '#/lib/store/disk'
+import { setDiskLink } from '#/lib/store/disk'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
 import { closeDiskFile } from './disk-workspace'
 import { dropEditorState } from '#/components/editor/editor-session'
-import { closeFile, createFile, filesCollection } from '#/lib/store/files'
+import {
+  archiveFile,
+  createFile,
+  filesCollection,
+  hideFile,
+  isOpen,
+  reopenFile,
+} from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
@@ -81,12 +88,14 @@ export function survivor(
 }
 
 /**
- * Archives the tabs `ids`, and if the active one goes, moves to the nearest
- * one left open. On failure the active tab comes back, if it is still open.
+ * Takes `ids` off the tabs, and if the active one goes, moves to the nearest
+ * one left. `remove` does that to each file. On failure the active tab comes
+ * back, if it is still open.
  */
-export async function closeTabs(
+async function leaveTabs(
   ids: ReadonlyArray<string>,
   openIds: ReadonlyArray<string>,
+  remove: (id: string) => Promise<void>,
 ) {
   const activeId = sessionStore.state.activeId
   const closing = new Set(ids)
@@ -104,40 +113,51 @@ export async function closeTabs(
   try {
     // One at a time, so the archive keeps them in the order they were open.
     for (const id of ids) {
-      // A file on disk just closes once saved there; the archive is for the rest.
-      const saved =
-        !!filesCollection.get(id)?.location &&
-        // react-doctor-disable-next-line react-doctor/async-await-in-loop
-        (await closeDiskFile(id))
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      if (!saved) await closeFile(id)
+      await remove(id)
       dropEditorState(id)
     }
   } catch (error) {
-    if (wasActive && filesCollection.get(activeId)?.deletedAt === null)
-      setActive(activeId)
+    if (wasActive && isOpen(filesCollection.get(activeId))) setActive(activeId)
     throw error
   }
+}
+
+/**
+ * Closes the tabs `ids`. A file on disk closes once saved there; the rest
+ * stay in the browser's explorer, to open again.
+ */
+export function closeTabs(
+  ids: ReadonlyArray<string>,
+  openIds: ReadonlyArray<string>,
+) {
+  return leaveTabs(ids, openIds, async (id) => {
+    const saved =
+      !!filesCollection.get(id)?.location && (await closeDiskFile(id))
+    if (!saved) await hideFile(id)
+  })
+}
+
+/** Moves browser files to the archive, closing their tabs. */
+export function deleteFiles(
+  ids: ReadonlyArray<string>,
+  openIds: ReadonlyArray<string>,
+) {
+  return leaveTabs(ids, openIds, archiveFile)
+}
+
+/** Shows a file in the editor, giving it its tab back if it was closed. */
+export async function showFile(id: string) {
+  await reopenFile(id)
+  setActive(id)
 }
 
 /** Ids of the open tabs, in tab order. */
 export function openFileIds() {
   return [...filesCollection.values()]
-    .filter((file) => file.deletedAt === null)
+    .filter(isOpen)
     .sort((a, b) => a.order - b.order)
     .map((file) => file.id)
-}
-
-/**
- * Whether every one of `ids` is a tab of a file in a folder on disk. Those
- * close without asking: their text is saved there first, or, if it can't
- * be, kept in the archive.
- */
-export function allOnDisk(ids: ReadonlyArray<string>) {
-  return ids.every((id) => {
-    const location = filesCollection.get(id)?.location
-    return !!location && !!diskRoot(location.rootId)
-  })
 }
 
 // New files take the profile of the file in the editor. Opened files take

@@ -26,6 +26,8 @@ export const fileSchema = z.object({
   writer: z.string(),
   /** Null while open; otherwise retained in the deleted-file archive. */
   deletedAt: z.number().nullable().default(null),
+  /** A browser file without a tab: still listed in the explorer to reopen. */
+  closed: z.boolean().default(false),
   /** Profile whose settings apply while this file is open. */
   profileId: z.string().default(DEFAULT_PROFILE_ID),
   zplSettings: labelSettingsSchema.optional(),
@@ -47,6 +49,11 @@ export const filesCollection = localCollection('files', fileSchema, {
   // Closed tabs of the oldest versions were dropped rather than archived.
   upgrade: (row) => (row.open === false ? null : withDefaultProfile(row)),
 })
+
+/** Whether a file has a tab open, as opposed to closed or deleted. */
+export function isOpen(file: XmlFile | undefined) {
+  return file?.deletedAt === null && !file.closed
+}
 
 export function archivedFiles() {
   return [...filesCollection.values()]
@@ -95,6 +102,7 @@ export function createFile(
     order: nextOrder(),
     writer: writerId,
     deletedAt: null,
+    closed: false,
     profileId,
   }
   filesCollection.insert(file)
@@ -115,6 +123,7 @@ export function createDiskFile(
     order: nextOrder(),
     writer: writerId,
     deletedAt: null,
+    closed: false,
     profileId,
     location,
   }
@@ -142,7 +151,7 @@ export async function relocateFile(
   id: string,
   location: FileLocation | undefined,
 ) {
-  // Like closeFile: a pending content save would write the old place back.
+  // Like archiveFile: a pending content save would write the old place back.
   await drainContentSaves()
   if (!filesCollection.has(id)) return
   await filesCollection.update(id, (draft) => {
@@ -164,8 +173,29 @@ export async function forgetFile(id: string) {
   await filesCollection.delete(id).isPersisted.promise
 }
 
+/** Closes a browser file's tab, keeping the file in the explorer. */
+export async function hideFile(id: string) {
+  // Like archiveFile: a pending content save would reopen the tab.
+  await drainContentSaves()
+  if (!isOpen(filesCollection.get(id))) return
+  await filesCollection.update(id, (draft) => {
+    draft.closed = true
+  }).isPersisted.promise
+}
+
+/** Gives a closed browser file its tab back, at the end. */
+export async function reopenFile(id: string) {
+  const file = filesCollection.get(id)
+  if (!file || file.deletedAt !== null || !file.closed) return
+  const order = nextOrder()
+  await filesCollection.update(id, (draft) => {
+    draft.closed = false
+    draft.order = order
+  }).isPersisted.promise
+}
+
 /** Archive and evict in one storage write, so failure rolls back both changes. */
-export async function closeFile(id: string) {
+export async function archiveFile(id: string) {
   // A paced save carries a full record snapshot. Let it settle first so it
   // cannot overwrite deletedAt and reopen this file after the archive write.
   await drainContentSaves()
@@ -199,6 +229,7 @@ export async function restoreFile(id: string) {
     draft.name = name
     draft.order = order
     draft.deletedAt = null
+    draft.closed = false
     draft.writer = writerId
   }).isPersisted.promise
   return id
@@ -216,7 +247,7 @@ export function renameFile(id: string, name: string) {
 
 /** Switches the profile, and so the settings, a file uses. */
 export async function setFileProfile(id: string, profileId: string) {
-  // Like closeFile: a pending content save would write the old profile back.
+  // Like archiveFile: a pending content save would write the old profile back.
   await drainContentSaves()
   const file = filesCollection.get(id)
   if (!file || file.profileId === profileId) return

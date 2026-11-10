@@ -1,6 +1,6 @@
 import { Store } from '@tanstack/store'
 
-import { allOnDisk, closeTabs, openFileIds } from './files'
+import { closeTabs, openFileIds } from './files'
 import { notify } from './notice-store'
 import { m } from '#/paraglide/messages'
 
@@ -13,8 +13,8 @@ import type { ResolvedVar } from '#/lib/xml/dynamic-vars'
 interface UiState {
   paletteOpen: boolean
   renameId: string | null
-  /** Tabs waiting for confirmation before they're closed. */
-  closeIds: Array<string> | null
+  /** Browser files waiting for confirmation before they're deleted. */
+  deleteIds: Array<string> | null
   /** The searchable list of every open tab. */
   tabListOpen: boolean
   archiveOpen: boolean
@@ -84,7 +84,7 @@ export interface QuickHighlight {
 export const uiStore = new Store<UiState>({
   paletteOpen: false,
   renameId: null,
-  closeIds: null,
+  deleteIds: null,
   tabListOpen: false,
   archiveOpen: false,
   shareOpen: false,
@@ -108,16 +108,19 @@ export function askRename(renameId: string | null) {
   uiStore.setState((s) => ({ ...s, renameId }))
 }
 
-/** Asks before closing one tab, or several at once. */
-export function askClose(ids: string | Array<string> | null) {
-  const closeIds = typeof ids === 'string' ? [ids] : ids?.length ? ids : null
-  if (closeIds && allOnDisk(closeIds)) {
-    void closeTabs(closeIds, openFileIds()).catch(() =>
-      notify.error(m.archive_delete_failed()),
-    )
-    return
-  }
-  uiStore.setState((s) => ({ ...s, closeIds }))
+/** Closes one tab, or several. Nothing is lost, so nothing is asked. */
+export function closeTab(ids: string | Array<string>) {
+  const closeIds = typeof ids === 'string' ? [ids] : ids
+  if (!closeIds.length) return
+  void closeTabs(closeIds, openFileIds()).catch(() =>
+    notify.error(m.close_failed()),
+  )
+}
+
+/** Asks before moving browser files to the archive. */
+export function askDelete(ids: string | Array<string> | null) {
+  const deleteIds = typeof ids === 'string' ? [ids] : ids?.length ? ids : null
+  uiStore.setState((s) => ({ ...s, deleteIds }))
 }
 
 export function setTabListOpen(tabListOpen: boolean) {

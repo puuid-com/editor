@@ -1,9 +1,46 @@
-import { eq, isNull, length, not, useLiveQuery } from '@tanstack/react-db'
+import {
+  and,
+  eq,
+  isNull,
+  isUndefined,
+  coalesce,
+  length,
+  not,
+  or,
+  useLiveQuery,
+} from '@tanstack/react-db'
 
 import { filesCollection } from '#/lib/store/files'
 
 /** Tabs in order, without content so typing doesn't re-render them. */
 export function useOpenFiles() {
+  const { data } = useLiveQuery((q) =>
+    q
+      .from({ file: filesCollection })
+      .where(({ file }) =>
+        and(
+          isNull(file.deletedAt),
+          // Files stored before tabs could close have no flag.
+          or(isUndefined(file.closed), eq(file.closed, false)),
+        ),
+      )
+      .orderBy(({ file }) => file.order, 'asc')
+      .select(({ file }) => ({
+        id: file.id,
+        name: file.name,
+        folderId: file.folderId,
+        order: file.order,
+        profileId: file.profileId,
+        location: file.location,
+        // An empty file has no type until something is pasted or typed.
+        empty: eq(length(file.content), 0),
+      })),
+  )
+  return data
+}
+
+/** Every file not deleted, tabs or not, for the explorer to list. */
+export function useWorkspaceFiles() {
   const { data } = useLiveQuery((q) =>
     q
       .from({ file: filesCollection })
@@ -16,7 +53,7 @@ export function useOpenFiles() {
         order: file.order,
         profileId: file.profileId,
         location: file.location,
-        // An empty file has no type until something is pasted or typed.
+        closed: coalesce(file.closed, false),
         empty: eq(length(file.content), 0),
       })),
   )
