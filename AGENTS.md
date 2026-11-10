@@ -31,6 +31,8 @@ Before committing, run `bun run check`, `bun run lint`, `bun run knip`, `bun run
 
 After each task, commit and push to `main` without waiting to be asked. Pushing `main` runs the versioned `.githooks/pre-push` hook (installed by `bun install`), which runs the CI checks and then deploys with `bun run deploy`; if either fails the push is aborted, so fix the failure and push again. Don't use `--no-verify` unless told to.
 
+For behavior tweaks the user hasn't confirmed, don't commit until they approve. If they reject it, discard the working-tree changes (`git restore`) instead of reverting.
+
 ## Finishing a task (required, not optional)
 
 A task is not done until every step below is complete. Do them yourself, without being asked, and don't end your turn with uncommitted or unpushed work.
