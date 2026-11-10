@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.48.0] - 2026-11-10
+
+### Added
+
+- Live preview shows a heading's level (`H1` to `H6`) as a small label just before its text, where the hidden `#` marks were. On the line you're editing, the `#` marks show instead.
+
 ## [1.47.1] - 2026-11-10
 
 ### Changed

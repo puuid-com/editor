@@ -53,9 +53,14 @@ describe('Markdown live preview', () => {
     expect(shown(view)).toEqual(['Docs Alias other'])
   })
 
+  it('labels headings with their level, except on the caret line', () => {
+    const view = editor('# One\n### Three\n## Two^')
+    expect(shown(view)).toEqual(['H1One', 'H3Three', '## Two'])
+  })
+
   it('hides heading and quote marks, and draws bullets and rules', () => {
     const view = editor('# Title ##\n> quoted\n- item\n1. first\n\n---')
-    expect(shown(view)).toEqual(['Title', ' quoted', '• item', '1. first'])
+    expect(shown(view)).toEqual(['H1Title', ' quoted', '• item', '1. first'])
     expect(view.contentDOM.querySelector('.cm-md-rule')).not.toBeNull()
   })
 
@@ -71,7 +76,7 @@ describe('Markdown live preview', () => {
 
   it('shows the source the caret touches', () => {
     const view = editor('# Title\nSome **bo^ld** and *it*')
-    expect(shown(view)).toEqual(['Title', 'Some **bold** and it'])
+    expect(shown(view)).toEqual(['H1Title', 'Some **bold** and it'])
     view.dispatch({ selection: { anchor: 2 } })
     expect(shown(view)).toEqual(['# Title', 'Some bold and it'])
   })

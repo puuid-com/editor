@@ -137,7 +137,30 @@ export function toggleTask(view: EditorView, pos: number) {
   })
 }
 
+/** `H1`–`H6` in place of a heading's hidden `#` marks. */
+class HeadingLevel extends WidgetType {
+  constructor(readonly level: number) {
+    super()
+  }
+  eq(other: HeadingLevel) {
+    return other.level === this.level
+  }
+  toDOM() {
+    const label = document.createElement('span')
+    label.className = 'cm-md-level'
+    label.setAttribute('aria-hidden', 'true')
+    label.textContent = `H${this.level}`
+    return label
+  }
+  ignoreEvent() {
+    return false
+  }
+}
+
 const hidden = Decoration.replace({})
+const levels = [1, 2, 3, 4, 5, 6].map((level) =>
+  Decoration.replace({ widget: new HeadingLevel(level) }),
+)
 const bullet = Decoration.replace({ widget: new Bullet() })
 const rule = Decoration.replace({ widget: new Rule() })
 const checked = Decoration.replace({ widget: new Checkbox(true) })
@@ -231,7 +254,11 @@ function liveDecorations(view: EditorView): DecorationSet {
           if (!node.parent?.name.startsWith('ATXHeading') || onLine(node.from))
             return undefined
           if (node.from === doc.lineAt(node.from).from)
-            hide(node.from, spaceAfter(node.to))
+            add(
+              levels[Number(node.parent.name.slice(-1)) - 1],
+              node.from,
+              spaceAfter(node.to),
+            )
           else {
             // The closing `##` and the space before it.
             const before = doc.sliceString(node.from - 8, node.from)
@@ -299,6 +326,14 @@ export function markdownLivePreview(): Extension {
     livePlugin,
     EditorView.baseTheme({
       '.cm-md-bullet': { color: 'var(--muted-foreground)' },
+      '.cm-md-level': {
+        marginRight: '0.5em',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '10px',
+        fontWeight: '400',
+        color: 'var(--muted-foreground)',
+        verticalAlign: 'middle',
+      },
       '.cm-md-task': {
         margin: '0 0.5em 0 0',
         verticalAlign: '-0.1em',
