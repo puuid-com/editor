@@ -13,7 +13,7 @@ import {
   syntaxHighlighting,
 } from '@codemirror/language'
 import { Prec } from '@codemirror/state'
-import { keymap } from '@codemirror/view'
+import { EditorView, keymap } from '@codemirror/view'
 import { Tag, styleTags, tags as t } from '@lezer/highlight'
 import { parseCode } from '@lezer/markdown'
 import type { MarkdownConfig, MarkdownParser } from '@lezer/markdown'
@@ -183,6 +183,8 @@ const style = HighlightStyle.define(
 export function markdownSupport() {
   return new LanguageSupport(language, [
     syntaxHighlighting(style),
+    // Text takes the chosen font's `--text-font`; see `.md-editor` in styles.css.
+    EditorView.editorAttributes.of({ class: 'md-editor' }),
     quoteLines,
     codeBlocks(new Set(Object.keys(CODE))),
     markdownTables(language),

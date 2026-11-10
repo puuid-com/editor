@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.42.0] - 2026-11-09
+
+### Added
+
+- Times New Roman in the font menu: Markdown text in the editor, preview and PDF takes it, while code, inline code and code files stay monospace. The menu is now called Font.
+
 ## [1.41.1] - 2026-11-09
 
 ### Fixed

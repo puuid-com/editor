@@ -2,16 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setCodeFont } from './code-font'
 import { editorPrefs } from './word-wrap'
-import { CODE_FONT_PROPERTY, codeFontScript } from '#/lib/code-font'
+import {
+  CODE_FONT_PROPERTY,
+  TEXT_FONT_PROPERTY,
+  codeFontScript,
+} from '#/lib/code-font'
 
 const applied = () =>
   document.documentElement.style.getPropertyValue(CODE_FONT_PROPERTY)
+const text = () =>
+  document.documentElement.style.getPropertyValue(TEXT_FONT_PROPERTY)
 const runScript = () => new Function(codeFontScript)()
 const stubFonts = (load: () => Promise<unknown>) =>
   vi.stubGlobal('document', Object.assign(document, { fonts: { load } }))
 
 beforeEach(() => {
   document.documentElement.style.removeProperty(CODE_FONT_PROPERTY)
+  document.documentElement.style.removeProperty(TEXT_FONT_PROPERTY)
   localStorage.clear()
 })
 
@@ -27,6 +34,21 @@ describe('setCodeFont', () => {
 
     document.documentElement.style.removeProperty(CODE_FONT_PROPERTY)
     runScript()
+    expect(applied()).toContain('Ioskeley Mono')
+  })
+
+  it('sets text in Times New Roman and keeps code monospace', async () => {
+    stubFonts(() => Promise.resolve([]))
+    await setCodeFont('times-new-roman')
+    expect(text()).toContain('Times New Roman')
+    expect(applied()).toContain('Geist Mono')
+
+    document.documentElement.style.removeProperty(TEXT_FONT_PROPERTY)
+    runScript()
+    expect(text()).toContain('Times New Roman')
+
+    await setCodeFont('ioskeley-mono')
+    expect(text()).toBe('')
     expect(applied()).toContain('Ioskeley Mono')
   })
 

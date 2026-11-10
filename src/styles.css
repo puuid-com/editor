@@ -395,6 +395,20 @@
 }
 
 /*
+ * Markdown's text in the preview and editor, when the chosen font has one
+ * (see #/lib/code-font). Code keeps `--code-font`.
+ */
+.md-preview {
+  font-family: var(--text-font, var(--font-sans));
+}
+.md-editor .cm-content {
+  font-family: var(--text-font, var(--font-mono));
+}
+.md-editor :is(.cm-md-code, .cm-md-fence-open, .cm-md-fence-close) {
+  font-family: var(--code-font);
+}
+
+/*
  * Code in the Markdown preview and editor, coloured by the same roles as the SQL editor
  * so every code block reads alike. Classes come from TanStack Highlight.
  */
@@ -422,6 +436,7 @@
 .md-inline-code,
 .md-preview :where(:not(pre) > code) {
   padding: 0.2em 0.45em;
+  font-family: var(--code-font);
   font-size: 0.85em;
   font-weight: 400;
   color: var(--sql-keyword);

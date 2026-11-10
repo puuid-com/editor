@@ -12,7 +12,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { codeFonts } from '#/lib/code-font'
+import { codeFonts, fontFace } from '#/lib/code-font'
 import type { CodeFontId } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 
@@ -36,7 +36,7 @@ export function CodeFontMenu() {
             <DropdownMenuRadioItem
               key={font.id}
               value={font.id}
-              style={{ fontFamily: font.stack }}
+              style={{ fontFamily: fontFace(font) }}
             >
               {font.name}
             </DropdownMenuRadioItem>

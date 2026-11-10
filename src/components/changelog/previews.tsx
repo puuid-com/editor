@@ -3802,13 +3802,15 @@ function SqlColoursEverywhere() {
 function CodeFonts() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {codeFonts.map((font) => (
-        <Shot key={font.id} label={font.name}>
-          <div style={{ [CODE_FONT_PROPERTY]: font.stack } as CSSProperties}>
-            <Code lines={ORDER} />
-          </div>
-        </Shot>
-      ))}
+      {codeFonts
+        .filter((font) => !('text' in font))
+        .map((font) => (
+          <Shot key={font.id} label={font.name}>
+            <div style={{ [CODE_FONT_PROPERTY]: font.stack } as CSSProperties}>
+              <Code lines={ORDER} />
+            </div>
+          </Shot>
+        ))}
     </div>
   )
 }
@@ -4170,7 +4172,30 @@ function LiveInlineCodePreview() {
   )
 }
 
+/** Markdown's text in Times New Roman, its inline code and fence still monospace. */
+function SerifText() {
+  const times = codeFonts.find((font) => font.id === 'times-new-roman')!
+  return (
+    <Shot label={times.name}>
+      <div
+        className="grid gap-2 p-3 text-sm"
+        style={{ fontFamily: times.text }}
+      >
+        <p className="text-base font-semibold">Release notes</p>
+        <p>
+          Run <span className="md-inline-code">deploy</span> once the checks
+          pass.
+        </p>
+        <div className="border bg-muted/40">
+          <Code lines={ORDER} />
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.42.0': figure(SerifText),
   '1.41.0': figure(SheetTables),
   '1.40.2': figure(LiveInlineCodePreview),
   '1.40.1': figure(FenceGutterPreview),

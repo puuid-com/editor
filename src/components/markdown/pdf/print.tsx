@@ -8,7 +8,7 @@ import { preparePdfLinks } from './links'
 import { collectPdfNotes } from './source'
 import type { PdfSource } from './source'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
-import { CODE_FONT_PROPERTY } from '#/lib/code-font'
+import { CODE_FONT_PROPERTY, TEXT_FONT_PROPERTY } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 import printStyles from './print.css?inline'
 
@@ -34,12 +34,11 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
   // Paper is white: the PDF is always light, whatever the app's theme.
   doc.documentElement.className = document.documentElement.className
   doc.documentElement.classList.remove('dark')
-  doc.documentElement.style.setProperty(
-    CODE_FONT_PROPERTY,
-    getComputedStyle(document.documentElement).getPropertyValue(
-      CODE_FONT_PROPERTY,
-    ),
-  )
+  const fonts = getComputedStyle(document.documentElement)
+  for (const property of [CODE_FONT_PROPERTY, TEXT_FONT_PROPERTY]) {
+    const value = fonts.getPropertyValue(property)
+    if (value) doc.documentElement.style.setProperty(property, value)
+  }
   const container = doc.createElement('div')
   doc.body.appendChild(container)
   const objectUrls: Array<string> = []
