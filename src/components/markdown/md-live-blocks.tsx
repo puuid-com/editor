@@ -15,9 +15,11 @@ import {
 import {
   Decoration,
   EditorView,
+  GutterMarker,
   ViewPlugin,
   WidgetType,
   keymap,
+  lineNumberWidgetMarker,
   runScopeHandlers,
 } from '@codemirror/view'
 import { createRoot } from 'react-dom/client'
@@ -433,12 +435,33 @@ class FenceFooter extends WidgetType {
   toDOM() {
     const dom = document.createElement('div')
     dom.className = 'cm-md-fence-close'
+    // A full line tall, so the gutter has room for its number.
+    dom.textContent = '\u200b'
     return dom
   }
   ignoreEvent() {
     return true
   }
 }
+
+/** The number of a fence line drawn as a widget, which the gutter skips. */
+class FenceNumber extends GutterMarker {
+  constructor(readonly number: number) {
+    super()
+  }
+  eq(other: FenceNumber) {
+    return other.number === this.number
+  }
+  toDOM() {
+    return document.createTextNode(String(this.number))
+  }
+}
+
+const fenceNumber = lineNumberWidgetMarker.of((view, widget, block) =>
+  widget instanceof FenceHeader || widget instanceof FenceFooter
+    ? new FenceNumber(view.state.doc.lineAt(block.from).number)
+    : null,
+)
 
 /* ---------------- Tables ---------------- */
 
@@ -879,6 +902,7 @@ export function markdownLiveBlocks(parser: Parser): Extension {
   return [
     cellParser.of(parser),
     liveBlocks,
+    fenceNumber,
     keepBlocks,
     moveKeys,
     caretToGrid,
@@ -898,7 +922,6 @@ export function markdownLiveBlocks(parser: Parser): Extension {
         fontSize: '0.85em',
       },
       '.cm-md-fence-close': {
-        height: '6px',
         backgroundColor: MUTED,
         boxShadow: 'inset 0 -1px 0 var(--border)',
       },

@@ -4035,7 +4035,63 @@ function PlainFileGutters() {
   )
 }
 
+const FENCE_ROWS: Array<[number, 'text' | 'open' | 'code' | 'close', string]> =
+  [
+    [1, 'text', 'Notes'],
+    [2, 'text', ''],
+    [3, 'open', 'js'],
+    [4, 'code', "const total = '128.00'"],
+    [5, 'close', ''],
+  ]
+
+function FenceGutter({ numbered }: { numbered?: boolean }) {
+  return (
+    <>
+      <Tabs>
+        <Tab name="notes.md" active />
+      </Tabs>
+      <div className="py-2 font-mono text-[11px] leading-5">
+        {FENCE_ROWS.map(([n, kind, text]) => {
+          const fence = kind === 'open' || kind === 'close'
+          const tall = numbered || kind === 'open'
+          return (
+            <div
+              key={n}
+              className={cn(
+                'flex pr-3',
+                kind !== 'text' && 'bg-foreground/4',
+                kind === 'open' && 'shadow-[inset_0_1px_0_var(--border)]',
+                kind === 'close' && 'shadow-[inset_0_-1px_0_var(--border)]',
+                !tall && 'h-1.5',
+              )}
+            >
+              <span className="w-8 shrink-0 pr-3 text-right text-(--syntax-gutter)">
+                {(!fence || numbered) && n}
+              </span>
+              <span
+                className={cn(
+                  'whitespace-pre',
+                  kind === 'open' && 'text-muted-foreground',
+                )}
+              >
+                {text}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+function FenceGutterPreview() {
+  return (
+    <BeforeAfter before={<FenceGutter />} after={<FenceGutter numbered />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.40.1': figure(FenceGutterPreview),
   '1.40.0': figure(DragFeedbackPreview),
   '1.39.1': figure(PlainFileGutters),
   '1.39.0': figure(FileMovePreview),

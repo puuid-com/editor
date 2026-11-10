@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.40.1] - 2026-11-09
+
+### Fixed
+
+- Show line numbers for code fence lines in Markdown live preview.
+
 ## [1.40.0] - 2026-11-09
 
 ### Added
