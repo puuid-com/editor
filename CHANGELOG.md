@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.43.1] - 2026-11-10
+
+### Fixed
+
+- Images pasted into a note of an Obsidian vault go where the vault's attachment setting says: the vault root, the note's own folder, or a subfolder of it. Before, those settings fell back to `attachements/img`.
+
 ## [1.43.0] - 2026-11-09
 
 ### Added

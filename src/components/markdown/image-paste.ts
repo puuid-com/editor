@@ -6,6 +6,7 @@ import { docLanguage } from '#/components/editor/language'
 import { fileIdField } from '#/components/editor/extensions'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
 import { writeNewFile } from '#/lib/disk-tree'
+import { attachmentFolder } from '#/lib/obsidian'
 import {
   IMAGE_FOLDER,
   imageFileName,
@@ -17,7 +18,7 @@ import { filesCollection } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
 
 // Pasting an image into a Markdown note of a folder opened from disk saves
-// it in the folder (the vault's attachment folder, else `attachements/img`)
+// it in the folder (where the vault's settings say, else `attachements/img`)
 // and links it from the note where the cursor is.
 
 async function saveImages(
@@ -38,7 +39,7 @@ async function saveImages(
     }
     const client = browserQueryClient()
     const vault = await client.fetchQuery(vaultQuery(root))
-    const folder = vault?.attachments || IMAGE_FOLDER
+    const folder = vault ? attachmentFolder(vault, location.path) : IMAGE_FOLDER
     const now = new Date()
     const links: Array<string> = []
     for (const image of images) {
@@ -54,7 +55,7 @@ async function saveImages(
     void client.invalidateQueries({ queryKey: diskKeys.root(root.id) })
     // The editor may have moved on to another tab while the images saved.
     if (view.state.field(fileIdField) !== fileId) {
-      notify.success(m.md_image_saved({ folder }))
+      notify.success(m.md_image_saved({ folder: folder || root.name }))
       return
     }
     view.dispatch(view.state.replaceSelection(links.join('\n')), {

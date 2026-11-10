@@ -13,8 +13,8 @@ const CONFIG_FOLDER = '.obsidian'
 /** What the editor follows of a vault's settings. */
 export interface Vault {
   /**
-   * The folder new attachments go to, from the root, or '' when they go
-   * beside each note or at the root.
+   * Where new attachments go: a folder from the root ('' for the root
+   * itself), or `.` and `./sub` for each note's folder and a folder in it.
    */
   attachments: string
   /** "Excluded files": path prefixes, or `/regex/`, left out of search. */
@@ -28,11 +28,23 @@ const appSettings = z
   })
   .catch({ attachmentFolderPath: '', userIgnoreFilters: [] })
 
-/** `attachmentFolderPath`: `/` is the root and `./…` beside the note. */
-function fixedFolder(path: string) {
+/** `attachmentFolderPath`: `/` is the root and `./…` from the note's folder. */
+function attachmentSetting(path: string) {
   const trimmed = path.trim()
-  if (trimmed === '.' || trimmed.startsWith('./')) return ''
+  if (trimmed === '.' || trimmed.startsWith('./')) {
+    const sub = trimmed.slice(1).replace(/^\/+|\/+$/g, '')
+    return sub ? `./${sub}` : '.'
+  }
   return trimmed.replace(/^\/+|\/+$/g, '')
+}
+
+const besideNotes = (attachments: string) =>
+  attachments === '.' || attachments.startsWith('./')
+
+/** The folder, from the root, a new attachment of the note at `notePath` goes to. */
+export function attachmentFolder(vault: Vault, notePath: string) {
+  if (!besideNotes(vault.attachments)) return vault.attachments
+  return joinRelative(parentPath(notePath), vault.attachments) ?? ''
 }
 
 /** A vault's settings from its `app.json`, with defaults for anything unreadable. */
@@ -45,7 +57,7 @@ export function parseVaultSettings(json: string | undefined): Vault {
   }
   const settings = appSettings.parse(value)
   return {
-    attachments: fixedFolder(settings.attachmentFolderPath),
+    attachments: attachmentSetting(settings.attachmentFolderPath),
     excluded: settings.userIgnoreFilters.filter((filter) => filter.trim()),
   }
 }
@@ -69,10 +81,11 @@ export async function readVault(
   }
 }
 
-/** Whether `path` is the vault's attachment folder, which holds no notes. */
+/** Whether `path` is the vault's one attachment folder, which holds no notes. */
 export function isAttachmentFolder(vault: Vault | null, path: string) {
   return (
     !!vault?.attachments &&
+    !besideNotes(vault.attachments) &&
     path.toLowerCase() === vault.attachments.toLowerCase()
   )
 }

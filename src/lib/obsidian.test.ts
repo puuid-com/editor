@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  attachmentFolder,
   embedSize,
   hrefPath,
   isAttachmentFolder,
@@ -31,12 +32,20 @@ describe('vault settings', () => {
     })
   })
 
-  it('has no attachment folder when they go at the root or beside notes', () => {
-    for (const folder of ['/', '', './', './assets'])
-      expect(
-        parseVaultSettings(JSON.stringify({ attachmentFolderPath: folder }))
-          .attachments,
-      ).toBe('')
+  it('puts attachments at the root, beside each note or in a folder', () => {
+    const at = (setting: string, note: string) =>
+      attachmentFolder(
+        parseVaultSettings(JSON.stringify({ attachmentFolderPath: setting })),
+        note,
+      )
+    expect(at('/', 'Projects/Plan.md')).toBe('')
+    expect(at('', 'Projects/Plan.md')).toBe('')
+    expect(at('./', 'Projects/Plan.md')).toBe('Projects')
+    expect(at('./', 'Home.md')).toBe('')
+    expect(at('./assets/', 'Projects/Plan.md')).toBe('Projects/assets')
+    expect(at('./assets', 'Home.md')).toBe('assets')
+    expect(at('/Attachments/img', 'Projects/Plan.md')).toBe('Attachments/img')
+    expect(attachmentFolder(parseVaultSettings(undefined), 'a/b.md')).toBe('')
   })
 
   it('falls back to defaults for missing or broken settings', () => {
@@ -78,6 +87,10 @@ describe('vault settings', () => {
     expect(isAttachmentFolder(vault, 'assets')).toBe(true)
     expect(isAttachmentFolder(vault, 'Assets/old')).toBe(false)
     expect(isAttachmentFolder(null, 'Assets')).toBe(false)
+    // Folders beside each note may hold notes too.
+    expect(
+      isAttachmentFolder({ attachments: './assets', excluded: [] }, 'assets'),
+    ).toBe(false)
     expect(isExcluded(vault, 'Archive/old.md')).toBe(true)
     expect(isExcluded(vault, 'daily/2026-11-07.md')).toBe(true)
     expect(isExcluded(vault, 'notes/daily/x.md')).toBe(false)
