@@ -4276,7 +4276,55 @@ function LiveNoteEmbeds() {
   )
 }
 
+/** A clicked image in live preview: its Markdown before it, or under it with a handle that resizes it. */
+function LiveImageClicked({ resizable = false }: { resizable?: boolean }) {
+  const image = (
+    <span
+      className={cn(
+        'relative flex aspect-video items-center justify-center border bg-muted/40 text-muted-foreground',
+        resizable ? 'w-2/3 outline-2 outline-offset-2 outline-ring' : 'w-1/2',
+      )}
+    >
+      <IconPhoto className="size-6" stroke={1.5} />
+      {resizable && (
+        <span className="absolute -right-1.5 -bottom-1.5 size-2.5 border border-foreground bg-background" />
+      )}
+    </span>
+  )
+  const source = (
+    <Syn k="comment">
+      {resizable ? '![view|240](view.png)' : '![view](view.png)'}
+    </Syn>
+  )
+  return (
+    <div className="grid content-start gap-2 p-3 font-mono">
+      <span className="font-semibold">Trip</span>
+      {resizable ? (
+        <span className="grid gap-1">
+          {image}
+          <span>{source}</span>
+        </span>
+      ) : (
+        <span className="flex items-end gap-1">
+          <span className="shrink-0">{source}</span>
+          {image}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function ResizableLiveImages() {
+  return (
+    <BeforeAfter
+      before={<LiveImageClicked />}
+      after={<LiveImageClicked resizable />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.46.0': figure(ResizableLiveImages),
   '1.45.0': figure(LiveNoteEmbeds),
   '1.44.0': figure(LiveImages),
   '1.43.0': figure(CenteredBlocks),

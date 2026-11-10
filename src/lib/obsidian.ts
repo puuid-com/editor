@@ -143,14 +143,42 @@ export function wikilinkText({ target, heading, alias }: Wikilink) {
   return target ? `${target} > ${heading}` : heading
 }
 
-/** An embed's `|300` or `|300x200` size, in pixels. */
-export function embedSize(alias: string | undefined) {
-  const match = alias ? /^(\d+)(?:x(\d+))?$/.exec(alias.trim()) : null
-  if (!match) return undefined
+/** An image's size in pixels. */
+interface ImageSize {
+  width: number
+  height?: number
+}
+
+/**
+ * Splits the size off an image's text, as Obsidian reads it: an embed's
+ * alias `300`, `300x200` or `caption|300`, or a Markdown image's alt
+ * `caption|300` (`markdown`, where a bare number stays the caption).
+ */
+export function imageSize(
+  text = '',
+  { markdown = false } = {},
+): { label: string; size?: ImageSize } {
+  const match = /^(?:([\s\S]*)\|)?\s*(\d+)(?:x(\d+))?\s*$/.exec(text)
+  const caption = match?.[1]
+  if (!match || (markdown && caption === undefined)) return { label: text }
   return {
-    width: Number(match[1]),
-    ...(match[2] && { height: Number(match[2]) }),
+    label: caption?.trim() ?? '',
+    size: {
+      width: Number(match[2]),
+      ...(match[3] && { height: Number(match[3]) }),
+    },
   }
+}
+
+/** `text` with its size set to `width`, as `imageSize` reads it back. */
+export function withImageWidth(
+  text: string,
+  width: number,
+  { markdown = false, pipe = '|' } = {},
+) {
+  const { label } = imageSize(text.replaceAll('\\|', '|'), { markdown })
+  if (!label && !markdown) return `${width}`
+  return `${label.replaceAll('|', pipe)}${pipe}${width}`
 }
 
 export const isMarkdownName = (name: string) => /\.(md|markdown)$/i.test(name)

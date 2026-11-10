@@ -8,6 +8,17 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.46.0] - 2026-11-10
+
+### Added
+
+- Drag the handle at an image's corner in live preview to resize it, as in Obsidian. The width goes into its Markdown as `![[image.png|300]]` or `![alt|300](image.png)`.
+- The preview panel sizes Markdown images by their `![alt|300](src)` too.
+
+### Changed
+
+- Clicking an image in live preview selects it and shows its Markdown under it, so the image no longer jumps aside.
+
 ## [1.45.0] - 2026-11-10
 
 ### Added

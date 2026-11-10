@@ -155,6 +155,20 @@ describe('links in a note of the browser', () => {
     expect(c.closest('[data-image-block]')).toBeNull()
   })
 
+  it('sizes a Markdown image by its alt, as Obsidian does', async () => {
+    preview(
+      '![A cat|80](https://x.dev/cat.png) ![|40x30](b.png) ![2024](c.png)',
+    )
+    await screen.findAllByRole('img')
+    const [cat, b, c] = document.querySelectorAll('img')
+    expect(cat).toHaveAttribute('alt', 'A cat')
+    expect(cat).toHaveAttribute('width', '80')
+    expect(b).toHaveAttribute('width', '40')
+    expect(b).toHaveAttribute('height', '30')
+    expect(c).toHaveAttribute('alt', '2024')
+    expect(c).not.toHaveAttribute('width')
+  })
+
   it('shows [[links]] as text, with nowhere to go', async () => {
     preview('See [[Ideas]].')
     const text = await screen.findByText('Ideas')

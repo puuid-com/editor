@@ -13,7 +13,7 @@ import { isEditableName } from '#/lib/disk-tree'
 import type { DiskEntry } from '#/lib/disk-tree'
 import { useFileContent, useOpenFiles } from '#/hooks/use-files'
 import {
-  embedSize,
+  imageSize,
   hrefPath,
   isImagePath,
   isLocalHref,
@@ -212,12 +212,12 @@ export function WikiEmbed({
   const note = useContext(NoteContext)
   const entry = target ? note?.find(target) : undefined
   if (note && entry && isImagePath(entry.path)) {
-    const size = embedSize(alias)
+    const { label, size } = imageSize(alias)
     return (
       <DiskImage
         root={note.root}
         entry={entry}
-        alt={size ? entry.name : (alias ?? entry.name)}
+        alt={label || entry.name}
         {...size}
       />
     )
@@ -366,22 +366,28 @@ function headingId(href: string) {
   }
 }
 
-/** A Markdown image, read from the folder when it is a file beside the note. */
-export function PreviewImage({
-  src,
-  alt = '',
-  ...props
-}: ComponentProps<'img'>) {
+/**
+ * A Markdown image, read from the folder when it is a file beside the note,
+ * and sized by its alt's `|300` as Obsidian does.
+ */
+export function PreviewImage({ src, alt, ...props }: ComponentProps<'img'>) {
   const note = useContext(NoteContext)
+  const { label, size } = imageSize(alt, { markdown: true })
   const entry =
     note && typeof src === 'string' && isLocalHref(src)
       ? note.find(hrefPath(src))
       : undefined
   if (note && entry)
     return (
-      <DiskImage root={note.root} entry={entry} alt={alt} title={props.title} />
+      <DiskImage
+        root={note.root}
+        entry={entry}
+        alt={label}
+        title={props.title}
+        {...size}
+      />
     )
-  return <img {...props} src={src} alt={alt} />
+  return <img {...props} {...size} src={src} alt={label} />
 }
 
 /** An object URL for `blob`, let go once it changes or nothing shows it. */

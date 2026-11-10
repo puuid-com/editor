@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   attachmentFolder,
-  embedSize,
+  imageSize,
   hrefPath,
   isAttachmentFolder,
   isExcluded,
@@ -14,6 +14,7 @@ import {
   readVault,
   linkResolver,
   wikilinkText,
+  withImageWidth,
 } from './obsidian'
 import { fakeFolder } from '#/test/fake-fs'
 
@@ -129,11 +130,35 @@ describe('wikilinks', () => {
     expect(wikilinkText({ target: '', heading: 'Plan' })).toBe('Plan')
   })
 
-  it('reads an embed size', () => {
-    expect(embedSize('300')).toEqual({ width: 300 })
-    expect(embedSize('300x200')).toEqual({ width: 300, height: 200 })
-    expect(embedSize('caption')).toBeUndefined()
-    expect(embedSize(undefined)).toBeUndefined()
+  it('reads an image size', () => {
+    expect(imageSize('300')).toEqual({ label: '', size: { width: 300 } })
+    expect(imageSize('300x200')).toEqual({
+      label: '',
+      size: { width: 300, height: 200 },
+    })
+    expect(imageSize('A cat|300')).toEqual({
+      label: 'A cat',
+      size: { width: 300 },
+    })
+    expect(imageSize('caption')).toEqual({ label: 'caption' })
+    expect(imageSize(undefined)).toEqual({ label: '' })
+    // In a Markdown image's alt a bare number is the caption.
+    expect(imageSize('2024', { markdown: true })).toEqual({ label: '2024' })
+    expect(imageSize('|80', { markdown: true })).toEqual({
+      label: '',
+      size: { width: 80 },
+    })
+  })
+
+  it('writes an image width', () => {
+    expect(withImageWidth('', 300)).toBe('300')
+    expect(withImageWidth('200x100', 300)).toBe('300')
+    expect(withImageWidth('caption', 300)).toBe('caption|300')
+    expect(withImageWidth('A cat', 300, { markdown: true })).toBe('A cat|300')
+    expect(withImageWidth('', 300, { markdown: true })).toBe('|300')
+    expect(
+      withImageWidth('a\\|200', 300, { markdown: true, pipe: '\\|' }),
+    ).toBe('a\\|300')
   })
 })
 
