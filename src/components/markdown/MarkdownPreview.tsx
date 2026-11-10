@@ -31,15 +31,17 @@ import {
 import { PreviewCodeColors } from './PreviewCodeColors'
 import { usePreviewScroll } from './use-preview-scroll'
 import { useFileContent } from '#/hooks/use-files'
-import { wikilinkText } from '#/lib/obsidian'
+import { isImagePath, wikilinkText } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
 const DIAGRAM_TAG = 'mermaid-diagram'
 const NOTE_EMBED_TAG = 'note-embed'
+const IMAGE_BLOCK_TAG = 'image-block'
 
 /**
- * ```mermaid blocks become diagrams instead of highlighted code, and an
- * `![[embed]]` alone on its line a block that can hold a whole note.
+ * ```mermaid blocks become diagrams instead of highlighted code, an
+ * `![[embed]]` alone on its line a block that can hold a whole note, and a
+ * paragraph of images alone a block that can be centered.
  */
 const blocks: MarkdownExtension = {
   name: 'blocks',
@@ -47,6 +49,24 @@ const blocks: MarkdownExtension = {
     ...document,
     children: document.children.map(toBlock),
   }),
+}
+
+/** Whether a paragraph holds images and nothing else, but space. */
+function onlyImages(children: Array<InlineNode>) {
+  const nodes = children.filter(
+    (child) =>
+      child.type !== 'break' && (child.type !== 'text' || child.value.trim()),
+  )
+  return (
+    nodes.length > 0 &&
+    nodes.every(
+      (node) =>
+        node.type === 'image' ||
+        (node.type === 'inlineComponent' &&
+          node.tagName === WIKI_EMBED_TAG &&
+          isImagePath(node.properties?.target ?? '')),
+    )
+  )
 }
 
 /** The embed a paragraph holds and nothing else, but space. */
@@ -73,6 +93,14 @@ function toBlock(node: BlockNode): BlockNode {
       children: [],
     }
   }
+  if (node.type === 'paragraph' && onlyImages(node.children))
+    return {
+      type: 'component',
+      name: 'image-block',
+      tagName: IMAGE_BLOCK_TAG,
+      attributes: {},
+      children: [node],
+    }
   if (node.type === 'paragraph') {
     const embed = soleEmbed(node.children)
     if (embed)
@@ -96,6 +124,11 @@ function toBlock(node: BlockNode): BlockNode {
       })),
     }
   return node
+}
+
+/** A paragraph of images alone, which the Center menu can put in the middle. */
+function ImageBlock({ children }: { children?: ReactNode }) {
+  return <div data-image-block>{children}</div>
 }
 
 const EXTENSIONS = [blocks, obsidianSyntax, htmlCodeSyntax]
@@ -145,6 +178,7 @@ function NoteEmbedBlock(link: {
 const components = {
   [CODE_TAG]: HtmlCode,
   [DIAGRAM_TAG]: MermaidDiagram,
+  [IMAGE_BLOCK_TAG]: ImageBlock,
   [NOTE_EMBED_TAG]: NoteEmbedBlock,
   [WIKI_LINK_TAG]: WikiLink,
   [WIKI_EMBED_TAG]: WikiEmbed,

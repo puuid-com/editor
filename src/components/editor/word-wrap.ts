@@ -1,6 +1,7 @@
 import { Compartment } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 
+import { defaultCentered } from '#/lib/md-center'
 import { persistedStore } from '#/lib/store/persist'
 
 // Editor preferences shared by every file and kept across reloads.
@@ -12,6 +13,8 @@ export const editorPrefs = persistedStore(
     codeFont: 'geist-mono',
     /** Markdown renders in the editor, as Obsidian's live preview, with no preview panel. */
     markdownLive: false,
+    /** Markdown blocks shown in the middle of the page instead of at the start. */
+    centered: defaultCentered,
   },
 )
 

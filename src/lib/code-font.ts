@@ -45,7 +45,7 @@ export const fontProperties = (font: CodeFont) => ({
 
 // Written by `editorPrefs`, which pulls in the editor and so can't be imported
 // by the root route that runs this script.
-const preferencesKey = 'xml-editor:editor-preferences'
+export const PREFERENCES_KEY = 'xml-editor:editor-preferences'
 
 // Runs before first paint so code never flashes in the default font's place.
 export const codeFontScript = `(() => {
@@ -55,7 +55,7 @@ export const codeFontScript = `(() => {
         codeFonts.map((font) => [font.id, fontProperties(font)]),
       ),
     )}
-    const id = JSON.parse(localStorage.getItem('${preferencesKey}'))?.codeFont
+    const id = JSON.parse(localStorage.getItem('${PREFERENCES_KEY}'))?.codeFont
     if (Object.hasOwn(fonts, id)) {
       for (const [name, value] of Object.entries(fonts[id])) {
         if (value) document.documentElement.style.setProperty(name, value)

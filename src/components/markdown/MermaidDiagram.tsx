@@ -28,6 +28,7 @@ export function MermaidDiagram({ code }: { code: string }) {
 
   return (
     <figure
+      data-mermaid
       data-pdf-state={
         query.isError ? 'error' : svg && !query.isFetching ? 'ready' : 'pending'
       }
@@ -38,7 +39,7 @@ export function MermaidDiagram({ code }: { code: string }) {
           role="img"
           aria-label={m.md_diagram()}
           className={cn(
-            'flex justify-center overflow-x-auto rounded-none border bg-background p-4 [&_svg]:h-auto [&_svg]:max-w-full',
+            'flex justify-start overflow-x-auto rounded-none border bg-background p-4 [&_svg]:h-auto [&_svg]:max-w-full',
             query.isError && 'opacity-40',
           )}
           // Mermaid's strict mode sanitizes labels before they reach the SVG.

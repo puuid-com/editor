@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.43.0] - 2026-11-09
+
+### Added
+
+- Center menu in the bottom bar of Markdown files: pick tables, images, code blocks and Mermaid diagrams to sit in the middle of the page, in the preview and PDF. Live preview centers tables. Diagrams stay centered by default; turned off, they sit at the start.
+
 ## [1.42.0] - 2026-11-09
 
 ### Added

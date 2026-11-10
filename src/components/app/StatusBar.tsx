@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 
 import { ActionBar, FormatButton } from './ActionBar'
+import { CenterMenu } from './CenterMenu'
 import { CodeFontMenu } from './CodeFontMenu'
 import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
@@ -92,6 +93,7 @@ export function StatusBar({
         </>
       )}
       {activeId && markdown && <MarkdownLiveToggle />}
+      {activeId && markdown && <CenterMenu />}
       {activeId && markdown && (
         <Button
           variant="ghost"

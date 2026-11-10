@@ -12,6 +12,7 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { codeFontScript } from '#/lib/code-font'
+import { centerScript } from '#/lib/md-center'
 import { seo } from '#/lib/seo'
 import { themeScript } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
@@ -67,11 +68,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    // The theme and font scripts change <html> before hydration.
+    // The theme, font and centering scripts change <html> before hydration.
     <html lang={getLocale()} dir={getTextDirection()} suppressHydrationWarning>
       <head>
         <ScriptOnce>{themeScript}</ScriptOnce>
         <ScriptOnce>{codeFontScript}</ScriptOnce>
+        <ScriptOnce>{centerScript}</ScriptOnce>
         <HeadContent />
       </head>
       <body>

@@ -9,6 +9,7 @@ import { collectPdfNotes } from './source'
 import type { PdfSource } from './source'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
 import { CODE_FONT_PROPERTY, TEXT_FONT_PROPERTY } from '#/lib/code-font'
+import { CENTER_ATTRIBUTE } from '#/lib/md-center'
 import { m } from '#/paraglide/messages'
 import printStyles from './print.css?inline'
 
@@ -39,6 +40,9 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
     const value = fonts.getPropertyValue(property)
     if (value) doc.documentElement.style.setProperty(property, value)
   }
+  const centered = document.documentElement.getAttribute(CENTER_ATTRIBUTE)
+  if (centered !== null)
+    doc.documentElement.setAttribute(CENTER_ATTRIBUTE, centered)
   const container = doc.createElement('div')
   doc.body.appendChild(container)
   const objectUrls: Array<string> = []

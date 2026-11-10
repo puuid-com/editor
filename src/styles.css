@@ -577,6 +577,29 @@
   font: 400 10px / 14px var(--code-font);
   color: var(--muted-foreground);
 }
+/*
+ * Blocks centered from the Center menu, which sets `data-md-center` on <html>
+ * (see #/lib/md-center). The preview, PDF and live preview's tables all read
+ * these rules; off, a block sits at the start.
+ */
+[data-md-center~='table'] :is(.md-preview table, .cm-md-table .md-table) {
+  margin-inline: auto;
+}
+[data-md-center~='image'] .md-preview [data-image-block] {
+  text-align: center;
+}
+[data-md-center~='image'] .md-preview [data-image-block] img {
+  margin-inline: auto;
+}
+[data-md-center~='code'] .md-preview [data-code-block] {
+  width: fit-content;
+  min-width: min(100%, 20rem);
+  max-width: 100%;
+  margin-inline: auto;
+}
+[data-md-center~='mermaid'] .md-preview [data-mermaid] > [role='img'] {
+  justify-content: center;
+}
 /* `==highlighted==` text. */
 .md-preview mark {
   background: color-mix(in oklab, var(--foreground) 12%, transparent);

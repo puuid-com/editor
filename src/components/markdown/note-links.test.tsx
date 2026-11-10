@@ -101,6 +101,8 @@ describe('links in a note of a vault', () => {
     const image = await screen.findByRole('img', { name: 'diagram.png' })
     expect(image).toHaveAttribute('src', 'blob:diagram')
     expect(image).toHaveAttribute('width', '120')
+    // Alone on its line, so the Center menu can put it in the middle.
+    expect(image.closest('[data-image-block]')).not.toBeNull()
   })
 
   it('shows the note an ![[embed]] names, or the heading it names', async () => {
@@ -143,6 +145,16 @@ describe('links in a note of a vault', () => {
 })
 
 describe('links in a note of the browser', () => {
+  it('marks a paragraph of images alone as an image block', async () => {
+    preview('![a](a.png) ![b](b.png)\n\nText ![c](c.png)')
+    const [a, b, c] = await screen.findAllByRole('img')
+    expect(a.closest('[data-image-block]')).not.toBeNull()
+    expect(b.closest('[data-image-block]')).toBe(
+      a.closest('[data-image-block]'),
+    )
+    expect(c.closest('[data-image-block]')).toBeNull()
+  })
+
   it('shows [[links]] as text, with nowhere to go', async () => {
     preview('See [[Ideas]].')
     const text = await screen.findByText('Ideas')

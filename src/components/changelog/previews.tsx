@@ -4194,7 +4194,40 @@ function SerifText() {
   )
 }
 
+function CenteredBlocks() {
+  const page = (centered: boolean) => (
+    <div className={cn('grid gap-3 p-4', centered && 'justify-items-center')}>
+      <table className="md-table text-[11px]">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ada</td>
+            <td>Eng</td>
+          </tr>
+          <tr>
+            <td>Grace</td>
+            <td>Admiral</td>
+          </tr>
+        </tbody>
+      </table>
+      <span className="grid h-12 w-20 place-items-center border bg-muted/40 text-muted-foreground">
+        <IconPhoto className="size-4" />
+      </span>
+      <div className="w-fit border bg-muted/40">
+        <Code lines={ORDER.slice(0, 2)} />
+      </div>
+    </div>
+  )
+  return <BeforeAfter before={page(false)} after={page(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.43.0': figure(CenteredBlocks),
   '1.42.0': figure(SerifText),
   '1.41.0': figure(SheetTables),
   '1.40.2': figure(LiveInlineCodePreview),
