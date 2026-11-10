@@ -194,20 +194,25 @@ export function DiskWorkspace({
     remove: setDeleting,
   }
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!deleting || busy) return
     setBusy(true)
     const entry = deleting
-    if (await deleteDiskEntry(root, entry)) {
-      // Its folder, and any open below it, would only show it again.
-      setExpanded(
-        (previous) =>
-          new Set([...previous].filter((path) => !isWithin(path, entry.path))),
-      )
-      setDeleting(null)
-      await refresh()
-    }
-    setBusy(false)
+    return deleteDiskEntry(root, entry)
+      .then(async (deleted) => {
+        if (!deleted) return
+        // Its folder, and any open below it, would only show it again.
+        setExpanded(
+          (previous) =>
+            new Set(
+              [...previous].filter((path) => !isWithin(path, entry.path)),
+            ),
+        )
+        setDeleting(null)
+        await refresh()
+      })
+      .catch(() => notify.error(m.explorer_failed()))
+      .finally(() => setBusy(false))
   }
 
   return (

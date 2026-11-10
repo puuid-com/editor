@@ -66,7 +66,7 @@ export function AppHeader({
 }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const panes = useSelector(sessionStore, (s) => s.panes ?? [])
-  const visible = panes.map((p) => p.activeId)
+  const visible = new Set(panes.map((p) => p.activeId))
   const focus = () => setActive(fileId)
 
   return (
@@ -113,7 +113,7 @@ export function AppHeader({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {allFiles
-              .filter((f) => !visible.includes(f.id))
+              .filter((f) => !visible.has(f.id))
               .map((f) => (
                 <DropdownMenuItem key={f.id} onSelect={() => openBeside(f.id)}>
                   {f.name}

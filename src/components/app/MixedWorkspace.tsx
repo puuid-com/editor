@@ -1,6 +1,6 @@
 import { ImagePreview } from '#/components/image/ImagePreview'
 import { imageMime, isImageData } from '#/lib/image-file'
-import { Fragment, Suspense, lazy, useEffect } from 'react'
+import { Fragment, Suspense, lazy, useEffect, useMemo } from 'react'
 import { useSelector } from '@tanstack/react-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
 import { editorPrefs } from '#/components/editor/word-wrap'
@@ -54,15 +54,19 @@ export function MixedWorkspace({
 }) {
   const files = useOpenFiles()
   const stored = useSelector(sessionStore, (s) => s.panes)
-  const panes = normalizePanes(
-    stored,
-    files.map((f) => f.id),
-    fileId,
+  const panes = useMemo(
+    () =>
+      normalizePanes(
+        stored,
+        files.map((f) => f.id),
+        fileId,
+      ),
+    [stored, files, fileId],
   )
-  const key = JSON.stringify(panes)
   useEffect(() => {
-    if (key !== JSON.stringify(sessionStore.state.panes)) savePanes(panes)
-  }, [key])
+    if (JSON.stringify(panes) !== JSON.stringify(sessionStore.state.panes))
+      savePanes(panes)
+  }, [panes])
   const rendered = wide
     ? panes
     : panes.filter((p) => p.fileIds.includes(fileId))

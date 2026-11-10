@@ -3936,7 +3936,35 @@ function LiveTableCells() {
   )
 }
 
+function SharedLinkRequest({ name }: { name: string }) {
+  return (
+    <>
+      <StatusBar className="border-t-0 border-b bg-muted/60">
+        <IconShare className="size-3" />
+        <span className="font-mono">order-2.xml</span>
+      </StatusBar>
+      <div className="grid gap-3 p-4">
+        <p className="font-medium">{m.share_open_title({ name })}</p>
+        <p className="text-muted-foreground">{m.share_open_description()}</p>
+        <div className="flex justify-end">
+          <Button size="sm">{m.share_open_confirm()}</Button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function LatestSharedLink() {
+  return (
+    <BeforeAfter
+      before={<SharedLinkRequest name="order-1.xml" />}
+      after={<SharedLinkRequest name="order-2.xml" />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.38.1': figure(LatestSharedLink),
   '1.38.0': figure(ClosedTabsKept),
   '1.37.0': figure(LiveTableCells),
   '1.36.0': figure(LiveCodeAndTables),

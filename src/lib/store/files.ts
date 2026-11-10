@@ -55,6 +55,14 @@ export function isOpen(file: XmlFile | undefined) {
   return file?.deletedAt === null && !file.closed
 }
 
+/** Ids of the open tabs, in tab order. */
+export function openFileIds() {
+  return [...filesCollection.values()]
+    .filter(isOpen)
+    .sort((a, b) => a.order - b.order)
+    .map((file) => file.id)
+}
+
 export function archivedFiles() {
   return [...filesCollection.values()]
     .filter((file) => file.deletedAt !== null)

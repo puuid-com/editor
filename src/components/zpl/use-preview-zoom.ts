@@ -1,4 +1,10 @@
-import { useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+} from 'react'
 
 import { setPreviewZoom } from './store'
 
@@ -161,18 +167,20 @@ export function usePreviewZoom({
   // doesn't pass on: a pane that can't scroll as far would pull the others
   // back.
   const ignoredScroll = useRef<{ left: number; top: number } | null>(null)
-  const scrollTo = (left: number, top: number) => {
-    if (!viewportElement) return
-    const { scrollLeft, scrollTop } = viewportElement
-    viewportElement.scrollLeft = left
-    viewportElement.scrollTop = top
-    const moved =
-      viewportElement.scrollLeft !== scrollLeft ||
-      viewportElement.scrollTop !== scrollTop
-    ignoredScroll.current = moved
-      ? { left: viewportElement.scrollLeft, top: viewportElement.scrollTop }
-      : null
-  }
+  const scrollTo = useCallback(
+    (left: number, top: number) => {
+      if (!viewportElement) return
+      const { scrollLeft, scrollTop } = viewportElement
+      viewportElement.scrollTo({ left, top, behavior: 'instant' })
+      const moved =
+        viewportElement.scrollLeft !== scrollLeft ||
+        viewportElement.scrollTop !== scrollTop
+      ignoredScroll.current = moved
+        ? { left: viewportElement.scrollLeft, top: viewportElement.scrollTop }
+        : null
+    },
+    [viewportElement],
+  )
   const onSyncedScroll = useEffectEvent(
     (source: string, left: number, top: number) => {
       if (source !== panelId) scrollTo(left, top)
@@ -212,10 +220,11 @@ export function usePreviewZoom({
     if (anchor?.element.isConnected) {
       const box = viewportElement.getBoundingClientRect()
       const rect = anchor.element.getBoundingClientRect()
-      viewportElement.scrollLeft +=
-        rect.left + anchor.fx * rect.width - box.left - anchor.x
-      viewportElement.scrollTop +=
-        rect.top + anchor.fy * rect.height - box.top - anchor.y
+      viewportElement.scrollBy({
+        left: rect.left + anchor.fx * rect.width - box.left - anchor.x,
+        top: rect.top + anchor.fy * rect.height - box.top - anchor.y,
+        behavior: 'instant',
+      })
       return
     }
     const ratio = scale / previous
@@ -224,5 +233,5 @@ export function usePreviewZoom({
       (scrollLeft + clientWidth / 2) * ratio - clientWidth / 2,
       (scrollTop + clientHeight / 2) * ratio - clientHeight / 2,
     )
-  }, [scale, viewportElement])
+  }, [scale, viewportElement, scrollTo])
 }

@@ -1,5 +1,10 @@
 import { readFileContent, IMAGE_TYPES } from '#/lib/image-file'
-import { foldersCollection, saveFolder, moveFile } from '#/lib/store/folders'
+import {
+  foldersCollection,
+  saveFolder,
+  moveFile,
+  deleteFolder,
+} from '#/lib/store/folders'
 import { notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
 import { LANGUAGE_EXTENSIONS } from '#/lib/document'
@@ -11,6 +16,7 @@ import {
   filesCollection,
   hideFile,
   isOpen,
+  openFileIds,
   reopenFile,
 } from '#/lib/store/files'
 import { activeProfileId, profileGuesser } from '#/lib/store/profiles'
@@ -146,18 +152,24 @@ export function deleteFiles(
   return leaveTabs(ids, openIds, archiveFile)
 }
 
+/** Archives a folder tree's files before removing its folders, children first. */
+export async function deleteFolders(
+  folderIds: ReadonlySet<string>,
+  fileIds: ReadonlyArray<string>,
+) {
+  await deleteFiles(fileIds, openFileIds())
+  for (const id of [...folderIds].reverse()) {
+    // Child folders must be gone before their parent can be removed.
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    if (!(await deleteFolder(id)))
+      throw new Error('Folder changed during deletion')
+  }
+}
+
 /** Shows a file in the editor, giving it its tab back if it was closed. */
 export async function showFile(id: string) {
   await reopenFile(id)
   setActive(id)
-}
-
-/** Ids of the open tabs, in tab order. */
-export function openFileIds() {
-  return [...filesCollection.values()]
-    .filter(isOpen)
-    .sort((a, b) => a.order - b.order)
-    .map((file) => file.id)
 }
 
 // New files take the profile of the file in the editor. Opened files take

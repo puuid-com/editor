@@ -6,7 +6,11 @@ import { isMarkdownName } from '#/lib/obsidian'
 import type { DiskRoot } from '#/lib/store/disk'
 import { fileAt, filesCollection } from '#/lib/store/files'
 import type { FileLocation, XmlFile } from '#/lib/store/files'
-import { folderPath, foldersCollection } from '#/lib/store/folders'
+import {
+  folderPath,
+  foldersCollection,
+  folderTreeIds,
+} from '#/lib/store/folders'
 import { m } from '#/paraglide/messages'
 
 export type PdfSource =
@@ -49,13 +53,7 @@ export async function collectPdfNotes(source: PdfSource) {
     const folder = foldersCollection.get(source.id)
     if (!folder) throw new Error(m.md_pdf_empty())
     name = folder.name
-    const ids = new Set([source.id])
-    // A visited set also makes corrupt/cyclic folder records harmless.
-    for (const id of ids) {
-      for (const child of foldersCollection.values()) {
-        if (child.parentId === id) ids.add(child.id)
-      }
-    }
+    const ids = folderTreeIds(source.id)
     notes = [...filesCollection.values()]
       .filter(
         (file) =>

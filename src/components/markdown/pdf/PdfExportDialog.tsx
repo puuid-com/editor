@@ -19,6 +19,8 @@ import { m } from '#/paraglide/messages'
 const exportStore = new Store<{ source: PdfSource; key: number } | null>(null)
 let nextKey = 0
 
+const loadPrint = () => import('./print')
+
 export function exportMarkdownPdf(source: PdfSource) {
   exportStore.setState(() => ({ source, key: ++nextKey }))
 }
@@ -48,19 +50,15 @@ function ExportJob({ source }: { source: PdfSource }) {
   const [error, setError] = useState<string>()
   useEffect(() => {
     const controller = new AbortController()
-    void import('./print')
+    void loadPrint()
       .then(({ preparePdf: prepare }) => prepare(source, controller.signal))
-      .then(
-        (result) => {
-          if (!controller.signal.aborted) setReady(result)
-        },
-        (reason: unknown) => {
-          if (!controller.signal.aborted)
-            setError(
-              reason instanceof Error ? reason.message : m.md_pdf_failed(),
-            )
-        },
-      )
+      .then((result) => {
+        if (!controller.signal.aborted) setReady(result)
+      })
+      .catch((reason: unknown) => {
+        if (!controller.signal.aborted)
+          setError(reason instanceof Error ? reason.message : m.md_pdf_failed())
+      })
     return () => controller.abort()
   }, [source])
   return (

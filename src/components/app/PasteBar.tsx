@@ -35,11 +35,14 @@ export function PasteBar({ fileId }: { fileId: string }) {
   const profiles = useProfiles()
   const [saving, setSaving] = useState(false)
   const submitRef = useRef<HTMLButtonElement>(null)
+  const hasChoice = choice !== null
+  const detected = choice?.detected
+  const current = choice?.current
 
   // Right after the paste, Enter takes the offer and Escape turns it down.
   useEffect(() => {
-    if (choice) submitRef.current?.focus()
-  }, [choice?.detected, choice?.current, !!choice])
+    if (hasChoice) submitRef.current?.focus()
+  }, [detected, current, hasChoice])
 
   if (!choice) return null
   const content = filesCollection.get(fileId)?.content ?? ''
@@ -49,13 +52,15 @@ export function PasteBar({ fileId }: { fileId: string }) {
     getView()?.focus()
   }
 
-  const confirm = async () => {
+  const confirm = () => {
     if (saving) return
     setSaving(true)
-    await applyPasteChoice(choice).then(dismiss, () => {
-      // The workspace reports the failed write; keep the offer up.
-    })
-    setSaving(false)
+    return applyPasteChoice(choice)
+      .then(dismiss)
+      .catch(() => {
+        // The workspace reports the failed write; keep the offer up.
+      })
+      .finally(() => setSaving(false))
   }
 
   return (

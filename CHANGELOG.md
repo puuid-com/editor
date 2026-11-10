@@ -8,6 +8,18 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.38.1] - 2026-11-09
+
+### Fixed
+
+- Opening shared links in quick succession keeps the newest file and its profile choices; a late result from an older link cannot replace it or clear the new link.
+- Failed file operations release their busy state so you can retry. PDF exports check image responses before using them.
+
+### Changed
+
+- Reuse tab ordering and folder traversal across the explorer, split panes and PDF exports; clean up effect dependencies and compiler warnings without changing the editor layout.
+- Remove test-environment scrolling warnings and cover shared-link races, deletion retries, folder traversal and synchronized zoom with regression tests.
+
 ## [1.38.0] - 2026-11-09
 
 ### Changed

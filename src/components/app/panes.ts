@@ -1,5 +1,5 @@
 import { sessionStore } from '#/lib/store/session'
-import { filesCollection, isOpen } from '#/lib/store/files'
+import { openFileIds } from '#/lib/store/files'
 import { MAX_PANES, movePaneTab, normalizePanes } from '#/lib/store/pane-layout'
 import type { FilePaneGroup } from '#/lib/store/pane-layout'
 
@@ -7,11 +7,7 @@ export { MAX_PANES, normalizePanes }
 
 function currentPanes() {
   const s = sessionStore.state
-  const openIds = [...filesCollection.values()]
-    .filter(isOpen)
-    .sort((a, b) => a.order - b.order)
-    .map((f) => f.id)
-  return normalizePanes(s.panes, openIds, s.activeId)
+  return normalizePanes(s.panes, openFileIds(), s.activeId)
 }
 
 export function savePanes(

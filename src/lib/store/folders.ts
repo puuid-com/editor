@@ -9,6 +9,22 @@ export const folderSchema = z.object({
 })
 export const foldersCollection = localCollection('folders', folderSchema)
 
+/** A folder and its descendants, with parents before children, even for cyclic records. */
+export function folderTreeIds(id: string) {
+  const children = new Map<string, Array<string>>()
+  for (const folder of foldersCollection.values()) {
+    if (!folder.parentId) continue
+    const siblings = children.get(folder.parentId) ?? []
+    siblings.push(folder.id)
+    children.set(folder.parentId, siblings)
+  }
+  const ids = new Set([id])
+  for (const parentId of ids) {
+    for (const childId of children.get(parentId) ?? []) ids.add(childId)
+  }
+  return ids
+}
+
 export function validEntryName(name: string) {
   return (
     !!name.trim() &&

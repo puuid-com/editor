@@ -1,6 +1,7 @@
 import { Store } from '@tanstack/store'
 
-import { closeTabs, openFileIds } from './files'
+import { closeTabs } from './files'
+import { openFileIds } from '#/lib/store/files'
 import { notify } from './notice-store'
 import { m } from '#/paraglide/messages'
 

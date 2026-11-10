@@ -5,11 +5,10 @@ import {
   TEMPLATE_TYPES,
   closeTabs,
   importFiles,
-  openFileIds,
   showFile,
   survivor,
 } from './files'
-import { createFile, filesCollection } from '#/lib/store/files'
+import { openFileIds, createFile, filesCollection } from '#/lib/store/files'
 import { settleWrites } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { workspaceReady } from '#/lib/store/workspace'

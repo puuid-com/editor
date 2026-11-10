@@ -2,7 +2,7 @@ import { readFileContent } from '#/lib/image-file'
 import { Debouncer } from '@tanstack/react-pacer'
 
 import { notify } from './notice-store'
-import { closeTabs, openFileIds, profileFor } from './files'
+import { closeTabs, profileFor } from './files'
 import { saveToDisk } from '#/components/editor/disk'
 import {
   EntryExistsError,
@@ -26,6 +26,7 @@ import {
 } from '#/lib/store/disk'
 import type { DiskRoot } from '#/lib/store/disk'
 import {
+  openFileIds,
   createDiskFile,
   fileAt,
   filesCollection,

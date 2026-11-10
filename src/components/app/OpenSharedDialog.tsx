@@ -38,22 +38,40 @@ function clearHash() {
 /** What opening a link does with the profile it carries. */
 type ProfileChoice = 'import' | 'keep' | 'update' | 'ignore'
 
+const loadZplLocation = () => import('#/components/zpl/open-label')
+
 /** Asks before opening a file carried in a `#share=` link. */
 export function OpenSharedDialog() {
-  const [shared, setShared] = useState<SharedFile | null>(null)
+  const [request, setRequest] = useState<{
+    hash: string
+    file: SharedFile
+  } | null>(null)
 
   useEffect(() => {
+    let revision = 0
     const read = () => {
+      revision += 1
+      const current = revision
       const { hash } = window.location
+      const isCurrent = () =>
+        current === revision && window.location.hash === hash
       if (!isShareHash(hash)) {
-        void import('#/components/zpl/open-label').then(({ openZplLocation }) =>
-          openZplLocation(),
-        )
+        void loadZplLocation()
+          .then(({ openZplLocation }) => {
+            if (isCurrent()) openZplLocation()
+          })
+          .catch(() => {
+            if (isCurrent()) notify.error(m.share_open_invalid())
+          })
         return
       }
       decodeShare(hash)
-        .then(setShared)
+        .then((file) => {
+          if (isCurrent()) setRequest({ hash, file })
+        })
         .catch((error: unknown) => {
+          if (!isCurrent()) return
+          setRequest(null)
           clearHash()
           notify.error(
             error instanceof ShareError && error.reason === 'too-long'
@@ -62,25 +80,38 @@ export function OpenSharedDialog() {
           )
         })
     }
+    const onHashChange = () => {
+      setRequest(null)
+      read()
+    }
     read()
-    window.addEventListener('hashchange', read)
-    return () => window.removeEventListener('hashchange', read)
+    window.addEventListener('hashchange', onHashChange)
+    return () => {
+      revision += 1
+      window.removeEventListener('hashchange', onHashChange)
+    }
   }, [])
 
   const close = () => {
     clearHash()
-    setShared(null)
+    setRequest(null)
   }
 
   return (
     <AlertDialog
-      open={!!shared}
+      open={!!request}
       onOpenChange={(open) => {
         if (!open) close()
       }}
     >
       <AlertDialogContent>
-        {shared && <OpenSharedForm shared={shared} onDone={close} />}
+        {request && (
+          <OpenSharedForm
+            key={request.hash}
+            shared={request.file}
+            onDone={close}
+          />
+        )}
       </AlertDialogContent>
     </AlertDialog>
   )

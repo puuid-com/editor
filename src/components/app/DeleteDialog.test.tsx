@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { DeleteDialog } from './DeleteDialog'
+import * as files from './files'
 import { askDelete, uiStore } from './ui-store'
 import { createFile, filesCollection } from '#/lib/store/files'
 import { settleWrites } from '#/lib/store/persist'
@@ -14,8 +15,26 @@ afterEach(() => settleWrites())
 
 describe('delete dialog', () => {
   afterEach(() => {
+    vi.restoreAllMocks()
     askDelete(null)
     setActive(null)
+  })
+
+  it('keeps a failed deletion open and permits retrying', async () => {
+    const file = createFile('retry.xml')
+    askDelete([file.id])
+    const remove = vi
+      .spyOn(files, 'deleteFiles')
+      .mockRejectedValueOnce(new Error('Storage failed'))
+    render(<DeleteDialog openIds={[file.id]} />)
+    const confirm = screen.getByRole('button', { name: 'Delete' })
+    fireEvent.click(confirm)
+    await waitFor(() => expect(confirm).toBeEnabled())
+    expect(uiStore.state.deleteIds).toEqual([file.id])
+    expect(filesCollection.get(file.id)?.deletedAt).toBeNull()
+    fireEvent.click(confirm)
+    await waitFor(() => expect(uiStore.state.deleteIds).toBeNull())
+    expect(remove).toHaveBeenCalledTimes(2)
   })
 
   it('deletes several files and moves to the nearest tab left open', async () => {

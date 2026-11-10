@@ -6,6 +6,7 @@ import {
   moveFile,
   deleteFolder,
   folderPath,
+  folderTreeIds,
   validEntryName,
 } from './folders'
 import {
@@ -40,6 +41,15 @@ it('rejects cycles, missing parents, duplicate sibling names and invalid names',
   for (const name of ['', ' ', '..', '.', 'a/b', 'a\\b', 'a\u0000'])
     expect(validEntryName(name)).toBe(false)
   expect(folderPath(child)).toBe('Root/Child')
+})
+it('walks descendants once with parents first, regardless of storage order or cycles', async () => {
+  await foldersCollection.insert([
+    { id: 'leaf', name: 'Leaf', parentId: 'child' },
+    { id: 'child', name: 'Child', parentId: 'root' },
+    { id: 'root', name: 'Root', parentId: 'leaf' },
+    { id: 'other', name: 'Other', parentId: null },
+  ]).isPersisted.promise
+  expect([...folderTreeIds('root')]).toEqual(['root', 'child', 'leaf'])
 })
 it('moves files without losing pending content and retains location on restore', async () => {
   const target = await folder('Target')

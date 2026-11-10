@@ -121,7 +121,9 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
       Promise.all(
         [...snapshot.querySelectorAll('img')].map(async (img) => {
           if (!img.src.startsWith('blob:')) return
-          const blob = await (await fetch(img.src, { signal })).blob()
+          const response = await fetch(img.src, { signal })
+          if (!response.ok) throw new Error(m.md_pdf_assets_failed())
+          const blob = await response.blob()
           signal.throwIfAborted()
           const url = URL.createObjectURL(blob)
           objectUrls.push(url)

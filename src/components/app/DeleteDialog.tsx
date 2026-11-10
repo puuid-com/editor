@@ -26,17 +26,16 @@ export function DeleteDialog({ openIds }: { openIds: Array<string> }) {
   })
   const [deleting, setDeleting] = useState(false)
 
-  const confirm = async () => {
+  const confirm = () => {
     if (!files.length || deleting) return
     setDeleting(true)
-    await deleteFiles(
+    return deleteFiles(
       files.map((file) => file.id),
       openIds,
-    ).then(
-      () => askDelete(null),
-      () => notify.error(m.archive_delete_failed()),
     )
-    setDeleting(false)
+      .then(() => askDelete(null))
+      .catch(() => notify.error(m.archive_delete_failed()))
+      .finally(() => setDeleting(false))
   }
 
   const many = files.length > 1

@@ -31,7 +31,7 @@ import {
   scrollToRow,
 } from './explorer-parts'
 import type { NameRequest } from './explorer-parts'
-import { deleteFiles, importFiles, openFileIds, showFile } from './files'
+import { deleteFolders, importFiles, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
 import { askDelete, closeTab } from './ui-store'
@@ -71,9 +71,9 @@ import {
   foldersCollection,
   saveFolder,
   moveFile,
-  deleteFolder,
   canMoveFolder,
   folderPath,
+  folderTreeIds,
 } from '#/lib/store/folders'
 import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
@@ -465,42 +465,20 @@ export function FileExplorer({
         .map(fileRow)}
     </>
   )
-  const removeFolderTree = async () => {
+  const removeFolderTree = () => {
     if (!deleteId || deleting) return
     setDeleting(true)
-    try {
-      const ids = new Set([deleteId])
-      let changed = true
-      while (changed) {
-        changed = false
-        for (const folder of foldersCollection.values()) {
-          if (
-            folder.parentId &&
-            ids.has(folder.parentId) &&
-            !ids.has(folder.id)
-          ) {
-            ids.add(folder.id)
-            changed = true
-          }
-        }
-      }
-      const children = files.filter(
-        (file) => file.folderId && ids.has(file.folderId),
-      )
-      await deleteFiles(
-        children.map((file) => file.id),
-        openFileIds(),
-      )
-      for (const id of [...ids].reverse()) {
-        if (!(await deleteFolder(id)))
-          throw new Error('Folder changed during deletion')
-      }
-      setDeleteId(null)
-    } catch {
-      notify.error(m.explorer_failed())
-    } finally {
-      setDeleting(false)
-    }
+    const ids = folderTreeIds(deleteId)
+    const children = files.filter(
+      (file) => file.folderId && ids.has(file.folderId),
+    )
+    return deleteFolders(
+      ids,
+      children.map((file) => file.id),
+    )
+      .then(() => setDeleteId(null))
+      .catch(() => notify.error(m.explorer_failed()))
+      .finally(() => setDeleting(false))
   }
   return (
     <aside
