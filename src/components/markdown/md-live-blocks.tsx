@@ -946,14 +946,6 @@ export function markdownLiveBlocks(parser: Parser): Extension {
       '.cm-md-table :is(th, td):focus': {
         boxShadow: 'inset 0 0 0 1px var(--ring)',
       },
-      '.cm-md-table :is(th, td) code': {
-        color: 'var(--sql-keyword)',
-        backgroundColor: 'color-mix(in oklch, var(--hl-blue) 10%, transparent)',
-      },
-      '.cm-md-table :is(th, td) code.md-code-color': {
-        color: 'oklch(from var(--md-code) var(--hl-ink-l) c h)',
-        backgroundColor: 'color-mix(in oklch, var(--md-code) 10%, transparent)',
-      },
       '.cm-md-table :is(th, td) mark': {
         color: 'inherit',
         backgroundColor:

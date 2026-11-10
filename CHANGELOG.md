@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.40.2] - 2026-11-09
+
+### Fixed
+
+- Pad inline code in Markdown live preview and its tables the same as in the preview panel.
+
 ## [1.40.1] - 2026-11-09
 
 ### Fixed

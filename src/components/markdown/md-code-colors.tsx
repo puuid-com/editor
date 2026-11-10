@@ -222,7 +222,10 @@ class TagAsBacktick extends WidgetType {
 
 const tagAsBacktick = Decoration.replace({ widget: new TagAsBacktick() })
 
-function colorMarks(view: EditorView) {
+/** Inline code's look, the same as the preview's; see `.md-inline-code`. */
+const plainCode = Decoration.mark({ class: 'md-inline-code' })
+
+function codeMarks(view: EditorView) {
   const marks = new RangeSetBuilder<Decoration>()
   const { state } = view
   const tree = syntaxTree(state)
@@ -234,10 +237,17 @@ function colorMarks(view: EditorView) {
       from,
       to,
       enter: (node) => {
-        if (node.name !== 'HTMLCode') return undefined
+        if (!isCode(node.name)) return undefined
         // A node across two visible ranges comes up in both.
         if (node.from < done) return false
         done = node.to
+        if (node.name === 'InlineCode') {
+          const open = node.node.firstChild
+          const close = node.node.lastChild
+          if (open && close && open.to < close.from)
+            marks.add(open.to, close.from, plainCode)
+          return false
+        }
         const source = state.sliceDoc(node.from, node.to)
         const code = readHtmlCode(source)
         if (!code) return false
@@ -252,7 +262,7 @@ function colorMarks(view: EditorView) {
             node.from + code.textFrom,
             node.from + code.textTo,
             Decoration.mark({
-              class: 'md-code-color',
+              class: 'md-inline-code md-code-color',
               attributes: {
                 style: `--md-code: ${highlightCss(code.color ?? 'blue')}`,
               },
@@ -265,11 +275,11 @@ function colorMarks(view: EditorView) {
   return marks.finish()
 }
 
-const htmlCodeColors = ViewPlugin.fromClass(
+const codeLook = ViewPlugin.fromClass(
   class {
     marks: DecorationSet
     constructor(view: EditorView) {
-      this.marks = colorMarks(view)
+      this.marks = codeMarks(view)
     }
     update(update: ViewUpdate) {
       if (
@@ -279,7 +289,7 @@ const htmlCodeColors = ViewPlugin.fromClass(
         treeChanged(update) ||
         liveChanged(update)
       )
-        this.marks = colorMarks(update.view)
+        this.marks = codeMarks(update.view)
     }
   },
 )
@@ -326,11 +336,11 @@ const picker = showTooltip.compute(
 
 export function codeColors(): Extension {
   return [
-    htmlCodeColors.extension,
+    codeLook.extension,
     // Highest, so the colour sits inside a heading's or a link's own.
     Prec.highest(
       EditorView.decorations.of(
-        (view) => view.plugin(htmlCodeColors)?.marks ?? Decoration.none,
+        (view) => view.plugin(codeLook)?.marks ?? Decoration.none,
       ),
     ),
     picker,

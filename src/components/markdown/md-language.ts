@@ -156,11 +156,8 @@ const style = HighlightStyle.define(
     { tag: t.strikethrough, textDecoration: 'line-through' },
     { tag: t.monospace, color: 'var(--muted-foreground)' },
     { tag: t.quote, color: 'var(--muted-foreground)', fontStyle: 'italic' },
-    {
-      tag: inlineCode,
-      color: 'var(--sql-keyword)',
-      backgroundColor: 'color-mix(in oklch, var(--hl-blue) 10%, transparent)',
-    },
+    // Its look is `.md-inline-code`, marked on its text by `codeColors`.
+    { tag: inlineCode, color: 'inherit' },
     {
       tag: highlight,
       backgroundColor: 'color-mix(in oklch, var(--hl-amber) 30%, transparent)',

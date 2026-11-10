@@ -62,6 +62,7 @@ export function renderCell(parser: Parser, source: string, el: HTMLElement) {
       case 'InlineCode': {
         const marks = node.getChildren('CodeMark')
         const code = doc.createElement('code')
+        code.className = 'md-inline-code'
         const from = marks.length > 1 ? marks[0].to : node.from
         const to = marks.length > 1 ? marks[marks.length - 1].from : node.to
         code.textContent = source.slice(from, to).replace(/\\\|/g, '|')
@@ -71,9 +72,10 @@ export function renderCell(parser: Parser, source: string, el: HTMLElement) {
       case 'HTMLCode': {
         const html = readHtmlCode(source.slice(node.from, node.to))
         const code = doc.createElement('code')
+        code.className = 'md-inline-code'
         code.textContent = html?.text ?? source.slice(node.from, node.to)
         if (html?.color) {
-          code.className = 'md-code-color'
+          code.classList.add('md-code-color')
           code.style.setProperty('--md-code', highlightCss(html.color))
         }
         into.appendChild(code)

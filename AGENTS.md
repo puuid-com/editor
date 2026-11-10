@@ -12,6 +12,7 @@ Website template: TanStack Start on Cloudflare Workers, shadcn/ui, Tailwind v4, 
 - Import from `src` with the `#/` alias (`#/lib/utils`, `#/components/ui/button`).
 - Every user-facing string goes in `messages/en.json` and `messages/fr.json` and is used through `m.key()`. Don't hardcode copy.
 - Every page route sets `head: () => seo({ title, path })`. Public pages also go in `site.sitemapPaths`.
+- Markdown that shows in both the preview panel and the editor (live preview included) takes its look from one shared class in `src/styles.css`, like `.md-inline-code`. Don't restyle it separately in prose utilities or CodeMirror themes, or the two drift apart.
 - Server-only code lives in `*.server.ts` files. Read env through `#/env.server`.
 - Don't edit generated files: `src/routeTree.gen.ts`, `src/paraglide/`, `worker-configuration.d.ts`.
 

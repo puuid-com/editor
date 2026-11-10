@@ -415,6 +415,19 @@
   background-color: color-mix(in oklch, var(--hl-amber) 30%, transparent);
 }
 /*
+ * Inline code: the one look for the preview, the editor and live preview's
+ * tables, which all take it from this rule. Don't restyle inline code
+ * anywhere else, or the views drift apart (inline-code.test.ts checks).
+ */
+.md-inline-code,
+.md-preview :where(:not(pre) > code) {
+  padding: 0.2em 0.45em;
+  font-size: 0.85em;
+  font-weight: 400;
+  color: var(--sql-keyword);
+  background-color: color-mix(in oklch, var(--hl-blue) 10%, transparent);
+}
+/*
  * Inline code in a colour, `<code style="color: red">`, in the preview and the
  * editor: an ink and a wash of `--md-code` that read in either theme.
  */

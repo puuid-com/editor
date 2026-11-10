@@ -55,7 +55,7 @@ describe('HTML code as it is typed', () => {
       'A <code style="color: red">deploy</code> <code>plain</code> <code style="color: #f80">own</code>',
     )
     const [red] = spans(view, 'deploy')
-    expect(red.className).toBe('md-code-color')
+    expect(red.className).toBe('md-inline-code md-code-color')
     expect(red.style.getPropertyValue('--md-code')).toBe('var(--hl-red)')
     expect(spans(view, 'plain')[0].style.getPropertyValue('--md-code')).toBe(
       'var(--hl-blue)',

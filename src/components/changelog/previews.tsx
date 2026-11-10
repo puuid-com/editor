@@ -4090,7 +4090,34 @@ function FenceGutterPreview() {
   )
 }
 
+/** A line of live preview, its inline code bare or padded like the preview's. */
+function LiveInlineCode({ padded = false }: { padded?: boolean }) {
+  return (
+    <div className="p-3 font-mono">
+      Run{' '}
+      <span
+        className={
+          padded ? 'md-inline-code' : 'bg-(--hl-blue)/10 text-(--sql-keyword)'
+        }
+      >
+        deploy
+      </span>{' '}
+      now.
+    </div>
+  )
+}
+
+function LiveInlineCodePreview() {
+  return (
+    <BeforeAfter
+      before={<LiveInlineCode />}
+      after={<LiveInlineCode padded />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.40.2': figure(LiveInlineCodePreview),
   '1.40.1': figure(FenceGutterPreview),
   '1.40.0': figure(DragFeedbackPreview),
   '1.39.1': figure(PlainFileGutters),

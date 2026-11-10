@@ -48,7 +48,8 @@ describe('Markdown as it is typed', () => {
     expect(styleOf(view, ' Title')).toContain('font-size: 1.5em')
     expect(styleOf(view, 'bold')).toContain('font-weight: 700')
     expect(styleOf(view, 'it')).toContain('font-style: italic')
-    expect(styleOf(view, 'code')).toContain('background-color')
+    // Inline code's look is `.md-inline-code`, see inline-code.test.ts.
+    expect(styleOf(view, 'code')).toContain('color: inherit')
     expect(styleOf(view, 'mark')).toContain('var(--hl-amber)')
     expect(styleOf(view, 'Note|alias')).toContain('underline')
     // The markup itself stays plain.
