@@ -3963,7 +3963,29 @@ function LatestSharedLink() {
   )
 }
 
+function FileMovePreview() {
+  const view = (moved: boolean) => (
+    <div className="p-3 text-xs">
+      <div className="flex items-center gap-2">
+        <IconFolderRoot className="size-4" />
+        {m.folder_on_device()}
+      </div>
+      {!moved && <div className="ml-6 py-2 font-mono">notes.xml</div>}
+      <div className="ml-3 border-l p-2">
+        <div className="flex items-center gap-2">
+          <IconFolder className="size-4" />
+          {m.explorer_new_folder()}
+        </div>
+        {moved && <div className="ml-6 bg-muted p-2 font-mono">notes.xml</div>}
+      </div>
+      <StatusBar>{m.explorer_move()}</StatusBar>
+    </div>
+  )
+  return <BeforeAfter before={view(false)} after={view(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.39.0': figure(FileMovePreview),
   '1.38.1': figure(LatestSharedLink),
   '1.38.0': figure(ClosedTabsKept),
   '1.37.0': figure(LiveTableCells),

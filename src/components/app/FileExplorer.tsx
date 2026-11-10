@@ -371,6 +371,7 @@ export function FileExplorer({
   const fileRow = (file: (typeof files)[number]) => (
     <div
       key={file.id}
+      {...dropProps(file.folderId)}
       ref={file.id === activeId ? scrollToRow : undefined}
       className={cn(rowClass, file.id === activeId && activeRowClass)}
       draggable
@@ -449,7 +450,10 @@ export function FileExplorer({
                 parentId,
               })}
             </div>
-            <CollapsibleContent className="ml-3 border-l pl-1">
+            <CollapsibleContent
+              className="ml-3 border-l pl-1"
+              {...dropProps(folder.id)}
+            >
               {tree(folder.id, new Set([...ancestors, folder.id]))}
             </CollapsibleContent>
           </Collapsible>
@@ -624,7 +628,10 @@ export function FileExplorer({
                   </DropdownMenuItem>
                 </RowMenu>
               </WorkspaceHeader>
-              <CollapsibleContent className="ml-3 border-l pl-1">
+              <CollapsibleContent
+                className="ml-3 border-l pl-1"
+                {...dropProps(null)}
+              >
                 {search
                   ? files
                       .filter((f) =>

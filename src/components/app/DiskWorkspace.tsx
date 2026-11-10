@@ -57,7 +57,12 @@ import {
   CollapsibleTrigger,
 } from '#/components/ui/collapsible'
 import { DropdownMenuItem } from '#/components/ui/dropdown-menu'
-import { isEditableName, isWithin, parentPath } from '#/lib/disk-tree'
+import {
+  fileAtPath,
+  isEditableName,
+  isWithin,
+  parentPath,
+} from '#/lib/disk-tree'
 import type { DiskEntry, EntryKind } from '#/lib/disk-tree'
 import {
   isAttachmentFolder,
@@ -90,6 +95,7 @@ interface Tree {
   create: (parent: string, kind: EntryKind) => void
   rename: (entry: DiskEntry) => void
   remove: (entry: DiskEntry) => void
+  drop: (parent: string) => React.HTMLAttributes<HTMLDivElement>
 }
 
 export function DiskWorkspace({
@@ -192,6 +198,39 @@ export function DiskWorkspace({
         },
       }),
     remove: setDeleting,
+    drop: (parent) => ({
+      onDragOver: (event) => {
+        if (!event.dataTransfer.types.includes('application/x-disk-file'))
+          return
+        event.preventDefault()
+        event.stopPropagation()
+        event.dataTransfer.dropEffect = 'move'
+      },
+      onDrop: (event) => {
+        const value = event.dataTransfer.getData('application/x-disk-file')
+        if (!value) return
+        event.preventDefault()
+        event.stopPropagation()
+        void (async () => {
+          const source = JSON.parse(value) as { rootId: string; path: string }
+          if (source.rootId !== root.id || parentPath(source.path) === parent)
+            return
+          const handle = await fileAtPath(root.handle, source.path)
+          if (
+            await renameDiskEntry(
+              root,
+              { path: source.path, kind: 'file', handle },
+              handle.name,
+              parent,
+            )
+          ) {
+            setOpen(true)
+            expand(parent)
+            await refresh()
+          }
+        })().catch(() => notify.error(m.explorer_failed()))
+      },
+    }),
   }
 
   const confirmDelete = () => {
@@ -216,7 +255,12 @@ export function DiskWorkspace({
   }
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="mt-2">
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="mt-2"
+      {...tree.drop('')}
+    >
       <WorkspaceHeader
         icon={vault ? <IconNotebook /> : <IconFolderRoot />}
         name={root.name}
@@ -355,7 +399,11 @@ function Directory({ tree, path }: { tree: Tree; path: string }) {
 function DirectoryRow({ tree, entry }: { tree: Tree; entry: DiskEntry }) {
   const open = tree.expanded.has(entry.path)
   return (
-    <Collapsible open={open} onOpenChange={() => tree.toggle(entry.path)}>
+    <Collapsible
+      open={open}
+      onOpenChange={() => tree.toggle(entry.path)}
+      {...tree.drop(entry.path)}
+    >
       <div className={rowClass}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className={rowButtonClass}>
@@ -418,6 +466,16 @@ function FileRow({
   const title = `${tree.root.name}/${entry.path}`
   return (
     <div
+      draggable
+      onDragStart={(event) => {
+        event.stopPropagation()
+        event.dataTransfer.setData(
+          'application/x-disk-file',
+          JSON.stringify({ rootId: tree.root.id, path: entry.path }),
+        )
+        event.dataTransfer.effectAllowed = 'move'
+      }}
+      {...tree.drop(folder)}
       ref={active ? scrollToRow : undefined}
       className={cn(rowClass, active && activeRowClass)}
     >

@@ -179,12 +179,13 @@ export async function renameDiskEntry(
   root: DiskRoot,
   entry: Pick<DiskEntry, 'path' | 'kind' | 'handle'>,
   name: string,
+  parent?: string,
 ) {
   const tabs = tabsOf(root.id, entry.path)
   try {
     // Edits not written yet would be lost with the old file.
     await Promise.all(tabs.map((file) => flushDiskSave(file.id)))
-    const path = await renameEntry(root.handle, entry, name.trim())
+    const path = await renameEntry(root.handle, entry, name.trim(), parent)
     for (const file of tabs) {
       const moved = rebase(file.location!.path, entry.path, path)
       const link = diskStore.state[file.id]

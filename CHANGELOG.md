@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.39.0] - 2026-11-09
+
+### Added
+
+- Drag files into folders or back to the root of an opened device folder to move them on disk.
+
+### Fixed
+
+- Dropping browser files onto another file or folder contents now uses that containing folder.
+
 ## [1.38.1] - 2026-11-09
 
 ### Fixed

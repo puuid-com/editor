@@ -268,17 +268,19 @@ export async function renameEntry(
   root: FileSystemDirectoryHandle,
   entry: Pick<DiskEntry, 'path' | 'kind' | 'handle'>,
   name: string,
+  parent = parentPath(entry.path),
 ) {
-  const parent = parentPath(entry.path)
   const path = joinPath(parent, name)
   if (path === entry.path) return path
   const directory = await directoryAt(root, parent)
   // A change of case alone names the same entry on most systems.
-  const sameEntry = baseName(entry.path).toLowerCase() === name.toLowerCase()
+  const sameEntry =
+    parent === parentPath(entry.path) &&
+    baseName(entry.path).toLowerCase() === name.toLowerCase()
   if (!sameEntry && (await exists(directory, name)))
     throw new EntryExistsError(name)
   const { move } = entry.handle as Movable
-  if (move) {
+  if (move && parent === parentPath(entry.path)) {
     try {
       await move.call(entry.handle, name)
       return path
@@ -300,7 +302,9 @@ export async function renameEntry(
     const copy = await directory.getDirectoryHandle(name, { create: true })
     await copyInto(entry.handle as FileSystemDirectoryHandle, copy)
   }
-  await directory.removeEntry(baseName(entry.path), {
+  await (
+    await directoryAt(root, parentPath(entry.path))
+  ).removeEntry(baseName(entry.path), {
     recursive: entry.kind === 'directory',
   })
   return path

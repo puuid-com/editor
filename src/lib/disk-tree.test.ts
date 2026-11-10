@@ -153,3 +153,41 @@ describe('changing a folder', () => {
     expect(has('src')).toBe(false)
   })
 })
+
+describe('moving files between folders', () => {
+  it('moves contents to a folder and back to the root', async () => {
+    const { handle: root } = fakeFolder('root', {
+      'note.xml': '<note/>',
+      target: {},
+    })
+    let entry = (await listDirectory(root, '')).find(
+      (item) => item.name === 'note.xml',
+    )!
+    expect(await renameEntry(root, entry, 'note.xml', 'target')).toBe(
+      'target/note.xml',
+    )
+    expect(names(await listFiles(root))).toEqual(['target/note.xml'])
+    entry = (await listDirectory(root, 'target'))[0]
+    await renameEntry(root, entry, 'note.xml', '')
+    expect(
+      await (
+        await root.getFileHandle('note.xml')
+      )
+        .getFile()
+        .then((file) => file.text()),
+    ).toBe('<note/>')
+  })
+  it('preserves both files when the destination name is taken', async () => {
+    const { handle: root } = fakeFolder('root', {
+      'note.xml': 'source',
+      target: { 'note.xml': 'destination' },
+    })
+    const entry = (await listDirectory(root, '')).find(
+      (item) => item.name === 'note.xml',
+    )!
+    await expect(
+      renameEntry(root, entry, 'note.xml', 'target'),
+    ).rejects.toBeInstanceOf(EntryExistsError)
+    expect(names(await listFiles(root))).toHaveLength(2)
+  })
+})
