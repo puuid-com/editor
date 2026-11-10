@@ -495,16 +495,72 @@
 .md-preview .markdown-alert-content > :last-child {
   margin-bottom: 0;
 }
-/* Tables are ruled all around and between every row and column. */
+/*
+ * Tables, in the preview and live preview alike: a framed sheet with column
+ * letters over the header, numbered rows and striped body rows. Both views
+ * take their look from this rule; don't restyle table cells anywhere else.
+ */
+.md-table,
 .md-preview table {
-  border-collapse: collapse;
-}
-.md-preview :is(th, td) {
+  width: auto;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid var(--border);
-  padding: 0.5em 0.75em;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  counter-reset: md-row;
 }
-.md-preview th {
-  background: var(--muted);
+:is(.md-table, .md-preview table) :is(th, td) {
+  padding: 6px 12px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  vertical-align: baseline;
+}
+:is(.md-table, .md-preview table) th {
+  text-align: start;
+  font-weight: 600;
+  vertical-align: bottom;
+}
+:is(.md-table, .md-preview table) tbody :is(td, th),
+:is(.md-table, .md-preview table) tbody tr::before {
+  border-top: 1px solid var(--border);
+}
+:is(.md-table, .md-preview table) tbody tr:nth-child(even) > *,
+:is(.md-table, .md-preview table) tbody tr:nth-child(even)::before {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+/* The row numbers, in a gutter before the first column. */
+:is(.md-table, .md-preview table) tr::before {
+  display: table-cell;
+  counter-increment: md-row;
+  content: counter(md-row);
+  width: 28px;
+  padding: 6px 0;
+  text-align: center;
+  vertical-align: baseline;
+  font-family: var(--code-font);
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+/* Over the header: a strip of column letters, A, B, C… */
+:is(.md-table, .md-preview table) thead tr {
+  counter-reset: md-col;
+}
+:is(.md-table, .md-preview table) thead tr::before {
+  vertical-align: bottom;
+  background: linear-gradient(var(--border), var(--border)) 0 20px / 100% 1px
+    no-repeat;
+}
+:is(.md-table, .md-preview table) th::before {
+  display: block;
+  counter-increment: md-col;
+  content: counter(md-col, upper-alpha);
+  margin: -6px -12px 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font: 400 10px / 14px var(--code-font);
+  color: var(--muted-foreground);
 }
 /* `==highlighted==` text. */
 .md-preview mark {

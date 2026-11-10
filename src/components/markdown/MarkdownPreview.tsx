@@ -155,7 +155,7 @@ const components = {
 
 // Typography from the prose plugin, tuned to the app's monochrome tokens.
 const PROSE =
-  'md-preview prose prose-sm max-w-none break-words prose-neutral dark:prose-invert prose-headings:scroll-mt-4 prose-headings:font-semibold prose-headings:tracking-tight prose-a:underline-offset-2 prose-code:before:content-none prose-code:after:content-none prose-img:rounded-none prose-table:text-xs prose-th:font-medium [&>:first-child]:mt-0 [&>:last-child]:mb-0'
+  'md-preview prose prose-sm max-w-none break-words prose-neutral dark:prose-invert prose-headings:scroll-mt-4 prose-headings:font-semibold prose-headings:tracking-tight prose-a:underline-offset-2 prose-code:before:content-none prose-code:after:content-none prose-img:rounded-none prose-table:text-xs [&>:first-child]:mt-0 [&>:last-child]:mb-0'
 
 /** The rendered Markdown of a file, following the editor as it is typed. */
 export function MarkdownPreview({ fileId }: { fileId: string }) {

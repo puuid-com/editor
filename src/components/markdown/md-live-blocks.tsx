@@ -547,6 +547,7 @@ class TableGrid {
     const scroll = document.createElement('div')
     scroll.className = 'cm-md-table-scroll'
     this.grid = document.createElement('table')
+    this.grid.className = 'md-table'
     scroll.appendChild(this.grid)
     dom.appendChild(this.bar)
     dom.appendChild(scroll)
@@ -930,18 +931,10 @@ export function markdownLiveBlocks(parser: Parser): Extension {
         padding: '4px 16px 4px 8px',
       },
       '.cm-md-table-scroll': { overflowX: 'auto' },
-      '.cm-md-table table': { borderCollapse: 'collapse' },
       '.cm-md-table th, .cm-md-table td': {
-        border: '1px solid var(--border)',
-        padding: '2px 10px',
         minWidth: '4em',
         whiteSpace: 'pre-wrap',
         outline: 'none',
-        verticalAlign: 'top',
-      },
-      '.cm-md-table th': {
-        fontWeight: '600',
-        backgroundColor: MUTED,
       },
       '.cm-md-table :is(th, td):focus': {
         boxShadow: 'inset 0 0 0 1px var(--ring)',

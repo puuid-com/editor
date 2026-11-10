@@ -3569,6 +3569,60 @@ function RuledTables() {
   return <BeforeAfter before={table()} after={table(true)} />
 }
 
+/** Markdown tables, from a plain grid to a sheet with letters, numbers and stripes. */
+function SheetTables() {
+  const rows = [
+    ['Ada', 'Eng'],
+    ['Grace', 'Admiral'],
+    ['Alan', 'Math'],
+  ]
+  const before = (
+    <Shot className="p-4">
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
+          <tr className="bg-muted">
+            <th className="border px-2 py-1 text-left font-medium">Name</th>
+            <th className="border px-2 py-1 text-left font-medium">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row[0]}>
+              {row.map((value) => (
+                <td key={value} className="border px-2 py-1">
+                  {value}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Shot>
+  )
+  const after = (
+    <Shot className="p-4">
+      <table className="md-table text-[11px]">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row[0]}>
+              {row.map((value) => (
+                <td key={value}>{value}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Shot>
+  )
+  return <BeforeAfter before={before} after={after} />
+}
+
 /** `` `code`{.colour} `` as typed, with the colours offered on `{`, and as previewed. */
 function ColoredInlineCode() {
   const fade = (text: string) => (
@@ -4117,6 +4171,7 @@ function LiveInlineCodePreview() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.41.0': figure(SheetTables),
   '1.40.2': figure(LiveInlineCodePreview),
   '1.40.1': figure(FenceGutterPreview),
   '1.40.0': figure(DragFeedbackPreview),
