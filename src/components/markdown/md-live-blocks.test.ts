@@ -170,6 +170,25 @@ describe('tables in live preview', () => {
     )
   })
 
+  it('puts the caret under the table on a click beside it', () => {
+    const view = editor(doc)
+    const table = view.contentDOM.querySelector<HTMLElement>('.cm-md-table')!
+    table.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    const { head } = view.state.selection.main
+    expect(view.state.doc.lineAt(head).number).toBe(
+      view.state.doc.lineAt(doc.indexOf('\n\nEnd') + 1).number,
+    )
+  })
+
+  it('adds a line to put the caret on when the table ends the file', () => {
+    const end = doc.slice(0, doc.indexOf('\n\nEnd'))
+    const view = editor(end)
+    const table = view.contentDOM.querySelector<HTMLElement>('.cm-md-table')!
+    table.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    expect(view.state.doc.toString()).toBe(`${end}\n`)
+    expect(view.state.selection.main.head).toBe(end.length + 1)
+  })
+
   it('adds a row on Tab past the last cell', () => {
     const view = editor(doc)
     const last = cells(view)[3]

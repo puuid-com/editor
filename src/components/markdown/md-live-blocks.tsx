@@ -551,6 +551,16 @@ class TableGrid {
     scroll.appendChild(this.grid)
     dom.appendChild(this.bar)
     dom.appendChild(scroll)
+    // The blank beside the grid isn't a place to type: left to the browser,
+    // the caret lands on the widget's edge and is drawn as tall as the table.
+    dom.addEventListener('mousedown', (event) => {
+      const blank =
+        event.target === dom ||
+        (event.target === scroll && event.offsetY < scroll.clientHeight)
+      if (!blank || event.button !== 0) return
+      event.preventDefault()
+      this.below()
+    })
     this.grid.addEventListener('input', (event) => this.onInput(event))
     this.grid.addEventListener('keydown', (event) => this.onKey(event))
     dom.addEventListener('focusin', (event) => this.onFocus(event))
@@ -723,6 +733,20 @@ class TableGrid {
       : Math.max(0, block.from - 1)
     this.view.focus()
     this.view.dispatch({ selection: { anchor }, scrollIntoView: true })
+  }
+
+  /** Puts the caret on the line under the table, adding one if it's last. */
+  private below() {
+    const block = this.block()
+    if (!block) return
+    const end = block.to === this.view.state.doc.length
+    this.view.focus()
+    this.view.dispatch({
+      changes: end ? { from: block.to, insert: '\n' } : undefined,
+      selection: { anchor: block.to + 1 },
+      scrollIntoView: true,
+      annotations: ownEdit.of(true),
+    })
   }
 
   private onKey(event: KeyboardEvent) {

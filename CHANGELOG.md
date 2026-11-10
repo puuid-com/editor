@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.41.1] - 2026-11-09
+
+### Fixed
+
+- Clicking beside a table in live preview puts the caret on the line under it, instead of a caret as tall as the table.
+
 ## [1.41.0] - 2026-11-09
 
 ### Changed
