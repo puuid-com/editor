@@ -4270,6 +4270,40 @@ function LiveNoteEmbed({ drawn = false }: { drawn?: boolean }) {
   )
 }
 
+function HeadingLevels() {
+  const lines = (levels: boolean) => {
+    const level = (label?: string) =>
+      levels && (
+        <span className="inline-block w-6 pr-1.5 text-right align-middle text-[9px] text-muted-foreground">
+          {label}
+        </span>
+      )
+    const heading = (label: string, size: string, text: string) => (
+      <>
+        {level(label)}
+        <span
+          className={cn('leading-none font-semibold text-foreground', size)}
+        >
+          {text}
+        </span>
+      </>
+    )
+    return [
+      heading('H1', 'text-[1.5em]', 'Release'),
+      <>{level()}Ships today</>,
+      heading('H2', 'text-[1.3em]', 'Setup'),
+      heading('H3', 'text-[1.15em]', 'Install'),
+      <>{level()}Run the script</>,
+    ]
+  }
+  return (
+    <BeforeAfter
+      before={<Code format={(text) => text} lines={lines(false)} />}
+      after={<Code format={(text) => text} lines={lines(true)} />}
+    />
+  )
+}
+
 function LiveNoteEmbeds() {
   return (
     <BeforeAfter before={<LiveNoteEmbed />} after={<LiveNoteEmbed drawn />} />
@@ -4324,6 +4358,7 @@ function ResizableLiveImages() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.47.0': figure(HeadingLevels),
   '1.46.0': figure(ResizableLiveImages),
   '1.45.0': figure(LiveNoteEmbeds),
   '1.44.0': figure(LiveImages),

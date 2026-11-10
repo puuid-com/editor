@@ -53,6 +53,19 @@ describe('Markdown live preview', () => {
     expect(shown(view)).toEqual(['Docs Alias other'])
   })
 
+  it('labels headings with their level, except on the caret line', () => {
+    const view = editor('# One\n### Three\n## Two^')
+    const labels = [...view.dom.querySelectorAll('.cm-md-level')].map(
+      (el) => el.textContent,
+    )
+    expect(labels).toEqual(['H1', 'H3'])
+  })
+
+  it('shows no heading levels outside live preview', () => {
+    const view = editor('# One', false)
+    expect(view.dom.querySelector('.cm-md-level')).toBeNull()
+  })
+
   it('hides heading and quote marks, and draws bullets and rules', () => {
     const view = editor('# Title ##\n> quoted\n- item\n1. first\n\n---')
     expect(shown(view)).toEqual(['Title', ' quoted', '• item', '1. first'])
