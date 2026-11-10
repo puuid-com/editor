@@ -1,3 +1,4 @@
+import { useDragFeedback } from '#/hooks/use-drag-feedback'
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import { isMarkdownName } from '#/lib/obsidian'
 import {
@@ -145,6 +146,7 @@ export function FileExplorer({
   activeId: string | null
   onImport: () => void
 }) {
+  const dragFeedback = useDragFeedback()
   const allFiles = useWorkspaceFiles()
   const roots = useSelector(rootsStore, (state) => state)
   const canOpenFolders = useCanOpenFolders()
@@ -353,9 +355,12 @@ export function FileExplorer({
         event.preventDefault()
         event.stopPropagation()
         event.dataTransfer.dropEffect = 'move'
+        dragFeedback.over(event)
       }
     },
+    onDragLeave: dragFeedback.leave,
     onDrop: (event: React.DragEvent) => {
+      dragFeedback.clear()
       const value = event.dataTransfer.getData('application/x-workspace-entry')
       if (!value) return
       event.preventDefault()
@@ -367,6 +372,7 @@ export function FileExplorer({
   const drag = (event: React.DragEvent, kind: string, id: string) => {
     event.dataTransfer.setData('application/x-workspace-entry', `${kind}:${id}`)
     event.dataTransfer.effectAllowed = 'move'
+    dragFeedback.start(event)
   }
   const fileRow = (file: (typeof files)[number]) => (
     <div

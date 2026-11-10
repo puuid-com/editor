@@ -3963,15 +3963,31 @@ function LatestSharedLink() {
   )
 }
 
-function FileMovePreview() {
+function FileMovePreview({ feedback = false }: { feedback?: boolean }) {
   const view = (moved: boolean) => (
     <div className="p-3 text-xs">
       <div className="flex items-center gap-2">
         <IconFolderRoot className="size-4" />
         {m.folder_on_device()}
       </div>
-      {!moved && <div className="ml-6 py-2 font-mono">notes.xml</div>}
-      <div className="ml-3 border-l p-2">
+      {(!moved || feedback) && (
+        <div
+          className={cn(
+            'ml-6 py-2 font-mono',
+            feedback && moved && 'opacity-40',
+          )}
+        >
+          notes.xml
+        </div>
+      )}
+      <div
+        className={cn(
+          'ml-3 border-l p-2',
+          feedback &&
+            moved &&
+            'bg-muted/60 outline outline-1 -outline-offset-1 outline-foreground/50',
+        )}
+      >
         <div className="flex items-center gap-2">
           <IconFolder className="size-4" />
           {m.explorer_new_folder()}
@@ -3982,6 +3998,10 @@ function FileMovePreview() {
     </div>
   )
   return <BeforeAfter before={view(false)} after={view(true)} />
+}
+
+function DragFeedbackPreview() {
+  return <FileMovePreview feedback />
 }
 
 const PLAIN_NOTES = [
@@ -4016,6 +4036,7 @@ function PlainFileGutters() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.40.0': figure(DragFeedbackPreview),
   '1.39.1': figure(PlainFileGutters),
   '1.39.0': figure(FileMovePreview),
   '1.38.1': figure(LatestSharedLink),

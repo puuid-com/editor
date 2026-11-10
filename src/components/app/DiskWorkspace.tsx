@@ -1,3 +1,4 @@
+import { useDragFeedback } from '#/hooks/use-drag-feedback'
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import {
   IconChevronDown,
@@ -95,6 +96,7 @@ interface Tree {
   create: (parent: string, kind: EntryKind) => void
   rename: (entry: DiskEntry) => void
   remove: (entry: DiskEntry) => void
+  startDrag: (event: React.DragEvent<HTMLElement>) => void
   drop: (parent: string) => React.HTMLAttributes<HTMLDivElement>
 }
 
@@ -113,6 +115,7 @@ export function DiskWorkspace({
   askName: (request: NameRequest) => void
   onOpened: () => void
 }) {
+  const dragFeedback = useDragFeedback()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(true)
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
@@ -198,6 +201,7 @@ export function DiskWorkspace({
         },
       }),
     remove: setDeleting,
+    startDrag: dragFeedback.start,
     drop: (parent) => ({
       onDragOver: (event) => {
         if (!event.dataTransfer.types.includes('application/x-disk-file'))
@@ -205,8 +209,11 @@ export function DiskWorkspace({
         event.preventDefault()
         event.stopPropagation()
         event.dataTransfer.dropEffect = 'move'
+        dragFeedback.over(event)
       },
+      onDragLeave: dragFeedback.leave,
       onDrop: (event) => {
+        dragFeedback.clear()
         const value = event.dataTransfer.getData('application/x-disk-file')
         if (!value) return
         event.preventDefault()
@@ -474,6 +481,7 @@ function FileRow({
           JSON.stringify({ rootId: tree.root.id, path: entry.path }),
         )
         event.dataTransfer.effectAllowed = 'move'
+        tree.startDrag(event)
       }}
       {...tree.drop(folder)}
       ref={active ? scrollToRow : undefined}
