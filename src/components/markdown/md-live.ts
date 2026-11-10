@@ -1,12 +1,10 @@
 import { syntaxTree } from '@codemirror/language'
-import { RangeSet, StateEffect, StateField } from '@codemirror/state'
+import { StateEffect, StateField } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
-  GutterMarker,
   ViewPlugin,
   WidgetType,
-  gutter,
 } from '@codemirror/view'
 import type { EditorState, Extension, Range, Text } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
@@ -275,49 +273,6 @@ function liveDecorations(view: EditorView): DecorationSet {
   return Decoration.set(ranges, true)
 }
 
-/** `H1`–`H6` beside a heading whose `#` marks are hidden. */
-class HeadingLevel extends GutterMarker {
-  constructor(readonly level: number) {
-    super()
-  }
-  eq(other: HeadingLevel) {
-    return other.level === this.level
-  }
-  toDOM() {
-    const box = document.createElement('span')
-    box.className = `cm-md-level cm-md-level-${this.level}`
-    box.setAttribute('aria-hidden', 'true')
-    const label = document.createElement('span')
-    label.textContent = `H${this.level}`
-    box.appendChild(label)
-    return box
-  }
-}
-
-const LEVELS = [1, 2, 3, 4, 5, 6].map((level) => new HeadingLevel(level))
-
-function headingLevels(view: EditorView): RangeSet<GutterMarker> {
-  const { state } = view
-  if (!isLive(state)) return RangeSet.empty
-  const markers: Array<Range<GutterMarker>> = []
-  for (const { from, to } of view.visibleRanges)
-    syntaxTree(state).iterate({
-      from,
-      to,
-      enter: ({ name, node }) => {
-        if (SKIP.has(name)) return false
-        const level = /^ATXHeading([1-6])$/.exec(name)?.[1]
-        if (!level) return undefined
-        const line = state.doc.lineAt(node.from)
-        // On its line the `#` marks show, and say the level themselves.
-        if (!touched(state, line.from, line.to))
-          markers.push(LEVELS[Number(level) - 1].range(line.from))
-        return false
-      },
-    })
-  return RangeSet.of(markers, true)
-}
-
 const livePlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
@@ -342,25 +297,7 @@ export function markdownLivePreview(): Extension {
   return [
     markdownLive,
     livePlugin,
-    gutter({ class: 'cm-md-levels', markers: headingLevels }),
     EditorView.baseTheme({
-      '.cm-md-levels .cm-gutterElement': { padding: '0 4px 0 8px' },
-      // The box takes the heading's size so its line box, and the label
-      // centred in it, lines up with the heading's first line.
-      '.cm-md-level': {
-        display: 'block',
-        textAlign: 'right',
-        fontFamily: 'var(--font-mono)',
-        color: 'var(--muted-foreground)',
-      },
-      '.cm-md-level-1': { fontSize: '1.5em' },
-      '.cm-md-level-2': { fontSize: '1.3em' },
-      '.cm-md-level-3': { fontSize: '1.15em' },
-      '.cm-md-level > span': {
-        fontSize: '10px',
-        verticalAlign: 'middle',
-        letterSpacing: '0.02em',
-      },
       '.cm-md-bullet': { color: 'var(--muted-foreground)' },
       '.cm-md-task': {
         margin: '0 0.5em 0 0',
