@@ -12,7 +12,8 @@ import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 import type { SyntaxNode } from '@lezer/common'
 import type { Root } from 'react-dom/client'
 
-import { isLive, liveChanged, touched } from './md-live'
+import { drawnEmbed, isLive, liveChanged, touched } from './md-live'
+import { MarkdownDocument } from './MarkdownPreview'
 import { NoteProvider, PreviewImage, WikiEmbed } from './note-links'
 import { fileIdField } from '#/components/editor/extensions'
 import { treeChanged } from '#/components/editor/syntax'
@@ -20,40 +21,59 @@ import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
 import { isImagePath, parseWikilink } from '#/lib/obsidian'
 import { filesCollection } from '#/lib/store/files'
 
-// Live preview's images: `![alt](src)` and `![[image.png|300]]` show the
-// image in place of their Markdown, read from the note's folder as the
-// preview panel reads it. While the selection touches one, its Markdown
-// comes back with the image after it. Kept apart from the rest of live
-// preview, which the editor's language setup loads before the folder's files.
+// Live preview's embeds: `![alt](src)` and `![[image.png|300]]` show the
+// image in place of their Markdown, and `![[note]]` alone on its line the
+// note's text, read from the note's folder as the preview panel reads them.
+// While the selection touches one, its Markdown comes back with the embed
+// after it. Kept apart from the rest of live preview, which the editor's
+// language setup loads before the folder's files.
 
-/** What an image in the note points at. */
-type ImageSource =
-  | { kind: 'markdown'; src: string; alt: string }
+/** What an embed in the note points at. */
+type EmbedSource =
+  | { kind: 'image'; src: string; alt: string }
   | { kind: 'embed'; inner: string }
+  | { kind: 'note'; inner: string }
 
-const roots = new WeakMap<HTMLElement, Root>()
+interface Mounted {
+  root: Root
+  observer?: ResizeObserver
+}
 
-class LiveImage extends WidgetType {
-  constructor(readonly source: ImageSource) {
+const mounted = new WeakMap<HTMLElement, Mounted>()
+
+class LiveEmbed extends WidgetType {
+  constructor(readonly source: EmbedSource) {
     super()
   }
 
-  eq(other: LiveImage) {
+  eq(other: LiveEmbed) {
     return JSON.stringify(other.source) === JSON.stringify(this.source)
   }
 
   toDOM(view: EditorView) {
-    const dom = document.createElement('span')
-    dom.className = 'cm-md-image'
-    // Lines grow once the image loads; `load` doesn't bubble, so catch it on the way down.
-    dom.addEventListener('load', () => view.requestMeasure(), true)
+    const note = this.source.kind === 'note'
+    const dom = document.createElement(note ? 'div' : 'span')
+    dom.className = note ? 'cm-md-note-embed' : 'cm-md-image'
+    // Lines grow as images load and notes are read.
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(() => view.requestMeasure())
+    observer?.observe(dom)
     const fileId = view.state.field(fileIdField, false)
     const location = fileId ? filesCollection.get(fileId)?.location : undefined
     const root = createRoot(dom)
-    roots.set(dom, root)
+    mounted.set(dom, { root, observer })
     root.render(
       <QueryClientProvider client={browserQueryClient()}>
-        <NoteProvider location={location}>{this.image()}</NoteProvider>
+        {this.source.kind === 'note' ? (
+          <MarkdownDocument
+            source={`![[${this.source.inner}]]`}
+            location={location}
+          />
+        ) : (
+          <NoteProvider location={location}>{this.image()}</NoteProvider>
+        )}
       </QueryClientProvider>,
     )
     return dom
@@ -61,21 +81,27 @@ class LiveImage extends WidgetType {
 
   private image() {
     const { source } = this
-    if (source.kind === 'markdown')
+    if (source.kind === 'image')
       return <PreviewImage src={source.src} alt={source.alt} />
     const link = parseWikilink(source.inner)
     return <WikiEmbed {...link}>{link.target}</WikiEmbed>
   }
 
   destroy(dom: HTMLElement) {
-    const root = roots.get(dom)
+    const entry = mounted.get(dom)
+    if (!entry) return
+    entry.observer?.disconnect()
     // Later, as CodeMirror can get here while React is committing.
-    if (root) queueMicrotask(() => root.unmount())
+    queueMicrotask(() => entry.root.unmount())
   }
 
-  // A click on the image puts the caret there, which shows its Markdown.
-  ignoreEvent() {
-    return false
+  // Links and buttons in an embedded note work; a click anywhere else puts
+  // the caret there, which shows the embed's Markdown.
+  ignoreEvent(event: Event) {
+    return (
+      event.target instanceof Element &&
+      !!event.target.closest('a, button, input, select, textarea')
+    )
   }
 }
 
@@ -84,32 +110,39 @@ function markdownImage(state: EditorState, node: SyntaxNode) {
   const url = node.getChild('URL')
   const marks = node.getChildren('LinkMark')
   if (!url || marks.length < 2) return null
-  return new LiveImage({
-    kind: 'markdown',
+  return new LiveEmbed({
+    kind: 'image',
     src: state.sliceDoc(url.from, url.to).replace(/^<|>$/g, ''),
     alt: state.sliceDoc(marks[0].to, marks[1].from),
   })
 }
 
-/** `![[image.png|300]]`, or null when it embeds anything but an image. */
-function embeddedImage(state: EditorState, node: SyntaxNode) {
-  if (state.sliceDoc(node.from, node.from + 1) !== '!') return null
-  const marks = node.getChildren('WikiLinkMark')
-  if (marks.length < 2) return null
-  const inner = state.sliceDoc(marks[0].to, marks[1].from)
-  if (!isImagePath(parseWikilink(inner).target)) return null
-  return new LiveImage({ kind: 'embed', inner })
+/** `![[image.png|300]]`, `![[note]]` alone on its line, or null for another wikilink. */
+function wikiEmbed(state: EditorState, node: SyntaxNode) {
+  if (!drawnEmbed(state.doc, node.from, node.to)) return null
+  const inner = state.sliceDoc(node.from + 3, node.to - 2)
+  return new LiveEmbed({
+    kind: isImagePath(parseWikilink(inner).target) ? 'embed' : 'note',
+    inner,
+  })
 }
 
-const IMAGES = /!\[\[[^\]\n]*\]\]|!\[[^\]\n]*\]\([^)\n]*\)/g
+const IMAGES = /!\[\[([^\]\n]*)\]\]|!\[[^\]\n]*\]\([^)\n]*\)/g
 
 /** Whether a line holds images and nothing else, but space. */
-const imagesOnly = (text: string) => !text.replace(IMAGES, '').trim()
+const imagesOnly = (text: string) =>
+  !text
+    .replace(IMAGES, (image, inner?: string) =>
+      inner === undefined || isImagePath(parseWikilink(inner).target)
+        ? ''
+        : image,
+    )
+    .trim()
 
 /** A line of images alone, which the Center menu can put in the middle. */
 const imageLine = Decoration.line({ class: 'cm-md-image-line' })
 
-function imageDecorations(view: EditorView): DecorationSet {
+function embedDecorations(view: EditorView): DecorationSet {
   const { state } = view
   if (!isLive(state)) return Decoration.none
   const { doc } = state
@@ -126,7 +159,7 @@ function imageDecorations(view: EditorView): DecorationSet {
         ref.name === 'Image'
           ? markdownImage(state, ref.node)
           : ref.name === 'WikiLink'
-            ? embeddedImage(state, ref.node)
+            ? wikiEmbed(state, ref.node)
             : null
       if (!widget) return undefined
       const { from: start, to: end } = ref
@@ -144,11 +177,11 @@ function imageDecorations(view: EditorView): DecorationSet {
   return Decoration.set(ranges, true)
 }
 
-const imagePlugin = ViewPlugin.fromClass(
+const embedPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
     constructor(view: EditorView) {
-      this.decorations = imageDecorations(view)
+      this.decorations = embedDecorations(view)
     }
     update(update: ViewUpdate) {
       if (
@@ -158,21 +191,26 @@ const imagePlugin = ViewPlugin.fromClass(
         treeChanged(update) ||
         liveChanged(update)
       )
-        this.decorations = imageDecorations(update.view)
+        this.decorations = embedDecorations(update.view)
     }
   },
   { decorations: (plugin) => plugin.decorations },
 )
 
-/** Shows a Markdown note's images in live preview. */
-export const liveImages: Extension = [
-  imagePlugin,
+/** Shows a Markdown note's images and embedded notes in live preview. */
+export const liveEmbeds: Extension = [
+  embedPlugin,
   EditorView.baseTheme({
     '.cm-md-image img': {
       display: 'inline-block',
       maxWidth: '100%',
       height: 'auto',
       verticalAlign: 'bottom',
+    },
+    '.cm-md-note-embed': {
+      display: 'block',
+      whiteSpace: 'normal',
+      padding: '2px 0',
     },
   }),
 ]

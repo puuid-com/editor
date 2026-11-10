@@ -76,9 +76,9 @@ describe('Markdown live preview', () => {
     expect(shown(view)).toEqual(['# Title', 'Some bold and it'])
   })
 
-  it('leaves image embeds to the image plugin', () => {
-    const view = editor('![[cat.png]] ![[note]]')
-    expect(shown(view)).toEqual(['![[cat.png]] note'])
+  it('leaves images and notes alone on their line to the embed plugin', () => {
+    const view = editor('![[cat.png]] ![[note]]\n![[other]]')
+    expect(shown(view)).toEqual(['![[cat.png]] note', '![[other]]'])
   })
 
   it('hides the tags of colored code', () => {

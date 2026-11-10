@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.45.0] - 2026-11-10
+
+### Added
+
+- Live preview shows a note embedded with `![[note]]` alone on its line as that note's text, or the part `![[note#heading]]` names, as the preview panel does. Put the caret on it to edit its Markdown; links in the embedded note still open.
+
 ## [1.44.0] - 2026-11-10
 
 ### Added

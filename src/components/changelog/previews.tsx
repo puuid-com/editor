@@ -4251,7 +4251,33 @@ function LiveImages() {
   )
 }
 
+/** A note in live preview, another note's embed as written or drawn as its text. */
+function LiveNoteEmbed({ drawn = false }: { drawn?: boolean }) {
+  return (
+    <div className="grid content-start gap-2 p-3 font-mono">
+      <span className="font-semibold">Trip</span>
+      <span>Before leaving:</span>
+      {drawn ? (
+        <span className="grid gap-1 border-l-2 pl-3 font-sans">
+          <span className="text-muted-foreground">Packing list</span>
+          <span>• Passport</span>
+          <span>• Charger</span>
+        </span>
+      ) : (
+        <Syn k="comment">![[Packing list]]</Syn>
+      )}
+    </div>
+  )
+}
+
+function LiveNoteEmbeds() {
+  return (
+    <BeforeAfter before={<LiveNoteEmbed />} after={<LiveNoteEmbed drawn />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.45.0': figure(LiveNoteEmbeds),
   '1.44.0': figure(LiveImages),
   '1.43.0': figure(CenteredBlocks),
   '1.42.0': figure(SerifText),

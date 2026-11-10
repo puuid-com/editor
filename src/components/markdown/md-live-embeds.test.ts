@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { markdownSupport } from './md-language'
 import { setMarkdownLive } from './md-live'
-import { liveImages } from './md-live-images'
+import { liveEmbeds } from './md-live-embeds'
 
 const views: Array<EditorView> = []
 
@@ -22,7 +22,7 @@ function editor(doc: string) {
     state: EditorState.create({
       doc: doc.includes('^') ? text : `${text}\n`,
       selection: { anchor: caret },
-      extensions: [markdownSupport(), liveImages],
+      extensions: [markdownSupport(), liveEmbeds],
     }),
     parent: document.body,
   })
@@ -40,7 +40,7 @@ const shown = (view: EditorView) =>
 const image = (view: EditorView) =>
   view.contentDOM.querySelector<HTMLImageElement>('.cm-md-image img')
 
-describe('live preview images', () => {
+describe('live preview embeds', () => {
   it('shows an image in place of its Markdown', async () => {
     const view = editor('Look ![A cat](https://x.dev/cat.png) here')
     expect(shown(view)).toEqual(['Look  here'])
@@ -56,9 +56,20 @@ describe('live preview images', () => {
     await vi.waitFor(() => expect(image(view)).not.toBeNull())
   })
 
-  it('leaves code and note embeds as they are', () => {
+  it('leaves code and notes embedded in text as they are', () => {
     const view = editor('`![a](a.png)` ![[note]]')
     expect(view.contentDOM.querySelector('.cm-md-image')).toBeNull()
+    expect(view.contentDOM.querySelector('.cm-md-note-embed')).toBeNull()
+  })
+
+  it('shows a note embedded alone on its line', async () => {
+    const view = editor('Intro\n![[note#Part]]')
+    const embed = () =>
+      view.contentDOM.querySelector<HTMLElement>('.cm-md-note-embed')
+    expect(embed()).not.toBeNull()
+    expect(shown(view)).toEqual(['Intro'])
+    // With no folder to read it from, it shows as a link to nothing.
+    await vi.waitFor(() => expect(embed()?.textContent).toBe('note > Part'))
   })
 
   it('shows nothing when live preview is off', () => {
@@ -68,10 +79,12 @@ describe('live preview images', () => {
   })
 
   it('marks lines of images alone, for centering', () => {
-    const view = editor('![a](a.png) ![[b.png|200]]\nText ![c](c.png)')
+    const view = editor(
+      '![a](a.png) ![[b.png|200]]\nText ![c](c.png)\n![[note]]',
+    )
     const marked = [...view.contentDOM.querySelectorAll('.cm-line')].map(
       (line) => line.classList.contains('cm-md-image-line'),
     )
-    expect(marked).toEqual([true, false, false])
+    expect(marked).toEqual([true, false, false, false])
   })
 })

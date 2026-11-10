@@ -6,7 +6,7 @@ import {
   ViewPlugin,
   WidgetType,
 } from '@codemirror/view'
-import type { EditorState, Extension, Range } from '@codemirror/state'
+import type { EditorState, Extension, Range, Text } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 
 import { treeChanged } from '#/components/editor/syntax'
@@ -44,6 +44,19 @@ export const liveChanged = (update: ViewUpdate) =>
 export function touched(state: EditorState, from: number, to: number) {
   return state.selection.ranges.some(
     (range) => range.from <= to && range.to >= from,
+  )
+}
+
+/**
+ * Whether the wikilink at `from`–`to` is an embed `liveEmbeds` draws: an
+ * image, or a note alone on its line.
+ */
+export function drawnEmbed(doc: Text, from: number, to: number) {
+  const text = doc.sliceString(from, to)
+  if (!text.startsWith('![[')) return false
+  return (
+    isImagePath(parseWikilink(text.slice(3, -2)).target) ||
+    doc.lineAt(from).text.trim() === text
   )
 }
 
@@ -142,7 +155,7 @@ const INLINE: Record<string, string> = {
   Autolink: 'LinkMark',
 }
 
-/** Shown as written: code and HTML. Images are drawn by `liveImages`. */
+/** Shown as written: code and HTML. Images are drawn by `liveEmbeds`. */
 const SKIP = new Set([
   'FencedCode',
   'CodeBlock',
@@ -201,16 +214,10 @@ function liveDecorations(view: EditorView): DecorationSet {
           if (touched(state, node.from, node.to)) return undefined
           const marks = node.getChildren('WikiLinkMark')
           if (marks.length < 2) return undefined
+          if (drawnEmbed(doc, node.from, node.to)) return undefined
           const [open, close] = marks
-          const inner = doc.sliceString(open.to, close.from)
-          // `![[image.png]]` is drawn by `liveImages`.
-          if (
-            doc.sliceString(node.from, node.from + 1) === '!' &&
-            isImagePath(parseWikilink(inner).target)
-          )
-            return undefined
           // `[[note|alias]]` shows its alias.
-          const pipe = inner.indexOf('|')
+          const pipe = doc.sliceString(open.to, close.from).indexOf('|')
           hide(open.from, pipe < 0 ? open.to : open.to + pipe + 1)
           hide(close.from, close.to)
           return undefined
