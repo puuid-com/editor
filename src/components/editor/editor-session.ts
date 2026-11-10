@@ -2,13 +2,19 @@ import { forceLinting } from '@codemirror/lint'
 import { Annotation, EditorState, Transaction } from '@codemirror/state'
 
 import { fileIdField } from './extensions'
-import { docLanguage, languageCompartment, languageExtension } from './language'
+import {
+  docLanguage,
+  languageCompartment,
+  languageExtension,
+  structureGutters,
+} from './language'
 import { languageOf } from '#/lib/document'
 import { filesCollection } from '#/lib/store/files'
 import { isOwnWriter, writerId } from '#/lib/store/session'
 import { diffChange } from '#/lib/xml/edit'
 import type { Extension, TransactionSpec } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
+import type { DocLanguage } from '#/lib/document'
 import type { XmlFile } from '#/lib/store/files'
 import type { TextChange } from '#/lib/xml/edit'
 
@@ -38,11 +44,16 @@ export function dropEditorState(fileId: string) {
   states.delete(fileId)
 }
 
+/** The language and the gutters that only make sense for it. */
+function editorLanguage(language: DocLanguage) {
+  return [languageExtension(language), structureGutters(language)]
+}
+
 function syncLanguage(view: EditorView, name: string) {
   const language = languageOf(name, view.state.doc.toString())
   if (view.state.facet(docLanguage) === language) return false
   view.dispatch({
-    effects: languageCompartment.reconfigure(languageExtension(language)),
+    effects: languageCompartment.reconfigure(editorLanguage(language)),
   })
   forceLinting(view)
   return true
@@ -69,7 +80,7 @@ export function createEditorSession(
       extensions: [
         fileIdField.init(() => fileId),
         languageCompartment.of(
-          languageExtension(languageOf(file?.name ?? '', content)),
+          editorLanguage(languageOf(file?.name ?? '', content)),
         ),
         extensions,
       ],

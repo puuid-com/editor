@@ -13,13 +13,12 @@ import {
 } from '@codemirror/commands'
 import {
   bracketMatching,
-  foldGutter,
   foldKeymap,
   indentOnInput,
   indentUnit,
   syntaxTree,
 } from '@codemirror/language'
-import { lintGutter, linter } from '@codemirror/lint'
+import { linter } from '@codemirror/lint'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 import {
   Compartment,
@@ -240,22 +239,11 @@ function dockInfo(
 }
 
 /**
- * Line numbers, fold markers and lint marks. The draft editor shows them too,
- * so its text starts where the file's editor puts it.
+ * Line numbers. The draft editor shows them too, so its text starts where the
+ * file's editor puts it. Fold and lint gutters come with the language.
  */
 export function editorGutters(): Extension {
-  return [
-    lineNumbers(),
-    highlightActiveLineGutter(),
-    foldGutter({
-      markerDOM: (open) => {
-        const el = document.createElement('span')
-        el.textContent = open ? '▾' : '▸'
-        return el
-      },
-    }),
-    lintGutter(),
-  ]
+  return [lineNumbers(), highlightActiveLineGutter()]
 }
 
 export interface EditorCallbacks {

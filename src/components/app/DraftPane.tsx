@@ -1,5 +1,5 @@
 import { defaultKeymap } from '@codemirror/commands'
-import { EditorState } from '@codemirror/state'
+import { Compartment, EditorState } from '@codemirror/state'
 import {
   EditorView,
   drawSelection,
@@ -21,6 +21,7 @@ import {
 } from '#/components/editor/draft'
 import { focusFileView } from '#/components/editor/editor-store'
 import { editorGutters } from '#/components/editor/extensions'
+import { structureGutters } from '#/components/editor/language'
 import { editorTheme } from '#/components/editor/theme'
 import { Button } from '#/components/ui/button'
 import { Separator } from '#/components/ui/separator'
@@ -49,6 +50,7 @@ const shortType = (language: DocLanguage) =>
   LANGUAGE_EXTENSIONS[language][0].slice(1).toUpperCase()
 
 let draftView: EditorView | null = null
+const gutterCompartment = new Compartment()
 
 function placeholderContent() {
   const hint = document.createElement('span')
@@ -81,6 +83,7 @@ export function DraftPane() {
       state: EditorState.create({
         extensions: [
           editorGutters(),
+          gutterCompartment.of(structureGutters(draftStore.state.language)),
           drawSelection(),
           highlightActiveLine(),
           placeholder(placeholderContent()),
@@ -120,6 +123,13 @@ export function DraftPane() {
       setDraftLanguage(null)
     }
   }, [])
+
+  // Matches the gutters the file will get once the first edit makes it one.
+  useEffect(() => {
+    draftView?.dispatch({
+      effects: gutterCompartment.reconfigure(structureGutters(language)),
+    })
+  }, [language])
 
   const name = draftName(language)
   return (

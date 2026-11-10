@@ -3984,7 +3984,39 @@ function FileMovePreview() {
   return <BeforeAfter before={view(false)} after={view(true)} />
 }
 
+const PLAIN_NOTES = [
+  '# Notes',
+  '',
+  'Ship the label fix on Friday.',
+  '- Check printer DPI',
+]
+
+function PlainGutters({ trimmed }: { trimmed?: boolean }) {
+  return (
+    <>
+      <Tabs>
+        <Tab name="notes.md" active />
+      </Tabs>
+      <Code
+        lines={PLAIN_NOTES.map((line) => (
+          <>
+            {!trimmed && <span className="inline-block w-7" />}
+            {line}
+          </>
+        ))}
+      />
+    </>
+  )
+}
+
+function PlainFileGutters() {
+  return (
+    <BeforeAfter before={<PlainGutters />} after={<PlainGutters trimmed />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.39.1': figure(PlainFileGutters),
   '1.39.0': figure(FileMovePreview),
   '1.38.1': figure(LatestSharedLink),
   '1.38.0': figure(ClosedTabsKept),

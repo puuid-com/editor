@@ -1,7 +1,8 @@
 import { jsonLanguage } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 import { autoCloseTags, xmlLanguage } from '@codemirror/lang-xml'
-import { Language, LanguageSupport } from '@codemirror/language'
+import { Language, LanguageSupport, foldGutter } from '@codemirror/language'
+import { lintGutter } from '@codemirror/lint'
 import { Compartment, Facet } from '@codemirror/state'
 import { Parser } from '@lezer/common'
 
@@ -107,6 +108,24 @@ export const docLanguage = Facet.define<DocLanguage, DocLanguage>({
 })
 
 export const languageCompartment = new Compartment()
+
+/**
+ * Fold markers and lint marks. Only XML and JSON have elements to fold or
+ * parse errors to mark; everywhere else the columns would sit empty.
+ */
+export function structureGutters(language: DocLanguage | null): Extension {
+  if (language !== 'xml' && language !== 'json') return []
+  return [
+    foldGutter({
+      markerDOM: (open) => {
+        const el = document.createElement('span')
+        el.textContent = open ? '▾' : '▸'
+        return el
+      },
+    }),
+    lintGutter(),
+  ]
+}
 
 export function languageExtension(language: DocLanguage) {
   return [docLanguage.of(language), SUPPORT[language]]
