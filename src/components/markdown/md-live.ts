@@ -11,6 +11,7 @@ import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 
 import { treeChanged } from '#/components/editor/syntax'
 import { editorPrefs } from '#/components/editor/word-wrap'
+import { isImagePath, parseWikilink } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
 // Live preview, as in Obsidian: the Markdown reads as it renders, in the
@@ -141,7 +142,7 @@ const INLINE: Record<string, string> = {
   Autolink: 'LinkMark',
 }
 
-/** Blocks shown as written: code, HTML, and images, which have no text to show. */
+/** Shown as written: code and HTML. Images are drawn by `liveImages`. */
 const SKIP = new Set([
   'FencedCode',
   'CodeBlock',
@@ -201,8 +202,15 @@ function liveDecorations(view: EditorView): DecorationSet {
           const marks = node.getChildren('WikiLinkMark')
           if (marks.length < 2) return undefined
           const [open, close] = marks
+          const inner = doc.sliceString(open.to, close.from)
+          // `![[image.png]]` is drawn by `liveImages`.
+          if (
+            doc.sliceString(node.from, node.from + 1) === '!' &&
+            isImagePath(parseWikilink(inner).target)
+          )
+            return undefined
           // `[[note|alias]]` shows its alias.
-          const pipe = doc.sliceString(open.to, close.from).indexOf('|')
+          const pipe = inner.indexOf('|')
           hide(open.from, pipe < 0 ? open.to : open.to + pipe + 1)
           hide(close.from, close.to)
           return undefined

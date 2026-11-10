@@ -579,8 +579,8 @@
 }
 /*
  * Blocks centered from the Center menu, which sets `data-md-center` on <html>
- * (see #/lib/md-center). The preview, PDF and live preview's tables all read
- * these rules; off, a block sits at the start.
+ * (see #/lib/md-center). The preview, PDF and live preview's tables and
+ * images all read these rules; off, a block sits at the start.
  */
 [data-md-center~='table'] :is(.md-preview table, .cm-md-table .md-table) {
   margin-inline: auto;
@@ -590,6 +590,9 @@
 }
 [data-md-center~='image'] .md-preview [data-image-block] img {
   margin-inline: auto;
+}
+[data-md-center~='image'] .cm-md-image-line {
+  text-align: center;
 }
 [data-md-center~='code'] .md-preview [data-code-block] {
   width: fit-content;

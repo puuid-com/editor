@@ -24,6 +24,7 @@ import { replayDraftEdits } from './draft'
 import { setVarValues } from './dynamic-vars'
 import { editorExtensions, setDefaultRules, fileIdField } from './extensions'
 import { imagePaste } from '#/components/markdown/image-paste'
+import { liveImages } from '#/components/markdown/md-live-images'
 import { setMarkdownLive } from '#/components/markdown/md-live'
 import { setLongValueLimit } from './long-values'
 import { setZplTags } from './zpl-links'
@@ -59,6 +60,7 @@ function sharedExtensions(
 ) {
   extensions ??= [
     imagePaste,
+    liveImages,
     editorExtensions(
       {
         onParse: (fileId, doc) => {

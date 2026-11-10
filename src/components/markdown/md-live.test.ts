@@ -76,6 +76,11 @@ describe('Markdown live preview', () => {
     expect(shown(view)).toEqual(['# Title', 'Some bold and it'])
   })
 
+  it('leaves image embeds to the image plugin', () => {
+    const view = editor('![[cat.png]] ![[note]]')
+    expect(shown(view)).toEqual(['![[cat.png]] note'])
+  })
+
   it('hides the tags of colored code', () => {
     const view = editor('Run <code style="color: red">deploy</code> now')
     expect(shown(view)).toEqual(['Run deploy now'])

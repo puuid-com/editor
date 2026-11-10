@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.44.0] - 2026-11-10
+
+### Added
+
+- Live preview shows a note's images in place of their Markdown, `![alt](src)` and `![[image.png|300]]` alike, read from the note's folder as the preview panel does. Put the caret on one to edit its Markdown, with the image still showing after it. A line of images alone follows the Center menu.
+
 ## [1.43.1] - 2026-11-10
 
 ### Fixed

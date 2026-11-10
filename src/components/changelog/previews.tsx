@@ -4226,7 +4226,33 @@ function CenteredBlocks() {
   return <BeforeAfter before={page(false)} after={page(true)} />
 }
 
+/** A note in live preview, its image link as written or drawn as the image. */
+function LiveImageNote({ drawn = false }: { drawn?: boolean }) {
+  return (
+    <div className="grid content-start gap-2 p-3 font-mono">
+      <span className="font-semibold">Trip</span>
+      <span>The view from the top:</span>
+      {drawn ? (
+        <span className="flex aspect-video items-center justify-center border bg-muted/40 text-muted-foreground">
+          <IconPhoto className="size-6" stroke={1.5} />
+        </span>
+      ) : (
+        <span className="break-all">
+          <Syn k="comment">![](attachements/img/view.png)</Syn>
+        </span>
+      )}
+    </div>
+  )
+}
+
+function LiveImages() {
+  return (
+    <BeforeAfter before={<LiveImageNote />} after={<LiveImageNote drawn />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.44.0': figure(LiveImages),
   '1.43.0': figure(CenteredBlocks),
   '1.42.0': figure(SerifText),
   '1.41.0': figure(SheetTables),
