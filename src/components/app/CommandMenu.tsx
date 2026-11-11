@@ -1,6 +1,6 @@
-import { Logo } from '#/components/Logo'
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import {
+  IconSearch,
   IconArchive,
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -38,6 +38,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { FileIcon } from './FileIcon'
+import { ToolbarButton } from './ToolbarButton'
 import {
   newFile,
   newJsonFile,
@@ -74,7 +75,6 @@ import {
   switchToNextProfile,
 } from '#/components/profiles/actions'
 import { ProfileTag } from '#/components/profiles/ProfileTag'
-import { Button } from '#/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -133,7 +133,7 @@ export function CommandMenu({
     <Dialog open={open} onOpenChange={setPaletteOpen}>
       <DialogContent
         showCloseButton={false}
-        className="top-1/2 -translate-y-1/2 overflow-hidden rounded-none p-0 sm:max-w-xl"
+        className="top-1/2 -translate-y-1/2 overflow-hidden rounded-xl p-0 sm:max-w-xl"
         onCloseAutoFocus={(e) => {
           if (!returnFocus.current?.isConnected) return
           e.preventDefault()
@@ -150,21 +150,17 @@ export function CommandMenu({
   )
 }
 
-/** Bottom bar control that opens the command menu and shows its shortcut. */
+/** Opens the command menu from a pane's header on phones, which have no sidebar rail. */
 export function CommandMenuButton() {
   return (
-    <Button
-      variant="ghost"
-      size="xs"
-      aria-label={m.palette_open()}
-      className="gap-1.5 px-1.5 text-[11px] font-normal text-muted-foreground hover:text-foreground max-md:h-11 max-md:min-w-11"
+    <ToolbarButton
+      label={m.palette_open()}
+      size="icon-sm"
+      className="shrink-0 md:hidden"
       onClick={() => setPaletteOpen(true)}
     >
-      <Logo className="size-5" />
-      <Kbd className="h-4 min-w-4 bg-transparent px-0 text-[11px] font-normal">
-        {shortcutLabel(shortcuts.palette)}
-      </Kbd>
-    </Button>
+      <IconSearch />
+    </ToolbarButton>
   )
 }
 

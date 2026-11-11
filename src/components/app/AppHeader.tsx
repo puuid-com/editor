@@ -8,6 +8,7 @@ import { useSelector } from '@tanstack/react-store'
 import { hidePane, joinPanes, MAX_PANES, openBeside } from './panes'
 import { newFile, newZplFile } from './files'
 import { askRename, setShareOpen } from './ui-store'
+import { CommandMenuButton } from './CommandMenu'
 import { TabStrip } from './TabStrip'
 import { Button } from '#/components/ui/button'
 import {
@@ -18,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
+import { SidebarTrigger } from '#/components/ui/sidebar'
 import {
   Tooltip,
   TooltipContent,
@@ -70,7 +72,11 @@ export function AppHeader({
   const focus = () => setActive(fileId)
 
   return (
-    <header className="flex h-12 shrink-0 items-center bg-muted/60 shadow-[inset_0_-1px_var(--border)] md:h-10">
+    <header className="flex h-12 shrink-0 items-center gap-0.5 border-b px-1.5 md:h-10">
+      {/* Phones open the sidebar as a drawer from here. */}
+      {first && (
+        <SidebarTrigger className="shrink-0 text-muted-foreground max-md:size-11 md:hidden" />
+      )}
       <TabStrip
         files={files}
         activeId={fileId}
@@ -78,6 +84,7 @@ export function AppHeader({
         focused={active}
       />
       {actions}
+      {first && <CommandMenuButton />}
       {wide && count > 1 && last && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -144,7 +151,7 @@ export function AppHeader({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="mr-1 shrink-0"
+            className="shrink-0 max-md:size-11"
             aria-label={m.pane_actions()}
             onClick={focus}
           >

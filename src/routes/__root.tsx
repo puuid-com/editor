@@ -80,7 +80,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <TanStackDevtools
           config={{
-            position: 'bottom-right',
+            // Clear of the status bar's and sidebar's corner controls.
+            position: 'middle-right',
           }}
           plugins={[
             {

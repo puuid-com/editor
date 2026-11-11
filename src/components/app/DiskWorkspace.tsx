@@ -33,6 +33,7 @@ import {
   RowMenu,
   WorkspaceHeader,
   activeRowClass,
+  nestClass,
   rowButtonClass,
   rowClass,
   scrollToRow,
@@ -334,7 +335,7 @@ export function DiskWorkspace({
           </DropdownMenuItem>
         </RowMenu>
       </WorkspaceHeader>
-      <CollapsibleContent className="ml-3 border-l pl-1">
+      <CollapsibleContent className={nestClass}>
         {!granted ? (
           <Hint>{m.folder_access_hint()}</Hint>
         ) : vaultPending ? (
@@ -448,7 +449,7 @@ function DirectoryRow({ tree, entry }: { tree: Tree; entry: DiskEntry }) {
           </DropdownMenuItem>
         </RowMenu>
       </div>
-      <CollapsibleContent className="ml-3 border-l pl-1">
+      <CollapsibleContent className={nestClass}>
         {/* Read only once opened, so a large folder costs nothing closed. */}
         {open && <Directory tree={tree} path={entry.path} />}
       </CollapsibleContent>

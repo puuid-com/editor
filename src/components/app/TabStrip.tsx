@@ -35,15 +35,10 @@ import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
 import type { DocLanguage } from '#/lib/document'
 
-// Tabs fit their name, within bounds, however many are open. The active one
-// is the top edge of the sheet below it, in its colour (`--sheet`); the rest sit flat on the
-// header band, split by hairlines. When they don't fit, the strip scrolls,
-// fades at the edge that has more, and the full list sits behind a menu at
-// its end.
-
-// A hairline before each tab, hidden next to the active or hovered one.
-const DIVIDER =
-  'before:absolute before:top-1/2 before:-left-px before:h-4 before:w-px before:-translate-y-1/2 before:bg-border first:before:hidden hover:before:hidden data-active:before:hidden [:hover+&]:before:hidden [[data-active]+&]:before:hidden'
+// Tabs fit their name, within bounds, however many are open. Each is a flat
+// pill on the pane's header; the active one is filled, fainter in a pane that
+// doesn't have the focus. When they don't fit, the strip scrolls, fades at
+// the edge that has more, and the full list sits behind a menu at its end.
 
 /** Fades the strip's edges that hide more tabs. */
 function edgeMask(start: boolean, end: boolean) {
@@ -118,7 +113,7 @@ export function TabStrip({
           onBlur={(e) => {
             if (!e.currentTarget.contains(e.relatedTarget)) setPressed(false)
           }}
-          className="relative h-full! w-full items-end justify-start gap-0 overflow-x-auto px-2 pt-1.5 pb-0 [scrollbar-width:none]"
+          className="relative h-full! w-full items-center justify-start gap-0.5 overflow-x-auto p-0 [scrollbar-width:none]"
         >
           {files.map((file, index) => {
             const profile = resolveProfile(profiles, file.profileId)
@@ -153,14 +148,15 @@ export function TabStrip({
                     }}
                     data-active={file.id === activeId || undefined}
                     className={cn(
-                      'group/tab relative flex h-full max-w-56 min-w-0 shrink-0 items-center rounded-t-lg border border-b-0 border-transparent pr-1.5',
-                      DIVIDER,
+                      'group/tab relative flex h-9 max-w-56 min-w-0 shrink-0 items-center rounded-md pr-1.5 md:h-7',
                       // Keyboard focus outlines the whole tab, not the name.
                       !pressed &&
                         'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
-                      file.id === activeId
-                        ? 'z-10 border-border bg-(--sheet,var(--background))'
-                        : 'hover:bg-foreground/5',
+                      file.id !== activeId
+                        ? 'hover:bg-muted/70'
+                        : focused
+                          ? 'bg-muted'
+                          : 'bg-muted/60',
                       overId === file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',
                     )}
@@ -174,7 +170,7 @@ export function TabStrip({
                       onAuxClick={(e) => {
                         if (e.button === 1) closeTab(file.id)
                       }}
-                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1.5 pl-3 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none"
+                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1 pl-2.5 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none data-active:font-medium"
                     >
                       {profile && !file.empty && (
                         <span
@@ -199,7 +195,7 @@ export function TabStrip({
           })}
         </TabsList>
       </Tabs>
-      <div className="flex shrink-0 items-center gap-0.5 px-1">
+      <div className="flex shrink-0 items-center gap-0.5 pl-0.5">
         <ToolbarButton
           label={m.file_new()}
           shortcut={shortcuts.newFile}

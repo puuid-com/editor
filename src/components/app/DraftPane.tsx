@@ -11,6 +11,7 @@ import { IconFolderOpen, IconFolderRoot } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef } from 'react'
 
+import { CommandMenuButton } from './CommandMenu'
 import { openFolder } from './disk-workspace'
 import { FILE_TYPES } from './file-type'
 import {
@@ -25,6 +26,7 @@ import { structureGutters } from '#/components/editor/language'
 import { editorTheme } from '#/components/editor/theme'
 import { Button } from '#/components/ui/button'
 import { Separator } from '#/components/ui/separator'
+import { SidebarTrigger } from '#/components/ui/sidebar'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import {
   Tooltip,
@@ -134,10 +136,13 @@ export function DraftPane() {
   const name = draftName(language)
   return (
     <section aria-label={name} className="flex h-full min-w-0 flex-col">
-      <header className="flex h-12 shrink-0 items-end bg-muted/60 px-2 pt-1.5 shadow-[inset_0_-1px_var(--border)] md:h-10">
-        <span className="flex h-full max-w-56 min-w-0 items-center rounded-t-lg border border-b-0 border-border bg-background px-3 text-xs text-foreground">
+      <header className="flex h-12 shrink-0 items-center gap-0.5 border-b px-1.5 md:h-10">
+        <SidebarTrigger className="shrink-0 text-muted-foreground max-md:size-11 md:hidden" />
+        <span className="flex h-9 max-w-56 min-w-0 items-center rounded-md bg-muted px-2.5 text-xs font-medium text-foreground md:h-7">
           <span className="truncate">{name}</span>
         </span>
+        <span className="flex-1" />
+        <CommandMenuButton />
       </header>
       <div ref={parentRef} className="min-h-0 flex-1 overflow-hidden" />
     </section>

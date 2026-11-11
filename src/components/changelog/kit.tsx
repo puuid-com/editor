@@ -19,7 +19,7 @@ export function Figure({ children }: { children: ReactNode }) {
 
 function Label({ children }: { children: ReactNode }) {
   return (
-    <span className="font-mono text-[0.6875rem] font-medium tracking-wider text-muted-foreground uppercase">
+    <span className="text-xs font-medium text-muted-foreground">
       {children}
     </span>
   )
@@ -45,7 +45,7 @@ export function Shot({
       {label && <Label>{label}</Label>}
       <div
         className={cn(
-          'relative min-w-0 overflow-hidden border bg-background text-xs',
+          'relative min-w-0 overflow-hidden rounded-lg border bg-background text-xs',
           className,
         )}
       >
@@ -399,6 +399,60 @@ export function SheetTab({
       <span className="grid size-3.5 shrink-0 place-items-center">
         {active && <IconX className="size-3 text-muted-foreground" />}
       </span>
+    </div>
+  )
+}
+
+/**
+ * A pane's tab row since 1.49.0: flat pills on the pane's header, the active
+ * one filled. `end` holds the row's buttons.
+ */
+export function PillTabs({
+  children,
+  end,
+}: {
+  children: ReactNode
+  end?: ReactNode
+}) {
+  return (
+    <div className="flex h-8 items-center gap-1 border-b px-1 text-[11px]">
+      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-hidden">
+        {children}
+      </div>
+      {end && (
+        <div className="flex shrink-0 items-center gap-1.5 px-1 text-muted-foreground [&_svg]:size-3.5">
+          {end}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function PillTab({
+  name,
+  active,
+  color,
+}: {
+  name: string
+  active?: boolean
+  /** A profile's highlight colour, shown as a dot before the name. */
+  color?: string
+}) {
+  return (
+    <div
+      className={cn(
+        'flex h-6 min-w-0 shrink-0 items-center gap-1.5 rounded-md px-2',
+        active ? 'bg-muted font-medium' : 'text-muted-foreground',
+      )}
+    >
+      {color && (
+        <span
+          style={{ '--hl': color } as CSSProperties}
+          className="size-1.5 shrink-0 rounded-full bg-(--hl)"
+        />
+      )}
+      <span className="truncate">{name}</span>
+      {active && <IconX className="size-3 shrink-0 text-muted-foreground" />}
     </div>
   )
 }

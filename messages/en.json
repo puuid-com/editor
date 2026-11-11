@@ -977,7 +977,6 @@
   "folder_unavailable": "This folder can’t be read. It may have been moved or deleted.",
   "folder_unsupported_file": "Can’t open this kind of file here.",
   "folder_empty": "This folder is empty.",
-  "explorer_toggle_hint": "Collapse the panel to give the editor more room.",
   "explorer_import_hint": "Copies them into the browser",
   "explorer_import_folder_hint": "Copies a whole folder",
   "folder_open_hint": "Edit a folder on your device directly. Changes save back to disk.",

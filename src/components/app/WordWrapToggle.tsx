@@ -13,9 +13,10 @@ export function WordWrapToggle() {
     <ToolbarButton
       label={m.word_wrap_toggle()}
       shortcut={shortcuts.wordWrap}
+      size="icon-sm"
       aria-pressed={on}
       onClick={toggleWordWrap}
-      className="text-muted-foreground aria-pressed:bg-muted aria-pressed:text-foreground"
+      className="text-muted-foreground aria-pressed:bg-sidebar-accent aria-pressed:text-foreground"
     >
       <IconTextWrap />
     </ToolbarButton>

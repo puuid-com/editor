@@ -977,7 +977,6 @@
   "folder_unavailable": "Ce dossier est illisible. Il a peut-être été déplacé ou supprimé.",
   "folder_unsupported_file": "Impossible d’ouvrir ce type de fichier ici.",
   "folder_empty": "Ce dossier est vide.",
-  "explorer_toggle_hint": "Replier le panneau pour donner plus de place à l’éditeur.",
   "explorer_import_hint": "Les copie dans le navigateur",
   "explorer_import_folder_hint": "Copie un dossier entier",
   "folder_open_hint": "Modifier directement un dossier de votre appareil. Les changements sont enregistrés sur le disque.",

@@ -8,7 +8,7 @@ import {
   IconFolderRoot,
   IconFolderPlus,
   IconFilePlus,
-  IconLayoutSidebarRight,
+  IconSearch,
   IconUpload,
   IconChevronDown,
   IconFolderUp,
@@ -17,7 +17,6 @@ import {
 import { useLiveQuery } from '@tanstack/react-db'
 import { useSelector } from '@tanstack/react-store'
 import { useRef, useState } from 'react'
-import { useMediaQuery } from '#/hooks/use-media-query'
 import { openFolder } from './disk-workspace'
 import { DiskWorkspace } from './DiskWorkspace'
 import {
@@ -27,6 +26,7 @@ import {
   RowMenu,
   WorkspaceHeader,
   activeRowClass,
+  nestClass,
   rowButtonClass,
   rowClass,
   scrollToRow,
@@ -35,11 +35,31 @@ import type { NameRequest } from './explorer-parts'
 import { deleteFolders, importFiles, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
-import { askDelete, closeTab } from './ui-store'
+import { askDelete, closeTab, setPaletteOpen } from './ui-store'
+import { ArchiveButton } from './ArchiveDialog'
+import { CodeFontMenu } from './CodeFontMenu'
+import { ThemeToggle } from './ThemeToggle'
+import { WordWrapToggle } from './WordWrapToggle'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
+import { Logo } from '#/components/Logo'
 import { Button } from '#/components/ui/button'
-import { Input } from '#/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '#/components/ui/input-group'
+import { Kbd } from '#/components/ui/kbd'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from '#/components/ui/sidebar'
 import {
   Collapsible,
   CollapsibleContent,
@@ -80,8 +100,12 @@ import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
+import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
+import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
+import { site } from '#/site'
+import { Link } from '@tanstack/react-router'
 
 type Edit = {
   kind: 'file' | 'folder'
@@ -217,9 +241,11 @@ export function FileExplorer({
       return next
     })
   }
-  const [expanded, setVisible] = useState<boolean | null>(null)
-  const wide = useMediaQuery('(min-width: 768px)')
-  const visible = expanded ?? wide
+  // On phones the sidebar is a drawer, which closes once a file is picked.
+  const { isMobile, setOpenMobile } = useSidebar()
+  const closeDrawer = () => {
+    if (isMobile) setOpenMobile(false)
+  }
   const directoryInput = useRef<HTMLInputElement>(null)
   const run = (action: () => Promise<unknown>) => {
     void action().catch(() => notify.error(m.explorer_failed()))
@@ -395,7 +421,7 @@ export function FileExplorer({
         title={`${folderPath(file.folderId)} / ${file.name}`}
         onClick={() => {
           run(() => showFile(file.id))
-          if (!wide) setVisible(false)
+          closeDrawer()
         }}
         onDoubleClick={() =>
           setEdit({
@@ -456,10 +482,7 @@ export function FileExplorer({
                 parentId,
               })}
             </div>
-            <CollapsibleContent
-              className="ml-3 border-l pl-1"
-              {...dropProps(folder.id)}
-            >
+            <CollapsibleContent className={nestClass} {...dropProps(folder.id)}>
               {tree(folder.id, new Set([...ancestors, folder.id]))}
             </CollapsibleContent>
           </Collapsible>
@@ -491,53 +514,80 @@ export function FileExplorer({
       .finally(() => setDeleting(false))
   }
   return (
-    <aside
-      aria-label={m.explorer_title()}
-      className={cn(
-        'flex shrink-0 flex-col border-l bg-background',
-        visible
-          ? 'w-72 max-md:absolute max-md:inset-y-0 max-md:right-0 max-md:z-30 max-md:w-[min(20rem,100%)]'
-          : 'w-11',
-      )}
-    >
-      <input
-        ref={directoryInput}
-        type="file"
-        multiple
-        {...{ webkitdirectory: '' }}
-        className="hidden"
-        onChange={(event) => {
-          const selected = event.target.files
-          if (selected) run(() => importFiles(selected))
-          event.target.value = ''
-        }}
-      />
-      <div className="flex h-12 shrink-0 items-center gap-1 border-b px-2 md:h-10">
-        <ToolbarButton
-          label={m.explorer_toggle()}
-          hint={m.explorer_toggle_hint()}
-          onClick={() => setVisible(!visible)}
-        >
-          <IconLayoutSidebarRight />
-        </ToolbarButton>
-        {visible && (
-          <>
-            <span className="min-w-0 flex-1 text-xs font-medium">
-              {m.explorer_title()}
-            </span>
+    <Sidebar variant="inset" collapsible="icon">
+      <aside
+        aria-label={m.explorer_title()}
+        className="flex size-full min-h-0 flex-col"
+      >
+        <input
+          ref={directoryInput}
+          type="file"
+          multiple
+          {...{ webkitdirectory: '' }}
+          className="hidden"
+          onChange={(event) => {
+            const selected = event.target.files
+            if (selected) run(() => importFiles(selected))
+            event.target.value = ''
+          }}
+        />
+        <SidebarHeader className="gap-2 group-data-[collapsible=icon]:items-center">
+          <div className="flex h-8 items-center gap-1 group-data-[collapsible=icon]:h-auto group-data-[collapsible=icon]:flex-col">
+            <Link
+              to="/about"
+              aria-label={m.nav_about()}
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Logo className="size-6 shrink-0" />
+              <span className="truncate group-data-[collapsible=icon]:hidden">
+                {site.name}
+              </span>
+            </Link>
+            <SidebarTrigger className="text-muted-foreground max-md:size-11" />
+            {/* Collapsed, the search field and New menu are icons. */}
+            <ToolbarButton
+              label={m.palette_open()}
+              shortcut={shortcuts.palette}
+              size="icon-sm"
+              className="hidden text-muted-foreground group-data-[collapsible=icon]:inline-flex"
+              onClick={() => setPaletteOpen(true)}
+            >
+              <IconSearch />
+            </ToolbarButton>
+          </div>
+          <div className="flex items-center gap-1.5 group-data-[collapsible=icon]:hidden">
+            <InputGroup className="bg-background">
+              <InputGroupAddon>
+                <IconSearch />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label={m.explorer_search()}
+                placeholder={m.explorer_search()}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {/* Phones have no ⌘K; their pane header has the search button. */}
+              {!isMobile && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    aria-label={m.palette_open()}
+                    title={m.palette_placeholder()}
+                    onClick={() => setPaletteOpen(true)}
+                  >
+                    <Kbd>{shortcutLabel(shortcuts.palette)}</Kbd>
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
+            </InputGroup>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  size="xs"
-                  className="aria-expanded:bg-muted max-md:h-9"
+                  size="icon"
+                  aria-label={m.explorer_new()}
+                  className="shrink-0 aria-expanded:bg-muted"
                 >
-                  <IconPlus data-icon="inline-start" />
-                  {m.explorer_new()}
-                  <IconChevronDown
-                    data-icon="inline-end"
-                    className="text-muted-foreground"
-                  />
+                  <IconPlus />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
@@ -582,94 +632,91 @@ export function FileExplorer({
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-          </>
-        )}
-      </div>
-      {visible && (
-        <>
-          <div className="p-2">
-            <Input
-              aria-label={m.explorer_search()}
-              placeholder={m.explorer_search()}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+          </div>
+        </SidebarHeader>
+        <SidebarContent
+          className="px-2 pb-2 group-data-[collapsible=icon]:invisible"
+          {...dropProps(null)}
+        >
+          <Collapsible open={browserOpen} onOpenChange={setBrowserOpen}>
+            <WorkspaceHeader
+              icon={<IconBrowser />}
+              name={m.explorer_browser()}
+              title={m.explorer_browser_hint()}
+              open={browserOpen}
+            >
+              <RowCount count={files.length} />
+              <RowAction
+                label={m.file_new()}
+                hint={m.explorer_in_browser()}
+                onClick={() => newEntry('file', null)}
+              >
+                <IconFilePlus />
+              </RowAction>
+              <RowAction
+                label={m.explorer_new_folder()}
+                hint={m.explorer_in_browser()}
+                onClick={() => newEntry('folder', null)}
+              >
+                <IconFolderPlus />
+              </RowAction>
+              <RowMenu label={m.folder_actions()}>
+                <DropdownMenuItem onSelect={onImport}>
+                  <IconUpload />
+                  {m.explorer_import()}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => directoryInput.current?.click()}
+                >
+                  <IconFolderUp />
+                  {m.explorer_import_folder()}
+                </DropdownMenuItem>
+              </RowMenu>
+            </WorkspaceHeader>
+            <CollapsibleContent className={nestClass} {...dropProps(null)}>
+              {search
+                ? files
+                    .filter((f) =>
+                      `${folderPath(f.folderId)}/${f.name}`
+                        .toLowerCase()
+                        .includes(search.toLowerCase()),
+                    )
+                    .map(fileRow)
+                : tree(null)}
+              {files.length === 0 && folders.length === 0 && (
+                <p className="p-2 text-xs text-muted-foreground">
+                  {m.explorer_empty()}
+                </p>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+          {roots.map((root) => (
+            <DiskWorkspace
+              key={root.id}
+              root={root}
+              tabs={tabsByPath.get(root.id) ?? new Map()}
+              activeId={activeId}
+              search={search}
+              askName={setNameRequest}
+              onOpened={closeDrawer}
             />
-          </div>
-          <div
-            className="min-h-0 flex-1 overflow-auto px-2 pb-4"
-            {...dropProps(null)}
+          ))}
+        </SidebarContent>
+        <SidebarFooter className="flex-row items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
+          <ArchiveButton />
+          <WordWrapToggle />
+          <CodeFontMenu />
+          <ThemeToggle />
+          <Link
+            to="/changelog"
+            aria-label={m.app_version_label({ version: appVersion })}
+            className="ml-auto rounded-md px-1.5 py-1 font-mono text-[11px] text-muted-foreground tabular-nums outline-none group-data-[collapsible=icon]:hidden hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Collapsible open={browserOpen} onOpenChange={setBrowserOpen}>
-              <WorkspaceHeader
-                icon={<IconBrowser />}
-                name={m.explorer_browser()}
-                title={m.explorer_browser_hint()}
-                open={browserOpen}
-              >
-                <RowCount count={files.length} />
-                <RowAction
-                  label={m.file_new()}
-                  hint={m.explorer_in_browser()}
-                  onClick={() => newEntry('file', null)}
-                >
-                  <IconFilePlus />
-                </RowAction>
-                <RowAction
-                  label={m.explorer_new_folder()}
-                  hint={m.explorer_in_browser()}
-                  onClick={() => newEntry('folder', null)}
-                >
-                  <IconFolderPlus />
-                </RowAction>
-                <RowMenu label={m.folder_actions()}>
-                  <DropdownMenuItem onSelect={onImport}>
-                    <IconUpload />
-                    {m.explorer_import()}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => directoryInput.current?.click()}
-                  >
-                    <IconFolderUp />
-                    {m.explorer_import_folder()}
-                  </DropdownMenuItem>
-                </RowMenu>
-              </WorkspaceHeader>
-              <CollapsibleContent
-                className="ml-3 border-l pl-1"
-                {...dropProps(null)}
-              >
-                {search
-                  ? files
-                      .filter((f) =>
-                        `${folderPath(f.folderId)}/${f.name}`
-                          .toLowerCase()
-                          .includes(search.toLowerCase()),
-                      )
-                      .map(fileRow)
-                  : tree(null)}
-                {files.length === 0 && folders.length === 0 && (
-                  <p className="p-2 text-xs text-muted-foreground">
-                    {m.explorer_empty()}
-                  </p>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
-            {roots.map((root) => (
-              <DiskWorkspace
-                key={root.id}
-                root={root}
-                tabs={tabsByPath.get(root.id) ?? new Map()}
-                activeId={activeId}
-                search={search}
-                askName={setNameRequest}
-                onOpened={() => {
-                  if (!wide) setVisible(false)
-                }}
-              />
-            ))}
-          </div>
-        </>
-      )}
+            {m.app_version({ version: appVersion })}
+          </Link>
+        </SidebarFooter>
+      </aside>
+      {!isMobile && <SidebarRail />}
       <Dialog
         open={!!deleteId}
         onOpenChange={(open) => {
@@ -702,6 +749,6 @@ export function FileExplorer({
         </DialogContent>
       </Dialog>
       <NameDialog request={nameRequest} onClose={() => setNameRequest(null)} />
-    </aside>
+    </Sidebar>
   )
 }

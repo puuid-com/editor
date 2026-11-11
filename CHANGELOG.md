@@ -1,12 +1,22 @@
 # Changelog
 
-Every change bumps `version` in `package.json` and adds an entry here, newest first. The version shows in the editor's bottom bar and the site footer.
+Every change bumps `version` in `package.json` and adds an entry here, newest first. The version shows in the editor's sidebar and the site footer.
 
 - **Major**: breaking changes to stored data, share links or file formats.
 - **Minor**: new features and visible behavior changes.
 - **Patch**: fixes, refactors, docs and tooling.
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
+
+## [1.49.0] - 2026-11-11
+
+### Changed
+
+- The editor has a new look. The explorer is now a sidebar on the left, with the Editor mark, file search and the New menu at its top. Collapse it to a narrow rail with the button beside the name or by clicking its edge; it stays as you left it.
+- The panes sit together on one rounded sheet. Tabs are flat pills: the open file's is filled, fainter in a pane that doesn't have the focus.
+- The bottom bar only holds what belongs to the open file. The archive, word wrap, code font, theme and version moved to the foot of the sidebar; search (⌘K) is in the sidebar's search field.
+- Buttons, fields, menus and dialogs have rounded corners, and menu items highlight in a light grey instead of solid black.
+- On phones the explorer opens as a drawer from the left of the tab row, and the bottom bar scrolls sideways instead of cutting its last buttons off.
 
 ## [1.48.0] - 2026-11-10
 

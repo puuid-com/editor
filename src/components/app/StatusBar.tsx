@@ -1,19 +1,13 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import { Suspense, lazy } from 'react'
 import { IconAdjustmentsHorizontal, IconFileTypePdf } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 
 import { ActionBar, FormatButton } from './ActionBar'
 import { CenterMenu } from './CenterMenu'
-import { CodeFontMenu } from './CodeFontMenu'
-import { CommandMenuButton } from './CommandMenu'
 import { FormatOptions } from './FormatControls'
 import { MarkdownLiveToggle } from './MarkdownLiveToggle'
-import { ArchiveButton } from './ArchiveDialog'
 import { StatusNotice } from './StatusNotice'
-import { ThemeToggle } from './ThemeToggle'
-import { WordWrapToggle } from './WordWrapToggle'
 import { editorStore } from '#/components/editor/editor-store'
 import { DefaultsRules } from '#/components/defaults/DefaultsControls'
 import { HighlightsBar } from '#/components/highlights/HighlightsBar'
@@ -31,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { useFileEmpty } from '#/hooks/use-files'
 import { useActiveProfile } from '#/hooks/use-profiles'
 import { isPlain } from '#/lib/document'
-import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
 
 const ZplStatusControls = lazy(() =>
@@ -40,7 +33,7 @@ const ZplStatusControls = lazy(() =>
   })),
 )
 
-/** Bottom bar: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync), search, the theme toggle and the app version on the right. */
+/** Bottom bar of the workspace: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync) on the right. What applies to every file sits in the sidebar. */
 export function StatusBar({
   leading,
 }: {
@@ -59,7 +52,7 @@ export function StatusBar({
   const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
 
   return (
-    <footer className="flex h-12 shrink-0 items-center gap-1 border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground md:h-8">
+    <footer className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground [scrollbar-width:none] md:h-9">
       {leading}
       {typed && !plain && <HighlightsBar />}
       <StatusNotice />
@@ -70,60 +63,46 @@ export function StatusBar({
       )}
       {typed && !plain && <ActionBar />}
       {typed && (
-        <>
-          <SettingsPopover
-            structured={!plain}
-            formattable={!plain || sql || markdown}
-          />
-          <Separator
-            orientation="vertical"
-            className="mx-1 data-vertical:h-4 data-vertical:self-center"
-          />
-        </>
+        <SettingsPopover
+          structured={!plain}
+          formattable={!plain || sql || markdown}
+        />
       )}
       {typed && zpl && (
         <>
+          <Divider />
           <Suspense>
             <ZplStatusControls fileId={activeId} />
           </Suspense>
-          <Separator
-            orientation="vertical"
-            className="mx-1 data-vertical:h-4 data-vertical:self-center"
-          />
         </>
       )}
-      {activeId && markdown && <MarkdownLiveToggle />}
-      {activeId && markdown && <CenterMenu />}
       {activeId && markdown && (
-        <Button
-          variant="ghost"
-          size="xs"
-          className="max-md:h-11"
-          onClick={() => exportMarkdownPdf({ kind: 'file', id: activeId })}
-        >
-          <IconFileTypePdf />
-          {m.md_pdf_export()}
-        </Button>
+        <>
+          {typed && <Divider />}
+          <MarkdownLiveToggle />
+          <CenterMenu />
+          <Button
+            variant="ghost"
+            size="xs"
+            className="max-md:h-11"
+            onClick={() => exportMarkdownPdf({ kind: 'file', id: activeId })}
+          >
+            <IconFileTypePdf />
+            {m.md_pdf_export()}
+          </Button>
+        </>
       )}
-      <ArchiveButton />
-      <CommandMenuButton />
-      <WordWrapToggle />
-      <CodeFontMenu />
-      <ThemeToggle />
-      <Button
-        asChild
-        variant="ghost"
-        size="xs"
-        className="px-1.5 font-mono text-[11px] font-normal tabular-nums max-md:hidden"
-      >
-        <Link
-          to="/changelog"
-          aria-label={m.app_version_label({ version: appVersion })}
-        >
-          {m.app_version({ version: appVersion })}
-        </Link>
-      </Button>
     </footer>
+  )
+}
+
+/** A hairline between two groups of the bar's controls. */
+function Divider() {
+  return (
+    <Separator
+      orientation="vertical"
+      className="mx-1 data-vertical:h-4 data-vertical:self-center"
+    />
   )
 }
 

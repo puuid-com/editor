@@ -32,6 +32,11 @@ import {
   DeleteProfileDialog,
   ProfileDialog,
 } from '#/components/profiles/ProfileDialogs'
+import {
+  SidebarInset,
+  SidebarProvider,
+  sidebarDefaultOpen,
+} from '#/components/ui/sidebar'
 import { useEditorTitle } from '#/hooks/use-editor-title'
 import { useOpenFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
@@ -100,8 +105,9 @@ export function EditorApp() {
     e.dataTransfer.types.includes('Files')
 
   return (
-    <div
-      className="relative flex h-dvh flex-col overflow-hidden"
+    <SidebarProvider
+      defaultOpen={sidebarDefaultOpen()}
+      className="relative h-dvh overflow-hidden"
       onDragOver={(e) => {
         if (!hasFiles(e)) return
         e.preventDefault()
@@ -129,8 +135,10 @@ export function EditorApp() {
           e.target.value = ''
         }}
       />
-      <main id="main" className="relative flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1">
+      <FileExplorer activeId={activeId} onImport={openFromDisk} />
+      {/* The workspace sheet: panes above, the active file's bar below. */}
+      <SidebarInset id="main" className="min-h-0 min-w-0 overflow-hidden">
+        <div className="min-h-0 flex-1">
           {activeId ? (
             <MixedWorkspace
               fileId={activeId}
@@ -141,11 +149,10 @@ export function EditorApp() {
             <DraftPane />
           )}
         </div>
-        <FileExplorer activeId={activeId} onImport={openFromDisk} />
-      </main>
-      <StatusBar
-        leading={!activeId && <DraftControls onOpenFromDisk={openFromDisk} />}
-      />
+        <StatusBar
+          leading={!activeId && <DraftControls onOpenFromDisk={openFromDisk} />}
+        />
+      </SidebarInset>
 
       <PdfExportDialog />
       <RenameDialog />
@@ -165,7 +172,7 @@ export function EditorApp() {
       <div
         aria-hidden={!dragging}
         className={cn(
-          'pointer-events-none absolute inset-2 z-50 hidden place-items-center border-2 border-dashed border-ring bg-background/80',
+          'pointer-events-none absolute inset-2 z-50 hidden place-items-center rounded-xl border-2 border-dashed border-ring bg-background/80',
           dragging && 'grid',
         )}
       >
@@ -174,6 +181,6 @@ export function EditorApp() {
           {m.drop_files()}
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }

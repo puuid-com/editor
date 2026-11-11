@@ -25,7 +25,7 @@ export function ArchiveButton() {
     <ToolbarButton
       label={m.archive_title()}
       size="icon-sm"
-      className="mx-1"
+      className="text-muted-foreground"
       onClick={() => setArchiveOpen(true)}
     >
       <IconArchive />

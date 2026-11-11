@@ -12,7 +12,6 @@ import {
 import { useOpenFiles, useFileContent } from '#/hooks/use-files'
 import { languageOf } from '#/lib/document'
 import { sessionStore, setActive } from '#/lib/store/session'
-import { cn } from '#/lib/utils'
 import { SidePanel } from './SidePanel'
 import { normalizePanes, savePanes } from './panes'
 import { AppHeader } from './AppHeader'
@@ -129,14 +128,7 @@ function FilePane({
   return (
     <section
       aria-label={file?.name}
-      className={cn(
-        'flex h-full min-w-0 flex-col',
-        // The active tab joins what sits right below it: a stacked ZPL
-        // pane's label preview, else the editor.
-        language === 'zpl' && !(wide && count === 1)
-          ? '[--sheet:var(--muted)]'
-          : '[--sheet:var(--background)]',
-      )}
+      className="flex h-full min-w-0 flex-col"
       onPointerDownCapture={() => setActive(fileId)}
       onFocusCapture={() => setActive(fileId)}
     >

@@ -51,6 +51,8 @@ import {
   Code,
   Figure,
   NewTab,
+  PillTab,
+  PillTabs,
   SheetTab,
   SheetTabs,
   Shot,
@@ -4389,7 +4391,97 @@ function ResizableLiveImages() {
   )
 }
 
+/**
+ * Since 1.49.0 the explorer is a sidebar on the left, the panes share one
+ * rounded sheet, tabs are pills and the bottom bar keeps the file's controls.
+ */
+function ShellRedesign() {
+  const row =
+    'flex items-center gap-1.5 rounded-md px-1.5 py-1 [&_svg]:size-3.5 [&_svg]:shrink-0'
+  const files = (active: string) => (
+    <>
+      <div className={cn(row, 'font-medium text-foreground')}>
+        <IconBrowser />
+        {m.explorer_browser()}
+      </div>
+      <div className={cn(row, active)}>
+        <IconFileCode />
+        <span className="truncate">order.xml</span>
+      </div>
+      <div className={row}>
+        <IconJson />
+        <span className="truncate">rates.json</span>
+      </div>
+    </>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <div className="flex h-full">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <SheetTabs end={<IconDots />}>
+              <SheetTab name="order.xml" color={BLUE} active />
+              <SheetTab name="rates.json" color={BLUE} />
+            </SheetTabs>
+            <Code lines={ORDER} className="flex-1" />
+            <StatusBar>
+              <IconWand className="size-3.5" />
+              <span className="flex-1 text-foreground">
+                {m.action_format()}
+              </span>
+              <IconTextWrap className="size-3.5" />
+              <span className="font-mono text-[10px]">
+                {m.app_version({ version: '1.48.0' })}
+              </span>
+            </StatusBar>
+          </div>
+          <div className="w-28 shrink-0 border-l">
+            <div className="flex h-8 items-center border-b px-2 font-medium">
+              {m.explorer_title()}
+            </div>
+            <div className="p-1 text-muted-foreground">
+              {files('rounded-none bg-muted text-foreground')}
+            </div>
+          </div>
+        </div>
+      }
+      after={
+        <div className="flex h-full bg-sidebar">
+          <div className="flex w-28 shrink-0 flex-col p-1.5">
+            <div className="flex h-7 items-center gap-1.5 px-1 font-semibold">
+              <Logo className="size-4" />
+              {site.name}
+            </div>
+            <div className="text-muted-foreground">
+              {files('bg-sidebar-accent text-foreground')}
+            </div>
+            <div className="mt-auto flex items-center px-1.5 pt-2 text-muted-foreground">
+              <IconTextWrap className="size-3.5" />
+              <span className="ml-auto font-mono text-[10px]">
+                {m.app_version({ version: '1.49.0' })}
+              </span>
+            </div>
+          </div>
+          <div className="m-1.5 ml-0 flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-background">
+            <PillTabs end={<IconDots />}>
+              <PillTab name="order.xml" color={BLUE} active />
+              <PillTab name="rates.json" color={BLUE} />
+            </PillTabs>
+            <Code lines={ORDER} className="flex-1" />
+            <StatusBar>
+              <span className="flex-1" />
+              <IconWand className="size-3.5" />
+              <span className="text-foreground">{m.action_format()}</span>
+            </StatusBar>
+          </div>
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.49.0': figure(ShellRedesign),
   '1.48.0': figure(InlineHeadingLevels),
   '1.47.0': figure(HeadingLevels),
   '1.46.0': figure(ResizableLiveImages),

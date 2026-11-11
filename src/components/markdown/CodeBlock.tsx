@@ -30,7 +30,7 @@ export function CodeBlock({ className, children, ...props }: PreProps) {
   return (
     <div
       data-code-block
-      className="not-prose my-5 overflow-hidden rounded-none border bg-background"
+      className="not-prose my-5 overflow-hidden rounded-lg border bg-background"
     >
       <div className="flex h-9 items-center justify-between gap-2 border-b pr-1 pl-3">
         <span className="truncate font-mono text-xs text-muted-foreground">
@@ -41,7 +41,7 @@ export function CodeBlock({ className, children, ...props }: PreProps) {
             <Button
               variant="ghost"
               size="icon-xs"
-              className="rounded-none text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
               aria-label={m.md_code_copy()}
               onClick={() => void copyText(ref.current?.textContent ?? '')}
             >

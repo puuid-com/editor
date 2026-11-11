@@ -22,11 +22,15 @@ export function CodeFontMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton label={m.code_font()}>
+        <ToolbarButton
+          label={m.code_font()}
+          size="icon-sm"
+          className="text-muted-foreground"
+        >
           <IconTypography />
         </ToolbarButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="end" className="w-auto">
+      <DropdownMenuContent side="top" align="start" className="w-auto">
         <DropdownMenuLabel>{m.code_font()}</DropdownMenuLabel>
         <DropdownMenuRadioGroup
           value={current}

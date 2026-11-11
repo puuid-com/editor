@@ -253,7 +253,7 @@ function AbsentRules({ rules }: { rules: Array<Highlight> }) {
           <li
             key={rule.id}
             style={hlStyle(highlightCss(rule.color))}
-            className="flex items-center gap-2 rounded-sm py-0.5 pr-0.5 pl-2 hover:bg-accent"
+            className="flex items-center gap-2 rounded-sm py-0.5 pr-0.5 pl-2 hover:bg-muted"
           >
             <span
               aria-hidden
