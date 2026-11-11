@@ -562,7 +562,7 @@ export function FeatureBento({ className }: { className?: string }) {
       aria-label={m.showcase_label()}
       className={cn('xb @container', className)}
     >
-      <div className="grid grid-cols-1 gap-px border bg-border @[600px]:grid-cols-2 @[900px]:grid-cols-3">
+      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border bg-border @[600px]:grid-cols-2 @[900px]:grid-cols-3">
         <Sync />
         <Local />
         <Compare />

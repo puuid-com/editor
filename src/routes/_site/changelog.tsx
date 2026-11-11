@@ -31,11 +31,11 @@ export const Route = createFileRoute('/_site/changelog')({
   component: Changelog,
 })
 
-// Section headings read as small mono labels, inline code as muted chips
+// Section headings read as small muted labels, inline code as muted chips
 // without typography's literal backticks, and commit links as muted hashes,
 // so the bullets carry the page.
 const bodyClass =
-  'prose prose-sm max-w-none break-words prose-neutral dark:prose-invert prose-h3:mt-6 prose-h3:mb-2 prose-h3:font-mono prose-h3:text-[0.6875rem] prose-h3:font-medium prose-h3:uppercase prose-h3:tracking-wider prose-h3:text-muted-foreground prose-p:my-2 prose-p:text-muted-foreground prose-ul:my-2 prose-ul:pl-4 prose-li:my-1 prose-li:text-foreground prose-li:marker:text-muted-foreground prose-a:font-mono prose-a:text-xs prose-a:font-normal prose-a:text-muted-foreground prose-a:no-underline hover:prose-a:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:text-[0.8125rem] prose-code:font-normal prose-code:break-all prose-code:before:content-none prose-code:after:content-none [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-2 [&_a:focus-visible]:outline-ring [&>:first-child]:mt-0'
+  'prose prose-sm max-w-none break-words prose-neutral dark:prose-invert prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-xs prose-h3:font-medium prose-h3:text-muted-foreground prose-p:my-2 prose-p:text-muted-foreground prose-ul:my-2 prose-ul:pl-4 prose-li:my-1 prose-li:text-foreground prose-li:marker:text-muted-foreground prose-a:font-mono prose-a:text-xs prose-a:font-normal prose-a:text-muted-foreground prose-a:no-underline hover:prose-a:text-foreground prose-code:rounded-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:text-[0.8125rem] prose-code:font-normal prose-code:break-all prose-code:before:content-none prose-code:after:content-none [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-2 [&_a:focus-visible]:outline-ring [&>:first-child]:mt-0'
 
 /** Release notes; long ones show their first bullets and fold the rest. */
 function Notes({ html, more }: Pick<ChangelogEntry, 'html' | 'more'>) {
@@ -80,12 +80,12 @@ function Changelog() {
   const locale = getLocale()
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-      <header className="pb-10">
-        <h1 className="text-3xl font-semibold tracking-tight">
+    <section className="mx-auto max-w-3xl px-4 py-14 md:py-20">
+      <header className="pb-12">
+        <h1 className="text-4xl font-semibold tracking-tighter md:text-5xl">
           {m.changelog_title()}
         </h1>
-        <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">
+        <p className="mt-4 max-w-prose text-base leading-7 text-muted-foreground">
           {m.changelog_description()}
         </p>
       </header>
@@ -97,9 +97,9 @@ function Changelog() {
             key={entry.id}
             id={entry.id}
             aria-labelledby={`title-${entry.id}`}
-            className="grid scroll-mt-8 gap-4 border-t py-8 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8"
+            className="grid scroll-mt-20 gap-4 border-t py-10 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8"
           >
-            <div className="md:sticky md:top-6 md:self-start">
+            <div className="md:sticky md:top-20 md:self-start">
               <h2
                 id={`title-${entry.id}`}
                 className="font-mono text-sm font-semibold"

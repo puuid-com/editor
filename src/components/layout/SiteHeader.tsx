@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 
 import { Logo } from '#/components/Logo'
 import { LocaleSwitcher } from '#/components/LocaleSwitcher'
+import { Button } from '#/components/ui/button'
 import { m } from '#/paraglide/messages'
 import { site } from '#/site'
 
@@ -12,18 +13,21 @@ const navItems = [
 
 export function SiteHeader() {
   return (
-    <header className="border-b">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
-        <Link to="/" className="flex items-center gap-2 text-sm font-semibold">
+    <header className="sticky top-0 z-40 border-b bg-background">
+      <div className="mx-auto flex h-14 max-w-5xl items-center gap-4 px-4">
+        <Link
+          to="/"
+          className="flex items-center gap-2 rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <Logo />
           {site.name}
         </Link>
-        <nav className="flex flex-1 items-center gap-4 text-sm">
+        <nav className="flex flex-1 items-center gap-1 text-sm">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              className="rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               activeProps={{
                 className: 'text-foreground',
                 'aria-current': 'page',
@@ -34,7 +38,10 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <LocaleSwitcher />
+        <LocaleSwitcher className="max-sm:hidden" />
+        <Button asChild size="sm" className="px-3">
+          <Link to="/">{m.site_open_editor()}</Link>
+        </Button>
       </div>
     </header>
   )

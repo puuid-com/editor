@@ -5,6 +5,8 @@
   "nav_about": "À propos",
   "language_label": "Langue",
   "about_title": "À propos",
+  "about_headline": "Un seul espace pour le texte structuré.",
+  "site_open_editor": "Ouvrir l’éditeur",
   "about_body": "Modifiez XML, JSON, TXT, SQL et ZPL dans un même espace. Les fichiers et paramètres sont enregistrés localement et synchronisés entre les onglets. Les aperçus ZPL et les exports d’images envoient le contenu à Labelary.",
   "not_found_title": "Page introuvable",
   "not_found_body": "La page que vous cherchez n’existe pas ou a été déplacée.",

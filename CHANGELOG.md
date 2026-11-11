@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.50.0] - 2026-11-11
+
+### Changed
+
+- The About page opens on what the editor is, with buttons to open it or see its source, instead of a page title.
+- The header of the About and Changelog pages has an Open editor button and stays at the top as you scroll. The footer links to the source, and holds the language menu on phones.
+- Both pages have larger titles, and the changelog's Added, Changed and Fixed labels are no longer in capitals.
+
 ## [1.49.0] - 2026-11-11
 
 ### Changed

@@ -1,6 +1,8 @@
+import { IconArrowRight } from '@tabler/icons-react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 
 import { FeatureBento } from '#/components/showcase/FeatureBento'
+import { Button } from '#/components/ui/button'
 import { seo } from '#/lib/seo'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
@@ -41,15 +43,31 @@ function About() {
   ]
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12 md:py-16">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {m.about_title()}
+    <section className="mx-auto max-w-5xl px-4 py-14 md:py-24">
+      <h1 className="max-w-3xl text-4xl font-semibold tracking-tighter text-balance md:text-6xl">
+        {m.about_headline()}
       </h1>
-      <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">
+      <p className="mt-5 max-w-2xl text-base leading-7 text-pretty text-muted-foreground md:text-lg md:leading-8">
         {m.about_body()}
       </p>
-      <FeatureBento className="mt-10" />
-      <dl className="mt-12 max-w-3xl border-t text-sm">
+      <div className="mt-8 flex flex-wrap gap-2">
+        <Button asChild size="lg" className="h-10 px-4 text-sm">
+          <Link to="/">
+            {m.site_open_editor()}
+            <IconArrowRight data-icon="inline-end" />
+          </Link>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          className="h-10 px-4 text-sm"
+        >
+          <a href={site.repository}>{m.about_source()}</a>
+        </Button>
+      </div>
+      <FeatureBento className="mt-14 md:mt-20" />
+      <dl className="mt-14 max-w-3xl border-t text-sm">
         {facts.map((fact) => (
           <div
             key={fact.label}

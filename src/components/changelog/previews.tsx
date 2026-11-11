@@ -4480,7 +4480,52 @@ function ShellRedesign() {
   )
 }
 
+/** Since 1.50.0 the About page leads with a headline and two actions. */
+function AboutHero() {
+  const copy = (
+    <>
+      <Bar className="mt-3 w-11/12" />
+      <Bar className="mt-1.5 w-4/5" />
+      <Bar className="mt-1.5 w-1/2" />
+    </>
+  )
+  const action =
+    'inline-flex h-6 items-center rounded-md border px-2 text-[11px] font-medium'
+  return (
+    <BeforeAfter
+      before={
+        <div className="p-4">
+          <div className="text-base font-semibold tracking-tight">
+            {m.about_title()}
+          </div>
+          {copy}
+        </div>
+      }
+      after={
+        <div className="p-4">
+          <div className="text-lg leading-6 font-semibold tracking-tighter text-balance">
+            {m.about_headline()}
+          </div>
+          {copy}
+          <div className="mt-4 flex gap-1.5">
+            <span
+              className={cn(
+                action,
+                'border-primary bg-primary text-primary-foreground',
+              )}
+            >
+              {m.site_open_editor()}
+            </span>
+            <span className={action}>{m.about_source()}</span>
+          </div>
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.50.0': figure(AboutHero),
   '1.49.0': figure(ShellRedesign),
   '1.48.0': figure(InlineHeadingLevels),
   '1.47.0': figure(HeadingLevels),
