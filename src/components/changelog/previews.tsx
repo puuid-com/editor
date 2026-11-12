@@ -4596,6 +4596,37 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.56.0 the sidebar toggle sits at the screen edge, so it stays put. */
+function ToggleAtEdge() {
+  const row = (atEdge: boolean) => (
+    <div className="flex h-full flex-row-reverse bg-sidebar">
+      <div className="flex w-48 flex-col gap-1.5 p-1.5">
+        <div className="flex items-center gap-1.5">
+          {!atEdge && (
+            <IconLayoutSidebarRight className="size-3.5 shrink-0 text-muted-foreground" />
+          )}
+          <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border bg-background px-1.5 py-1 text-muted-foreground">
+            <IconSearch className="size-3 shrink-0" />
+            <span className="truncate">{m.explorer_search()}</span>
+          </div>
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-background">
+            <IconPlus className="size-3" />
+          </span>
+          {atEdge && (
+            <IconLayoutSidebarRight className="size-3.5 shrink-0 text-foreground" />
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 rounded-md bg-sidebar-accent px-1.5 py-1 text-foreground">
+          <IconFileCode className="size-3.5 shrink-0" />
+          <span className="truncate">order.xml</span>
+        </div>
+      </div>
+      <div className="my-1.5 ml-1.5 min-w-0 flex-1 rounded-lg border bg-background" />
+    </div>
+  )
+  return <BeforeAfter className="h-24" before={row(false)} after={row(true)} />
+}
+
 /** Since 1.55.0 the sidebar drops its logo and name; the toggle sits by search. */
 function NoSidebarLogo() {
   const file = (
@@ -4755,6 +4786,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.56.0': figure(ToggleAtEdge),
   '1.55.0': figure(NoSidebarLogo),
   '1.54.0': figure(ResizableSidebar),
   '1.53.0': figure(HideFileType),

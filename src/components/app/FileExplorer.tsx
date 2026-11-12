@@ -581,8 +581,18 @@ export function FileExplorer({
           }}
         />
         <SidebarHeader className="gap-2 group-data-[collapsible=icon]:items-center">
-          <div className="flex items-center gap-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
-            <SidebarTrigger className="shrink-0 text-muted-foreground max-md:size-11" />
+          {/* The toggle hugs the screen edge and stays put as the sidebar
+              collapses: 3px of margin when open and 2px of top padding when
+              collapsed match where the collapsed column centres it. */}
+          <div className="flex items-center gap-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:pt-0.5">
+            <SidebarTrigger
+              className={cn(
+                'shrink-0 text-muted-foreground max-md:size-11 group-data-[collapsible=icon]:m-0',
+                sidebarRight
+                  ? 'order-last mr-[3px] group-data-[collapsible=icon]:order-first'
+                  : 'ml-[3px]',
+              )}
+            />
             {/* Collapsed, the search field and New menu are icons. */}
             <ToolbarButton
               label={m.palette_open()}

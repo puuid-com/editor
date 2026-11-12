@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.56.0] - 2026-11-12
+
+### Changed
+
+- The sidebar toggle sits at the screen edge, right of the New button when the sidebar is on the right, so it doesn't move when you collapse or reopen the sidebar.
+
 ## [1.55.0] - 2026-11-12
 
 ### Changed
