@@ -30,6 +30,7 @@ import {
   IconInfoCircle,
   IconJson,
   IconLayoutColumns,
+  IconLayoutSidebar,
   IconLayoutSidebarRight,
   IconMarkdown,
   IconNotebook,
@@ -38,6 +39,7 @@ import {
   IconPlus,
   IconReplace,
   IconSchema,
+  IconSearch,
   IconSelector,
   IconShare,
   IconTag,
@@ -4594,6 +4596,59 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.55.0 the sidebar drops its logo and name; the toggle sits by search. */
+function NoSidebarLogo() {
+  const file = (
+    <div className="flex items-center gap-1.5 rounded-md bg-sidebar-accent px-1.5 py-1 text-foreground">
+      <IconFileCode className="size-3.5 shrink-0" />
+      <span className="truncate">order.xml</span>
+    </div>
+  )
+  const search = (
+    <div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border bg-background px-1.5 py-1 text-muted-foreground">
+      <IconSearch className="size-3 shrink-0" />
+      <span className="truncate">{m.explorer_search()}</span>
+    </div>
+  )
+  const plus = (
+    <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-background">
+      <IconPlus className="size-3" />
+    </span>
+  )
+  const toggle = (
+    <IconLayoutSidebar className="size-3.5 shrink-0 text-muted-foreground" />
+  )
+  return (
+    <BeforeAfter
+      className="h-32"
+      before={
+        <div className="flex h-full w-48 flex-col gap-1.5 bg-sidebar p-1.5">
+          <div className="flex h-6 items-center gap-1.5 px-1 font-semibold">
+            <Logo className="size-4" />
+            <span className="flex-1 truncate">{site.name}</span>
+            {toggle}
+          </div>
+          <div className="flex items-center gap-1">
+            {search}
+            {plus}
+          </div>
+          {file}
+        </div>
+      }
+      after={
+        <div className="flex h-full w-48 flex-col gap-1.5 bg-sidebar p-1.5">
+          <div className="flex items-center gap-1.5">
+            {toggle}
+            {search}
+            {plus}
+          </div>
+          {file}
+        </div>
+      }
+    />
+  )
+}
+
 /** Since 1.54.0 the sidebar's edge drags to widen it, or below its width to collapse it. */
 function ResizableSidebar() {
   const shell = (wide: boolean) => (
@@ -4700,6 +4755,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.55.0': figure(NoSidebarLogo),
   '1.54.0': figure(ResizableSidebar),
   '1.53.0': figure(HideFileType),
   '1.52.0': figure(ColoredFileIcons),

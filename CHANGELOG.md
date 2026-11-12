@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.55.0] - 2026-11-12
+
+### Changed
+
+- The sidebar no longer shows the logo and name at the top. The sidebar toggle now sits beside the search field, so the file list starts higher.
+
 ## [1.54.0] - 2026-11-12
 
 ### Added

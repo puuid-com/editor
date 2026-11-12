@@ -47,7 +47,6 @@ import { SidebarSideToggle } from './SidebarSideToggle'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
-import { Logo } from '#/components/Logo'
 import { Button } from '#/components/ui/button'
 import {
   InputGroup,
@@ -110,7 +109,6 @@ import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
-import { site } from '#/site'
 import { Link } from '@tanstack/react-router'
 
 /** What a dragged file or folder of the browser's workspace carries. */
@@ -583,18 +581,8 @@ export function FileExplorer({
           }}
         />
         <SidebarHeader className="gap-2 group-data-[collapsible=icon]:items-center">
-          <div className="flex h-8 items-center gap-1 group-data-[collapsible=icon]:h-auto group-data-[collapsible=icon]:flex-col">
-            <Link
-              to="/about"
-              aria-label={m.nav_about()}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Logo className="size-6 shrink-0" />
-              <span className="truncate group-data-[collapsible=icon]:hidden">
-                {site.name}
-              </span>
-            </Link>
-            <SidebarTrigger className="text-muted-foreground max-md:size-11" />
+          <div className="flex items-center gap-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
+            <SidebarTrigger className="shrink-0 text-muted-foreground max-md:size-11" />
             {/* Collapsed, the search field and New menu are icons. */}
             <ToolbarButton
               label={m.palette_open()}
@@ -605,9 +593,7 @@ export function FileExplorer({
             >
               <IconSearch />
             </ToolbarButton>
-          </div>
-          <div className="flex items-center gap-1.5 group-data-[collapsible=icon]:hidden">
-            <InputGroup className="bg-background">
+            <InputGroup className="bg-background group-data-[collapsible=icon]:hidden">
               <InputGroupAddon>
                 <IconSearch />
               </InputGroupAddon>
@@ -636,7 +622,7 @@ export function FileExplorer({
                   variant="outline"
                   size="icon"
                   aria-label={m.explorer_new()}
-                  className="shrink-0 aria-expanded:bg-muted"
+                  className="shrink-0 aria-expanded:bg-muted group-data-[collapsible=icon]:hidden"
                 >
                   <IconPlus />
                 </Button>
