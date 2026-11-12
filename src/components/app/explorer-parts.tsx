@@ -21,8 +21,21 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
+import { useActiveProfile, useFormatSettings } from '#/hooks/use-profiles'
+import { fileTypeOf } from '#/lib/file-types'
+import {
+  hideFileType,
+  setFormatSetting,
+  showFileType,
+} from '#/lib/store/profiles'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { validEntryName } from '#/lib/store/folders'
@@ -80,16 +93,23 @@ export function RowAction({
   )
 }
 
-/** The "…" menu at the end of a row. */
+/**
+ * The "…" menu at the end of a row. Pass `open` and `onOpenChange` to also
+ * open it from elsewhere, such as a right-click on the row.
+ */
 export function RowMenu({
   label,
+  open,
+  onOpenChange,
   children,
 }: {
   label: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   children: ReactNode
 }) {
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <ToolbarButton label={label} className={cn(rowMenuClass, 'mr-1')}>
           <IconDots />
@@ -97,6 +117,72 @@ export function RowMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">{children}</DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+/** Opens a row's menu on right-click, in place of the browser's own. */
+export function useRowContextMenu() {
+  const [open, setOpen] = useState(false)
+  return {
+    menu: { open, onOpenChange: setOpen },
+    row: {
+      onContextMenu: (event: React.MouseEvent) => {
+        event.preventDefault()
+        setOpen(true)
+      },
+    },
+  }
+}
+
+/** The extensions the active profile leaves out of the explorer. */
+export function useHiddenTypes() {
+  return useFormatSettings().hiddenTypes
+}
+
+/** A file menu's "Hide .ext files", for names that have an extension. */
+export function HideTypeItem({ name }: { name: string }) {
+  const type = fileTypeOf(name)
+  if (!type) return null
+  return (
+    <DropdownMenuItem onSelect={() => hideFileType(type)}>
+      {m.explorer_hide_type({ type })}
+    </DropdownMenuItem>
+  )
+}
+
+/** A workspace menu's list of hidden types, each to show again. */
+export function HiddenTypesMenu() {
+  const profile = useActiveProfile()
+  const hidden = useHiddenTypes()
+  if (!hidden.length) return null
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        {m.explorer_hidden_types()}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
+        {profile && (
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+            {m.explorer_hidden_types_hint({ name: profile.name })}
+          </DropdownMenuLabel>
+        )}
+        {hidden.map((type) => (
+          <DropdownMenuItem key={type} onSelect={() => showFileType(type)}>
+            {m.explorer_show_type({ type })}
+          </DropdownMenuItem>
+        ))}
+        {hidden.length > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => setFormatSetting('hiddenTypes', [])}
+            >
+              {m.explorer_show_all_types()}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
   )
 }
 

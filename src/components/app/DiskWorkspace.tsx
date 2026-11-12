@@ -31,6 +31,10 @@ import {
 import {
   RowAction,
   RowMenu,
+  HiddenTypesMenu,
+  HideTypeItem,
+  useHiddenTypes,
+  useRowContextMenu,
   WorkspaceHeader,
   activeRowClass,
   nestClass,
@@ -75,6 +79,7 @@ import {
 import type { Vault } from '#/lib/obsidian'
 import type { DiskRoot } from '#/lib/store/disk'
 import { cn } from '#/lib/utils'
+import { isHiddenType } from '#/lib/file-types'
 import { m } from '#/paraglide/messages'
 
 // A folder opened from disk, as one workspace of the explorer. Its listing
@@ -94,6 +99,8 @@ interface Tree {
   /** Open tab ids by path. */
   tabs: ReadonlyMap<string, string>
   activeId: string | null
+  /** Whether the profile hides this file from the explorer. */
+  hides: (entry: DiskEntry) => boolean
   expanded: ReadonlySet<string>
   toggle: (path: string) => void
   open: (entry: DiskEntry) => void
@@ -152,11 +159,17 @@ export function DiskWorkspace({
     }
   }
 
+  // Files of a type the profile hides stay out, but for the one in the editor.
+  const hiddenTypes = useHiddenTypes()
   const tree: Tree = {
     root,
     vault,
     tabs,
     activeId,
+    hides: (entry) =>
+      entry.kind === 'file' &&
+      entry.path !== activePath &&
+      isHiddenType(hiddenTypes, entry.name),
     expanded,
     toggle: (path) =>
       setExpanded((previous) => {
@@ -335,6 +348,7 @@ export function DiskWorkspace({
           >
             {m.folder_close()}
           </DropdownMenuItem>
+          <HiddenTypesMenu />
         </RowMenu>
       </WorkspaceHeader>
       <CollapsibleContent className={nestClass}>
@@ -392,9 +406,10 @@ function Directory({ tree, path }: { tree: Tree; path: string }) {
   if (isPending) return <Hint>{m.folder_loading()}</Hint>
   if (isError) return <Hint>{m.folder_unavailable()}</Hint>
   // A vault's attachments are images and such, nothing to edit.
-  const entries = data.filter(
-    (entry) =>
-      entry.kind === 'file' || !isAttachmentFolder(tree.vault, entry.path),
+  const entries = data.filter((entry) =>
+    entry.kind === 'file'
+      ? !tree.hides(entry)
+      : !isAttachmentFolder(tree.vault, entry.path),
   )
   if (!entries.length) return <Hint>{m.folder_empty()}</Hint>
   return entries.map((entry) =>
@@ -474,8 +489,10 @@ function FileRow({
   // Files the editor can't open still show, to rename or delete, but stay shut.
   const editable = isEditableName(entry.name)
   const title = `${tree.root.name}/${entry.path}`
+  const contextMenu = useRowContextMenu()
   return (
     <div
+      {...contextMenu.row}
       draggable
       onDragStart={(event) => {
         event.stopPropagation()
@@ -513,7 +530,7 @@ function FileRow({
         )}
         {tabId && <UnsavedMark fileId={tabId} />}
       </Button>
-      <RowMenu label={m.explorer_actions()}>
+      <RowMenu label={m.explorer_actions()} {...contextMenu.menu}>
         {isMarkdownName(entry.name) && (
           <DropdownMenuItem
             onSelect={() =>
@@ -531,6 +548,7 @@ function FileRow({
         <DropdownMenuItem onSelect={() => tree.rename(entry)}>
           {m.file_rename()}
         </DropdownMenuItem>
+        <HideTypeItem name={entry.name} />
         {tabId && (
           <DropdownMenuItem onSelect={() => void reloadFromDisk(tabId)}>
             {m.folder_reload()}
@@ -554,7 +572,8 @@ function SearchResults({ tree, search }: { tree: Tree; search: string }) {
     .filter(
       (entry) =>
         entry.path.toLowerCase().includes(query) &&
-        !isExcluded(tree.vault, entry.path),
+        !isExcluded(tree.vault, entry.path) &&
+        !tree.hides(entry),
     )
     .map((entry) => (
       <FileRow key={entry.path} tree={tree} entry={entry} showPath />

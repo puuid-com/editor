@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.53.0] - 2026-11-12
+
+### Added
+
+- Right-click a file in the sidebar (or open its "…" menu) and choose "Hide .ext files" to hide every file of that type. Each profile keeps its own list; bring a type back from the workspace's menu under "Hidden file types".
+
 ## [1.52.0] - 2026-11-12
 
 ### Added

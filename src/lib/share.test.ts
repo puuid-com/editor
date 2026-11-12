@@ -37,6 +37,7 @@ describe('share links', () => {
         shortenValues: true,
         shortenAt: 200,
         zplTags: ['label'],
+        hiddenTypes: [],
       },
       highlights: [{ tag: 'b', color: 'red', enabled: true }],
       pins: ['c'],

@@ -158,6 +158,20 @@ export function toggleZplTag(name: string) {
   )
 }
 
+/** Leaves files of `type` out of the explorer under the active profile. */
+export function hideFileType(type: string) {
+  const types = activeFormat().hiddenTypes
+  if (!types.includes(type)) setFormatSetting('hiddenTypes', [...types, type])
+}
+
+/** Lists files of `type` in the explorer again. */
+export function showFileType(type: string) {
+  setFormatSetting(
+    'hiddenTypes',
+    activeFormat().hiddenTypes.filter((t) => t !== type),
+  )
+}
+
 /** CSS colour of a profile's tag. */
 export function profileCss(profile: Pick<Profile, 'color'>) {
   return highlightCss(profile.color)

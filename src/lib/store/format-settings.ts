@@ -22,6 +22,8 @@ export const formatSettingsSchema = z.object({
   shortenAt: z.number().int().min(40).default(200),
   /** Tags whose value is a base64 ZPL label, linked to the ZPL viewer. */
   zplTags: z.array(z.string()).default([]),
+  /** Extensions, lowercase and without the dot, the explorer leaves out. */
+  hiddenTypes: z.array(z.string()).default([]),
 })
 
 export type FormatSettings = z.infer<typeof formatSettingsSchema>
@@ -37,6 +39,7 @@ export const DEFAULT_FORMAT: FormatSettings = {
   shortenValues: true,
   shortenAt: 200,
   zplTags: [],
+  hiddenTypes: [],
 }
 
 /** `format` with settings added after it was stored filled in. */

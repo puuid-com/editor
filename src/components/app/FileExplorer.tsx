@@ -20,6 +20,8 @@ import { useRef, useState } from 'react'
 import { openFolder } from './disk-workspace'
 import { DiskWorkspace } from './DiskWorkspace'
 import {
+  HiddenTypesMenu,
+  HideTypeItem,
   NameDialog,
   RowAction,
   RowCount,
@@ -30,6 +32,7 @@ import {
   rowButtonClass,
   rowClass,
   scrollToRow,
+  useHiddenTypes,
 } from './explorer-parts'
 import type { NameRequest } from './explorer-parts'
 import { deleteFolders, importFiles, showFile } from './files'
@@ -102,6 +105,7 @@ import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
+import { isHiddenType } from '#/lib/file-types'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { appVersion } from '#/lib/version'
@@ -219,14 +223,29 @@ export function FileExplorer({
   // file whose folder is gone shows at the top.
   const folderIds = new Set(folders.map((folder) => folder.id))
   const foldersIn = groupBy(folders, (folder) => folder.parentId)
+  // Files of a type the profile hides stay out, but for the one in the editor.
+  const hiddenTypes = useHiddenTypes()
+  const shownFiles = files.filter(
+    (file) => file.id === activeId || !isHiddenType(hiddenTypes, file.name),
+  )
   const filesIn = groupBy(
-    [...files].sort((a, b) => a.name.localeCompare(b.name)),
+    [...shownFiles].sort((a, b) => a.name.localeCompare(b.name)),
     (file) =>
       file.folderId && folderIds.has(file.folderId) ? file.folderId : null,
   )
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [search, setSearch] = useState('')
+  // The row whose menu a right-click opened.
+  const [menuFor, setMenuFor] = useState<string | null>(null)
+  const rowMenuProps = (id: string) => ({
+    open: menuFor === id,
+    onOpenChange: (open: boolean) => setMenuFor(open ? id : null),
+  })
+  const openRowMenu = (id: string) => (event: React.MouseEvent) => {
+    event.preventDefault()
+    setMenuFor(id)
+  }
   const [nameRequest, setNameRequest] = useState<NameRequest | null>(null)
   const setEdit = (edit: Edit) => {
     const request = browserRequest(edit)
@@ -336,6 +355,7 @@ export function FileExplorer({
           ? m.explorer_folder_actions()
           : m.explorer_actions()
       }
+      {...rowMenuProps(entry.id)}
     >
       <DropdownMenuItem onSelect={() => setEdit(entry)}>
         {m.file_rename()}
@@ -379,6 +399,7 @@ export function FileExplorer({
           >
             {m.explorer_duplicate()}
           </DropdownMenuItem>
+          <HideTypeItem name={entry.name} />
           <DropdownMenuItem
             onSelect={() => {
               const file = filesCollection.get(entry.id)
@@ -439,6 +460,7 @@ export function FileExplorer({
       className={cn(rowClass, file.id === activeId && activeRowClass)}
       draggable
       onDragStart={(e) => drag(e, 'file', file.id)}
+      onContextMenu={openRowMenu(file.id)}
     >
       <Button
         variant="ghost"
@@ -495,6 +517,7 @@ export function FileExplorer({
               {...dropProps(folder.id)}
               draggable
               onDragStart={(e) => drag(e, 'folder', folder.id)}
+              onContextMenu={openRowMenu(folder.id)}
             >
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className={rowButtonClass}>
@@ -673,7 +696,7 @@ export function FileExplorer({
               title={m.explorer_browser_hint()}
               open={browserOpen}
             >
-              <RowCount count={files.length} />
+              <RowCount count={shownFiles.length} />
               <RowAction
                 label={m.file_new()}
                 hint={m.explorer_in_browser()}
@@ -699,11 +722,12 @@ export function FileExplorer({
                   <IconFolderUp />
                   {m.explorer_import_folder()}
                 </DropdownMenuItem>
+                <HiddenTypesMenu />
               </RowMenu>
             </WorkspaceHeader>
             <CollapsibleContent className={nestClass} {...dropProps(null)}>
               {search
-                ? files
+                ? shownFiles
                     .filter((f) =>
                       `${folderPath(f.folderId)}/${f.name}`
                         .toLowerCase()

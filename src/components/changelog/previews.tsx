@@ -4594,6 +4594,45 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.53.0 a file's menu hides every file of its type, per profile. */
+function HideFileType() {
+  const row =
+    'flex items-center gap-1.5 rounded-md px-1.5 py-1 [&_svg]:size-3.5 [&_svg]:shrink-0'
+  const files: Array<[string, string]> = [
+    ['order.xml', AMBER],
+    ['order.xsd', PURPLE],
+    ['rates.json', AMBER],
+  ]
+  return (
+    <Shot className="h-36">
+      <div className="w-40 bg-sidebar p-1.5 text-muted-foreground">
+        {files.map(([name, color]) => (
+          <div
+            key={name}
+            className={cn(
+              row,
+              name === 'order.xsd' && 'bg-sidebar-accent text-foreground',
+            )}
+          >
+            <span className="contents" style={{ color }}>
+              {name.endsWith('.json') ? <IconBraces /> : <IconFileCode />}
+            </span>
+            <span className="truncate">{name}</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute top-9 left-24 w-44 rounded-lg border bg-popover py-1 shadow-md">
+        <MenuItem>{m.file_rename()}</MenuItem>
+        <MenuItem>{m.explorer_duplicate()}</MenuItem>
+        <div className="bg-muted">
+          <MenuItem>{m.explorer_hide_type({ type: 'xsd' })}</MenuItem>
+        </div>
+        <MenuItem>{m.explorer_download()}</MenuItem>
+      </div>
+    </Shot>
+  )
+}
+
 /** Since 1.52.0 each file type has its own coloured icon, as editor icon themes. */
 function ColoredFileIcons() {
   const row =
@@ -4629,6 +4668,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.53.0': figure(HideFileType),
   '1.52.0': figure(ColoredFileIcons),
   '1.51.0': figure(SidebarRight),
   '1.50.4': figure(CompareWrap),
