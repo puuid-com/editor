@@ -52,7 +52,7 @@ import { useHighlightMap } from '#/hooks/use-highlights'
 import { usePins } from '#/hooks/use-pins'
 import { useFormatSettings } from '#/hooks/use-profiles'
 import { setValue } from '#/lib/document'
-import { localName, sameName } from '#/lib/names'
+import { localName } from '#/lib/names'
 import { groupPins, pinRows } from '#/lib/pin-groups'
 import { moveItem } from '#/lib/sort-order'
 import { reorderPins, unpinTag } from '#/lib/store/pins'
@@ -95,6 +95,40 @@ export function PinnedFields() {
     refocus.current = null
     if (id) handles.current.get(id)?.focus()
   }, [pins])
+
+  // Each pin's fields, found once per parse through an index of the leaves
+  // by name. Moving the cursor only changes which field is the current one.
+  const matchesByPin = useMemo(() => {
+    const elements = allElements(doc.nodes)
+    // JSON array entries, whose index the labels put on their key.
+    const items = new Set(
+      elements.filter((el) => el.json?.item).map((el) => el.path),
+    )
+    const leaves = new Map<string, Array<XmlElement>>()
+    for (const el of elements) {
+      if (!hasName(el) || !isTextLeaf(el)) continue
+      const name = localName(el.name)
+      const named = leaves.get(name)
+      if (named) named.push(el)
+      else leaves.set(name, [el])
+    }
+    return new Map(
+      pins.map((pin) => {
+        const els = leaves.get(localName(pin.tag)) ?? []
+        const labels = occurrenceLabels(
+          els.map((el) => el.path),
+          (path) => items.has(path),
+        )
+        const matches: Array<PinMatch> = els.map((el, i) => ({
+          el,
+          label: labels[i],
+          defaultKey: isDefaultLeaf(defaults, el) ? el.name : undefined,
+          differs: leafDiffers(defaults, el),
+        }))
+        return [pin.id, matches]
+      }),
+    )
+  }, [doc.nodes, pins, defaults])
 
   if (pins.length === 0) return null
 
@@ -141,14 +175,6 @@ export function PinnedFields() {
     move(drag.from, drag.to > drag.from ? drag.to - 1 : drag.to)
   }
 
-  const elements = allElements(doc.nodes)
-  const leaves = elements.filter((el) => hasName(el) && isTextLeaf(el))
-  // JSON array entries, whose index the labels put on their key.
-  const items = new Set(
-    elements.filter((el) => el.json?.item).map((el) => el.path),
-  )
-  const isItem = (path: string) => items.has(path)
-
   return (
     <section
       aria-label={m.pins_title()}
@@ -156,17 +182,7 @@ export function PinnedFields() {
     >
       <div className="grid min-h-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 overflow-auto py-2 pr-3 pl-1">
         {rows.map(({ pin, group, first, last }, index) => {
-          const els = leaves.filter((el) => sameName(el.name, pin.tag))
-          const labels = occurrenceLabels(
-            els.map((el) => el.path),
-            isItem,
-          )
-          const matches = els.map((el, i) => ({
-            el,
-            label: labels[i],
-            defaultKey: isDefaultLeaf(defaults, el) ? el.name : undefined,
-            differs: leafDiffers(defaults, el),
-          }))
+          const matches = matchesByPin.get(pin.id) ?? []
           return (
             <Fragment key={pin.id}>
               {index === first && group > 0 && (

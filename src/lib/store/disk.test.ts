@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { diskStore, loadDiskLinks, setDiskLink } from './disk'
+import { diskStore, loadDiskLinks, loadNewDiskLinks, setDiskLink } from './disk'
 import { workspaceReady } from './workspace'
 
 beforeAll(() => workspaceReady())
@@ -30,5 +30,33 @@ describe('links to files on disk', () => {
 
     await loadDiskLinks(new Set(['a', 'b']))
     expect(Object.keys(diskStore.state)).toEqual(['a'])
+  })
+
+  it('takes in links made elsewhere without replacing its own', async () => {
+    await setDiskLink('c', {
+      handle: handle('c.xml'),
+      saved: 'old',
+      modified: 1,
+    })
+    await setDiskLink('d', {
+      handle: handle('d.xml'),
+      saved: '<d/>',
+      modified: 1,
+    })
+    // As this page holds them: `c` newer than stored, `d` not known yet.
+    diskStore.setState(() => ({
+      c: { handle: handle('c.xml'), saved: 'new', modified: 2 },
+    }))
+
+    await loadNewDiskLinks(new Set(['c', 'd']))
+    expect(diskStore.state.c?.saved).toBe('new')
+    expect(diskStore.state.d?.saved).toBe('<d/>')
+
+    // A link whose file this page doesn't have is left in storage.
+    diskStore.setState(() => ({}))
+    await loadNewDiskLinks(new Set(['c']))
+    expect(Object.keys(diskStore.state)).toEqual(['c'])
+    await loadNewDiskLinks(new Set(['c', 'd']))
+    expect(Object.keys(diskStore.state).sort()).toEqual(['c', 'd'])
   })
 })

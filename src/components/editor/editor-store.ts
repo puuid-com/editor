@@ -162,12 +162,15 @@ export function registerFileView(fileId: string, view: EditorView | null) {
  * within a moment.
  */
 export function focusFileView(fileId: string) {
-  const view = views.get(fileId)
-  if (view && shown.get(view) === fileId && view.dom.isConnected) {
+  const view = getFileView(fileId)
+  if (view?.dom.isConnected) {
     pendingFocus = null
     view.focus()
   } else pendingFocus = { fileId, until: Date.now() + 1500 }
 }
+
+/** The editor showing a file now, if one does. */
 export function getFileView(fileId: string) {
-  return views.get(fileId)
+  const view = views.get(fileId)
+  return view && shown.get(view) === fileId ? view : undefined
 }

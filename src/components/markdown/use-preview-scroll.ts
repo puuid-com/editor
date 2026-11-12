@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ensureSyntaxTree } from '@codemirror/language'
 
-import { getView } from '#/components/editor/editor-store'
+import { getFileView } from '#/components/editor/editor-store'
 import type { EditorView } from '@codemirror/view'
 
 // Keeps the preview on the part of the document the editor shows. Headings
@@ -22,7 +22,8 @@ export function usePreviewScroll(
   useEffect(() => {
     const preview = scrollRef.current
     const content = contentRef.current
-    const view = getView()
+    // The file's own editor, which with split panes isn't always the active one.
+    const view = getFileView(fileId)
     if (!preview || !content || !view) return
     const editor = view.scrollDOM
 

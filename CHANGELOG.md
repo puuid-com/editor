@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.50.2] - 2026-11-11
+
+### Changed
+
+- Moving the cursor through a large file with pinned fields is faster: each pinned tag's fields are found once per edit instead of on every move.
+
+### Fixed
+
+- A file opened from disk in another browser tab of the editor gets its link to that file here as soon as you come back to this tab, so its edits save to disk from either one.
+
 ## [1.50.1] - 2026-11-11
 
 ### Changed

@@ -21,6 +21,7 @@ import {
   deleteDiskLink,
   diskRoot,
   diskStore,
+  loadNewDiskLinks,
   removeDiskRoot,
   requestRootAccess,
   setDiskLink,
@@ -350,6 +351,8 @@ export async function reloadFromDisk(id: string) {
  * stay open in the browser only.
  */
 async function syncFromDisk() {
+  // A file opened in another page of the site has its link there.
+  await loadNewDiskLinks(new Set(filesCollection.keys()))
   const files = [...filesCollection.values()].filter(
     (file) =>
       file.deletedAt === null &&

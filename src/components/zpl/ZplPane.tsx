@@ -4,7 +4,6 @@ import { zplHelpCompartment } from './editor-support'
 import { setDiagnostics } from '@codemirror/lint'
 import { CodeEditor } from '#/components/editor/CodeEditor'
 import { getFileView } from '#/components/editor/editor-store'
-import { fileIdField } from '#/components/editor/extensions'
 import {
   ResizablePanel,
   ResizableHandle,
@@ -48,7 +47,7 @@ export function ZplPane({
   // The focused editor gets diagnostics; every visible preview renders independently.
   useEffect(() => {
     const view = getFileView(fileId)
-    if (view?.state.field(fileIdField, false) !== fileId) return
+    if (!view) return
     // Only when they change: a reconfigure rebuilds the editor's whole setup,
     // and this runs on every edit.
     if (

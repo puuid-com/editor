@@ -4,7 +4,6 @@ import type { RefObject } from 'react'
 import { CodeColorPicker } from './CodeColorPicker'
 import { inlineCodes, recolor } from './md-code-colors'
 import { getFileView } from '#/components/editor/editor-store'
-import { fileIdField } from '#/components/editor/extensions'
 import { Popover, PopoverAnchor, PopoverContent } from '#/components/ui/popover'
 import type { HighlightPreset } from '#/lib/store/colors'
 
@@ -34,7 +33,7 @@ function colorSource(
   color: HighlightPreset | null,
 ) {
   const view = getFileView(fileId)
-  if (!view || view.state.field(fileIdField, false) !== fileId) return
+  if (!view) return
   const text = shown.textContent
   const nth = ownCode(article)
     .filter((code) => code.textContent === text)

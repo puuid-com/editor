@@ -43,14 +43,41 @@ function database() {
   )
 }
 
+async function storedLinks() {
+  const db = await database()
+  const rows = await executeTransaction(db, STORE, 'readonly', (_, stores) =>
+    getAll<StoredLink>(stores[STORE]),
+  )
+  return { db, rows }
+}
+
+/**
+ * Takes in the links other pages of the site made since this one loaded,
+ * such as for a file opened there, so its tab here writes to disk too. The
+ * links this page holds stay: they are at least as recent as the stored ones.
+ */
+export async function loadNewDiskLinks(fileIds: ReadonlySet<string>) {
+  if (typeof indexedDB === 'undefined') return
+  try {
+    const { rows } = await storedLinks()
+    const added = rows.filter(
+      ({ id }) => fileIds.has(id) && !diskStore.state[id],
+    )
+    if (!added.length) return
+    diskStore.setState((links) => ({
+      ...Object.fromEntries(added.map(({ id, ...link }) => [id, link])),
+      ...links,
+    }))
+  } catch (error) {
+    console.error('Could not load the links to files on disk', error)
+  }
+}
+
 /** Loads the stored links, dropping those whose file is gone. */
 export async function loadDiskLinks(fileIds: ReadonlySet<string>) {
   if (typeof indexedDB === 'undefined') return
   try {
-    const db = await database()
-    const rows = await executeTransaction(db, STORE, 'readonly', (_, stores) =>
-      getAll<StoredLink>(stores[STORE]),
-    )
+    const { db, rows } = await storedLinks()
     const links: Record<string, DiskLink> = {}
     const stale: Array<string> = []
     for (const { id, ...link } of rows) {

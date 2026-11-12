@@ -43,6 +43,10 @@ import type { DocLanguage } from '#/lib/document'
 /** What a dragged tab carries: its file's id. */
 const TAB_DRAG = 'text/x-xml-tab'
 
+function carriesTab(event: React.DragEvent) {
+  return event.dataTransfer.types.includes(TAB_DRAG)
+}
+
 /** Fades the strip's edges that hide more tabs. */
 function edgeMask(start: boolean, end: boolean) {
   if (!start && !end) return undefined
@@ -90,7 +94,7 @@ export function TabStrip({
     <div
       className="flex h-full min-w-0 flex-1 items-stretch"
       onDragOver={(e) => {
-        if (e.dataTransfer.types.includes(TAB_DRAG)) e.preventDefault()
+        if (carriesTab(e)) e.preventDefault()
       }}
       onDrop={(e) => {
         const id = e.dataTransfer.getData(TAB_DRAG)
@@ -131,13 +135,13 @@ export function TabStrip({
                       e.dataTransfer.setData(TAB_DRAG, file.id)
                     }}
                     onDragOver={(e) => {
-                      if (!e.dataTransfer.types.includes(TAB_DRAG)) return
+                      if (!carriesTab(e)) return
                       e.preventDefault()
                       setOverId(file.id)
                     }}
                     onDragLeave={() => setOverId(null)}
                     onDrop={(e) => {
-                      if (!e.dataTransfer.types.includes(TAB_DRAG)) return
+                      if (!carriesTab(e)) return
                       e.preventDefault()
                       e.stopPropagation()
                       const id = e.dataTransfer.getData(TAB_DRAG)

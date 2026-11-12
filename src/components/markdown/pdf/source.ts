@@ -1,5 +1,4 @@
 import { getFileView } from '#/components/editor/editor-store'
-import { fileIdField } from '#/components/editor/extensions'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
 import { isWithin, listFiles } from '#/lib/disk-tree'
 import { isMarkdownName } from '#/lib/obsidian'
@@ -26,16 +25,14 @@ export interface PdfNote {
 }
 
 function currentNote(file: XmlFile): PdfNote {
+  // The editor holds edits that may not be saved yet.
   const view = getFileView(file.id)
   return {
     name: file.name,
     path:
       file.location?.path ??
       [folderPath(file.folderId), file.name].filter(Boolean).join('/'),
-    content:
-      view?.state.field(fileIdField, false) === file.id
-        ? view.state.doc.toString()
-        : file.content,
+    content: view ? view.state.doc.toString() : file.content,
     location: file.location,
   }
 }
