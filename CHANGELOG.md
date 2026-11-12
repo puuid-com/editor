@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.50.3] - 2026-11-11
+
+### Changed
+
+- Release the UI revamp and performance improvements to the production domain.
+
 ## [1.50.2] - 2026-11-11
 
 ### Changed
