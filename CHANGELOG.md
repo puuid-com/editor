@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.54.0] - 2026-11-12
+
+### Added
+
+- Drag the sidebar's edge to make it wider. Dragging it narrower than its usual width collapses it, and dragging a collapsed sidebar's edge back out reopens it. The width is remembered; clicking the edge still toggles the sidebar.
+
 ## [1.53.0] - 2026-11-12
 
 ### Added

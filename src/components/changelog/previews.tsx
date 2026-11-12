@@ -4594,6 +4594,38 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.54.0 the sidebar's edge drags to widen it, or below its width to collapse it. */
+function ResizableSidebar() {
+  const shell = (wide: boolean) => (
+    <div className="flex h-full bg-sidebar">
+      <div
+        className={cn('flex shrink-0 flex-col p-1.5', wide ? 'w-36' : 'w-24')}
+      >
+        <div className="flex h-7 items-center gap-1.5 px-1 font-semibold">
+          <Logo className="size-4" />
+          <span className="truncate">{site.name}</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-md bg-sidebar-accent px-1.5 py-1 text-foreground">
+          <IconFileCode className="size-3.5 shrink-0" />
+          <span className="truncate">purchase-order.xml</span>
+        </div>
+      </div>
+      <div className="relative w-0">
+        {wide && (
+          <div className="absolute inset-y-2 -left-px w-0.5 rounded-full bg-sidebar-border" />
+        )}
+      </div>
+      <div className="my-1.5 mr-1.5 flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-background">
+        <PillTabs end={<IconDots />}>
+          <PillTab name="purchase-order.xml" color={BLUE} active />
+        </PillTabs>
+        <Code lines={ORDER} className="flex-1" />
+      </div>
+    </div>
+  )
+  return <BeforeAfter before={shell(false)} after={shell(true)} />
+}
+
 /** Since 1.53.0 a file's menu hides every file of its type, per profile. */
 function HideFileType() {
   const row =
@@ -4668,6 +4700,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.54.0': figure(ResizableSidebar),
   '1.53.0': figure(HideFileType),
   '1.52.0': figure(ColoredFileIcons),
   '1.51.0': figure(SidebarRight),
