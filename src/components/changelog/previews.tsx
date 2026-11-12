@@ -1203,6 +1203,26 @@ function SortOrder() {
   )
 }
 
+function CompareWrap() {
+  const note =
+    '  <note>Leave the parcel at the side door if nobody answers</note>'
+  const sides = (wrap: boolean) => (
+    <div className="grid grid-cols-2 divide-x">
+      <Code
+        lines={[ORDER[0], note, ORDER[4]]}
+        marks={{ 1: 'remove' }}
+        wrap={wrap}
+      />
+      <Code
+        lines={[ORDER[0], note.replace('side', 'back'), ORDER[4]]}
+        marks={{ 1: 'add' }}
+        wrap={wrap}
+      />
+    </div>
+  )
+  return <BeforeAfter before={sides(false)} after={sides(true)} />
+}
+
 function CompareTabs() {
   const side = (status: string, mark: 'add' | 'remove') => (
     <Code
@@ -4525,6 +4545,7 @@ function AboutHero() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.50.4': figure(CompareWrap),
   '1.50.0': figure(AboutHero),
   '1.49.0': figure(ShellRedesign),
   '1.48.0': figure(InlineHeadingLevels),

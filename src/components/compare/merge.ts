@@ -18,6 +18,7 @@ import {
 import { languageExtension } from '#/components/editor/language'
 import { searchNoAutofill } from '#/components/editor/search'
 import { editorTheme } from '#/components/editor/theme'
+import { setWordWrap, wordWrap } from '#/components/editor/word-wrap'
 import { DIFF_CONFIG } from '#/lib/compare'
 import { diffChange } from '#/lib/xml/edit'
 import { m } from '#/paraglide/messages'
@@ -77,6 +78,7 @@ function sideExtensions(language: DocLanguage, editable: boolean): Extension {
     languageExtension(language),
     editorTheme,
     compareTheme,
+    wordWrap(),
   ]
 }
 
@@ -88,6 +90,8 @@ export interface CompareSideDoc {
 export interface CompareHandle {
   /** Brings both sides up to date, keeping scroll and selection. */
   update: (a: string, b: string) => void
+  /** Turns soft wrapping of long lines on or off on every side. */
+  setWordWrap: (on: boolean) => void
   focus: () => void
   destroy: () => void
 }
@@ -129,6 +133,10 @@ export function createCompare(
         const changeB = diffChange(view.b.state.doc.toString(), nextB)
         if (changeB) view.b.dispatch({ changes: changeB })
       },
+      setWordWrap(on) {
+        view.a.dispatch({ effects: setWordWrap(on) })
+        view.b.dispatch({ effects: setWordWrap(on) })
+      },
       focus: () => view.b.focus(),
       destroy: () => view.destroy(),
     }
@@ -164,6 +172,7 @@ export function createCompare(
       const changeB = diffChange(view.state.doc.toString(), nextB)
       if (changeB) view.dispatch({ changes: changeB })
     },
+    setWordWrap: (on) => view.dispatch({ effects: setWordWrap(on) }),
     focus: () => view.focus(),
     destroy: () => view.destroy(),
   }

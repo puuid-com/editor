@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.50.4] - 2026-11-11
+
+### Fixed
+
+- Word wrap (Alt+Z or the wrap button in the sidebar) now also wraps long lines in the compare view.
+
 ## [1.50.3] - 2026-11-11
 
 ### Changed

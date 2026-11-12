@@ -11,6 +11,7 @@ import {
   uiStore,
 } from '#/components/app/ui-store'
 import { getView } from '#/components/editor/editor-store'
+import { editorPrefs } from '#/components/editor/word-wrap'
 import { Label } from '#/components/ui/label'
 import { Separator } from '#/components/ui/separator'
 import { Switch } from '#/components/ui/switch'
@@ -234,6 +235,12 @@ function MergeHost({
     latest.current = texts
     handleRef.current?.update(texts.a, texts.b)
   }, [texts])
+
+  // Wrapping follows the editor's setting; new views read it on creation.
+  const wrap = useSelector(editorPrefs, (s) => s.wordWrap)
+  useEffect(() => {
+    handleRef.current?.setWordWrap(wrap)
+  }, [wrap])
 
   useEffect(() => {
     const { a, b } = latest.current
