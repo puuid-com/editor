@@ -4,25 +4,30 @@ import {
   IconAlignCenter,
   IconAlignLeft,
   IconAlignRight,
+  IconBarcode,
   IconBraces,
+  IconBrandNpm,
   IconBrowser,
   IconCheck,
-  IconCopy,
   IconChevronDown,
   IconChevronRight,
   IconChevronUp,
   IconColumnsOff,
+  IconCopy,
+  IconDatabase,
   IconDots,
   IconDownload,
   IconEyeEdit,
   IconFileCode,
   IconFileDots,
   IconFilePlus,
+  IconFileText,
   IconFolder,
   IconFolderOpen,
   IconFolderPlus,
   IconFolderRoot,
   IconFolderUp,
+  IconInfoCircle,
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebarRight,
@@ -32,6 +37,7 @@ import {
   IconPin,
   IconPlus,
   IconReplace,
+  IconSchema,
   IconSelector,
   IconShare,
   IconTag,
@@ -4588,7 +4594,42 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.52.0 each file type has its own coloured icon, as editor icon themes. */
+function ColoredFileIcons() {
+  const row =
+    'flex items-center gap-1.5 rounded-md px-1.5 py-1 [&_svg]:size-3.5 [&_svg]:shrink-0'
+  const entries: Array<
+    [ComponentType<{ className?: string }>, string, string]
+  > = [
+    [IconFileCode, 'order.xml', AMBER],
+    [IconSchema, 'order.xsd', PURPLE],
+    [IconBraces, 'rates.json', AMBER],
+    [IconDatabase, 'report.sql', 'var(--hl-pink)'],
+    [IconBarcode, 'label.zpl', 'var(--hl-red)'],
+    [IconInfoCircle, 'README.md', BLUE],
+    [IconBrandNpm, 'package.json', 'var(--hl-red)'],
+    [IconFileText, 'notes.txt', ''],
+  ]
+  const list = (colored: boolean) => (
+    <div className="bg-sidebar p-1.5 text-muted-foreground">
+      {entries.map(([Glyph, name, color]) => (
+        <div key={name} className={row}>
+          <span
+            className="contents"
+            style={colored && color ? { color } : undefined}
+          >
+            <Glyph />
+          </span>
+          <span className="truncate">{name}</span>
+        </div>
+      ))}
+    </div>
+  )
+  return <BeforeAfter before={list(false)} after={list(true)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.52.0': figure(ColoredFileIcons),
   '1.51.0': figure(SidebarRight),
   '1.50.4': figure(CompareWrap),
   '1.50.0': figure(AboutHero),

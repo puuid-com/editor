@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.52.0] - 2026-11-12
+
+### Added
+
+- Files in the sidebar, tabs and command menu now have a coloured icon for their type, like an editor icon theme: XML, schemas, stylesheets, JSON, SQL, ZPL, Markdown, images and more each get their own, and files such as `package.json` or `README.md` get a special one.
+
 ## [1.51.0] - 2026-11-12
 
 ### Added

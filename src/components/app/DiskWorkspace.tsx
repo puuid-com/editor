@@ -502,7 +502,9 @@ function FileRow({
         title={editable ? title : `${title}\n${m.folder_unsupported_file()}`}
         onClick={editable ? () => tree.open(entry) : undefined}
       >
-        <FileIcon file={{ name: entry.name, empty: false }} />
+        <FileIcon
+          file={{ name: entry.name, empty: false, supported: editable }}
+        />
         <span className="truncate">{entry.name}</span>
         {showPath && folder && (
           <span className="truncate text-xs text-muted-foreground">
