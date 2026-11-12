@@ -40,6 +40,8 @@ import { ArchiveButton } from './ArchiveDialog'
 import { CodeFontMenu } from './CodeFontMenu'
 import { ThemeToggle } from './ThemeToggle'
 import { WordWrapToggle } from './WordWrapToggle'
+import { SidebarSideToggle } from './SidebarSideToggle'
+import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
 import { Logo } from '#/components/Logo'
@@ -192,6 +194,7 @@ export function FileExplorer({
 }) {
   const dragFeedback = useDragFeedback()
   const roots = useSelector(rootsStore, (state) => state)
+  const sidebarRight = useSelector(editorPrefs, (s) => s.sidebarRight)
   const canOpenFolders = useCanOpenFolders()
   // Tabs of open folders show in their own workspace, the rest in the browser's.
   const files = allFiles.filter(
@@ -535,7 +538,11 @@ export function FileExplorer({
       .finally(() => setDeleting(false))
   }
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar
+      side={sidebarRight ? 'right' : 'left'}
+      variant="inset"
+      collapsible="icon"
+    >
       <aside
         aria-label={m.explorer_title()}
         className="flex size-full min-h-0 flex-col"
@@ -726,6 +733,7 @@ export function FileExplorer({
         <SidebarFooter className="flex-row items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
           <ArchiveButton />
           <WordWrapToggle />
+          <SidebarSideToggle />
           <CodeFontMenu />
           <ThemeToggle />
           <Link

@@ -22,6 +22,8 @@ import {
   IconMoon,
   IconColumnsOff,
   IconTextWrap,
+  IconLayoutSidebar,
+  IconLayoutSidebarRight,
   IconPencil,
   IconPlus,
   IconReplace,
@@ -102,7 +104,11 @@ import { sessionStore, setActive } from '#/lib/store/session'
 import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
 import { setCodeFont } from '#/components/editor/code-font'
-import { editorPrefs, toggleWordWrap } from '#/components/editor/word-wrap'
+import {
+  editorPrefs,
+  toggleSidebarSide,
+  toggleWordWrap,
+} from '#/components/editor/word-wrap'
 import { toggleMarkdownLive } from '#/components/markdown/md-live'
 import { codeFonts } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
@@ -648,6 +654,7 @@ function Workspace({
   const canOpenFolders = useCanOpenFolders()
   const codeFont = useSelector(editorPrefs, (s) => s.codeFont)
   const markdownLive = useSelector(editorPrefs, (s) => s.markdownLive)
+  const sidebarRight = useSelector(editorPrefs, (s) => s.sidebarRight)
   return (
     <>
       <CommandSeparator />
@@ -718,6 +725,10 @@ function Workspace({
           <IconTextWrap />
           {m.word_wrap_toggle()}
           <CommandShortcut>{shortcutLabel(shortcuts.wordWrap)}</CommandShortcut>
+        </CommandItem>
+        <CommandItem onSelect={() => run(toggleSidebarSide)}>
+          {sidebarRight ? <IconLayoutSidebar /> : <IconLayoutSidebarRight />}
+          {sidebarRight ? m.sidebar_move_left() : m.sidebar_move_right()}
         </CommandItem>
         <CommandItem onSelect={() => run(toggleMarkdownLive)}>
           <IconEyeEdit />

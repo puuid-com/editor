@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.51.0] - 2026-11-12
+
+### Added
+
+- The sidebar now sits on the right of the editor. A new button in the sidebar's footer (also in the command menu) moves it back to the left, and the choice is remembered.
+
 ## [1.50.4] - 2026-11-11
 
 ### Fixed

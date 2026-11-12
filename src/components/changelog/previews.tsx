@@ -4544,7 +4544,52 @@ function AboutHero() {
   )
 }
 
+/** Since 1.51.0 the sidebar sits right of the sheet unless moved back. */
+function SidebarRight() {
+  const sidebar = (
+    <div className="flex w-24 shrink-0 flex-col p-1.5">
+      <div className="flex h-7 items-center gap-1.5 px-1 font-semibold">
+        <Logo className="size-4" />
+        <span className="truncate">{site.name}</span>
+      </div>
+      <div className="flex items-center gap-1.5 rounded-md bg-sidebar-accent px-1.5 py-1 text-foreground">
+        <IconFileCode className="size-3.5 shrink-0" />
+        <span className="truncate">order.xml</span>
+      </div>
+      <div className="mt-auto flex items-center gap-1.5 px-1.5 pt-2 text-muted-foreground">
+        <IconTextWrap className="size-3.5" />
+        <IconLayoutSidebarRight className="size-3.5" />
+      </div>
+    </div>
+  )
+  const sheet = (
+    <div className="m-1.5 flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-background">
+      <PillTabs end={<IconDots />}>
+        <PillTab name="order.xml" color={BLUE} active />
+      </PillTabs>
+      <Code lines={ORDER} className="flex-1" />
+    </div>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <div className="flex h-full bg-sidebar [&>div:last-child]:ml-0">
+          {sidebar}
+          {sheet}
+        </div>
+      }
+      after={
+        <div className="flex h-full flex-row-reverse bg-sidebar [&>div:last-child]:mr-0">
+          {sidebar}
+          {sheet}
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.51.0': figure(SidebarRight),
   '1.50.4': figure(CompareWrap),
   '1.50.0': figure(AboutHero),
   '1.49.0': figure(ShellRedesign),

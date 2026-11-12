@@ -231,6 +231,8 @@
   "theme_toggle": "Toggle theme",
   "code_font": "Font",
   "code_font_option": "Font: {font}",
+  "sidebar_move_left": "Move sidebar to the left",
+  "sidebar_move_right": "Move sidebar to the right",
   "word_wrap_toggle": "Toggle word wrap",
   "editor_settings": "Settings",
   "defaults_save_current": "Save value as default",

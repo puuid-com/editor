@@ -15,12 +15,19 @@ export const editorPrefs = persistedStore(
     markdownLive: false,
     /** Markdown blocks shown in the middle of the page instead of at the start. */
     centered: defaultCentered,
+    /** The sidebar sits right of the sheet instead of left. */
+    sidebarRight: true,
   },
 )
 
 /** Turns soft wrapping of long lines on or off in every editor. */
 export function toggleWordWrap() {
   editorPrefs.setState((s) => ({ ...s, wordWrap: !s.wordWrap }))
+}
+
+/** Moves the sidebar to the other side of the sheet. */
+export function toggleSidebarSide() {
+  editorPrefs.setState((s) => ({ ...s, sidebarRight: !s.sidebarRight }))
 }
 
 const wrapCompartment = new Compartment()

@@ -27,6 +27,7 @@ import { VariableValueDialog } from './VariableValueDialog'
 import { setCompareId, uiStore } from './ui-store'
 import { DraftControls, DraftPane } from './DraftPane'
 import { MixedWorkspace } from './MixedWorkspace'
+import { editorPrefs } from '#/components/editor/word-wrap'
 import { QuickHighlight } from '#/components/highlights/QuickHighlight'
 import {
   DeleteProfileDialog,
@@ -50,6 +51,7 @@ export function EditorApp() {
   const workspaceFiles = useWorkspaceFiles()
   const files = openFiles(workspaceFiles)
   const panes = useSelector(sessionStore, (s) => s.panes)
+  const sidebarRight = useSelector(editorPrefs, (s) => s.sidebarRight)
   const storedActive = useSelector(sessionStore, (s) => s.activeId)
   const wide = useMediaQuery('(min-width: 768px)')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -110,7 +112,11 @@ export function EditorApp() {
   return (
     <SidebarProvider
       defaultOpen={sidebarDefaultOpen()}
-      className="relative h-dvh overflow-hidden"
+      // The sidebar stays first in the DOM so the sheet's peer styles see it.
+      className={cn(
+        'relative h-dvh overflow-hidden',
+        sidebarRight && 'flex-row-reverse',
+      )}
       onDragOver={(e) => {
         if (!hasFiles(e)) return
         e.preventDefault()
