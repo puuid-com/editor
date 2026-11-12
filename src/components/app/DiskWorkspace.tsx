@@ -83,6 +83,9 @@ import { m } from '#/paraglide/messages'
 // says so, keeps its attachment folder out of the tree and its excluded
 // files out of search, and names new files as notes.
 
+/** What a dragged file of a folder on disk carries. */
+const FILE_DRAG = 'application/x-disk-file'
+
 /** What every row of one folder's tree needs. */
 interface Tree {
   root: DiskRoot
@@ -205,8 +208,7 @@ export function DiskWorkspace({
     startDrag: dragFeedback.start,
     drop: (parent) => ({
       onDragOver: (event) => {
-        if (!event.dataTransfer.types.includes('application/x-disk-file'))
-          return
+        if (!event.dataTransfer.types.includes(FILE_DRAG)) return
         event.preventDefault()
         event.stopPropagation()
         event.dataTransfer.dropEffect = 'move'
@@ -215,7 +217,7 @@ export function DiskWorkspace({
       onDragLeave: dragFeedback.leave,
       onDrop: (event) => {
         dragFeedback.clear()
-        const value = event.dataTransfer.getData('application/x-disk-file')
+        const value = event.dataTransfer.getData(FILE_DRAG)
         if (!value) return
         event.preventDefault()
         event.stopPropagation()
@@ -478,7 +480,7 @@ function FileRow({
       onDragStart={(event) => {
         event.stopPropagation()
         event.dataTransfer.setData(
-          'application/x-disk-file',
+          FILE_DRAG,
           JSON.stringify({ rootId: tree.root.id, path: entry.path }),
         )
         event.dataTransfer.effectAllowed = 'move'

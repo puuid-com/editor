@@ -1,5 +1,5 @@
 import { TEMPLATE_TYPES } from './files'
-import { notify } from './notice-store'
+import { errorDetail, notify } from './notice-store'
 import { pickFile } from '#/lib/file-io'
 import { templateOrder } from '#/lib/sort-order'
 import { setCustomOrder } from '#/lib/store/profiles'
@@ -17,7 +17,7 @@ export async function applyTemplate(file: File) {
     text = await file.text()
   } catch (error) {
     notify.error(m.file_import_failed({ name }), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
     return
   }

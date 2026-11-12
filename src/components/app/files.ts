@@ -5,9 +5,9 @@ import {
   moveFile,
   deleteFolder,
 } from '#/lib/store/folders'
-import { notify } from './notice-store'
+import { errorDetail, notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
-import { LANGUAGE_EXTENSIONS } from '#/lib/document'
+import { LANGUAGE_EXTENSIONS } from '#/lib/languages'
 import { closeDiskFile } from './disk-workspace'
 import { dropEditorState } from '#/components/editor/editor-session'
 import {
@@ -194,21 +194,48 @@ export const newMarkdownFile = () => openNew(m.file_untitled_md())
 export const newTextFile = () => openNew(m.file_untitled_txt())
 
 /**
- * Creates tabs for opened files. A base64 label opens decoded, and each file
- * takes the profile whose files it resembles, else the active one.
+ * Picks the profile of opened files: the one whose files they look like,
+ * else the active one. Made once per batch, so files opened together don't
+ * sway one another.
  */
-function fileOpener() {
+function profilePicker() {
   const fallback = activeProfileId()
   const guess = profileGuesser()
+  return (name: string, text: string) => guess(name, text) ?? fallback
+}
+
+/** The profile for one opened file. */
+export function profileFor(name: string, text: string) {
+  return profilePicker()(name, text)
+}
+
+/** Creates tabs for opened files. A base64 label opens decoded. */
+function fileOpener() {
+  const pick = profilePicker()
   return (name: string, raw: string) => {
     const text = decodeBase64Zpl(raw) ?? raw
-    return createFile(name, text, guess(name, text) ?? fallback)
+    return createFile(name, text, pick(name, text))
   }
 }
 
-/** The profile for an opened file: the one its files look like, else the active one. */
-export function profileFor(name: string, text: string) {
-  return profileGuesser()(name, text) ?? activeProfileId()
+function childFolder(parentId: string | null, name: string) {
+  return [...foldersCollection.values()].find(
+    (folder) => folder.parentId === parentId && folder.name === name,
+  )
+}
+
+/** The browser folder for a picked directory's path, made where missing. */
+async function folderFor(segments: ReadonlyArray<string>) {
+  let parentId: string | null = null
+  for (const name of segments) {
+    // One level at a time: each folder needs its parent to exist.
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop
+    if (!childFolder(parentId, name)) await saveFolder(name, parentId)
+    const folder = childFolder(parentId, name)
+    if (!folder) break
+    parentId = folder.id
+  }
+  return parentId
 }
 
 /** Whether the browser can open files so that they save back to disk. */
@@ -253,7 +280,7 @@ async function importHandles(handles: ReadonlyArray<FileSystemFileHandle>) {
       })
     } catch (error) {
       notify.error(m.file_import_failed({ name: handle.name }), {
-        detail: error instanceof Error ? error.message : undefined,
+        detail: errorDetail(error),
       })
     }
   }
@@ -298,30 +325,15 @@ export async function importFiles(list: FileList | Array<File>) {
     const { name } = files[i]
     if (result.status === 'fulfilled') {
       last = open(name, result.value).id
-      const segments = (files[i].webkitRelativePath || '')
-        .split('/')
-        .slice(0, -1)
-      let parentId: string | null = null
-      for (const segment of segments) {
-        let folder = [...foldersCollection.values()].find(
-          (f) => f.parentId === parentId && f.name === segment,
-        )
-        if (!folder) {
-          // Preserve the directory picker’s relative paths in the workspace.
-          await saveFolder(segment, parentId)
-          folder = [...foldersCollection.values()].find(
-            (f) => f.parentId === parentId && f.name === segment,
-          )
-        }
-        if (!folder) break
-        parentId = folder.id
-      }
-      if (parentId) await moveFile(last, parentId)
+      // A directory picker gives each file its path; keep it in the workspace.
+      const folderId = await folderFor(
+        (files[i].webkitRelativePath || '').split('/').slice(0, -1),
+      )
+      if (folderId) await moveFile(last, folderId)
       continue
     }
     notify.error(m.file_import_failed({ name }), {
-      detail:
-        result.reason instanceof Error ? result.reason.message : undefined,
+      detail: errorDetail(result.reason),
     })
   }
   if (last) setActive(last)

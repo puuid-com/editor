@@ -86,7 +86,7 @@ import {
   DialogFooter,
 } from '#/components/ui/dialog'
 import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
-import { useWorkspaceFiles } from '#/hooks/use-files'
+import type { WorkspaceFile } from '#/hooks/use-files'
 import { createFile, filesCollection, renameFile } from '#/lib/store/files'
 import {
   foldersCollection,
@@ -106,6 +106,23 @@ import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
 import { site } from '#/site'
 import { Link } from '@tanstack/react-router'
+
+/** What a dragged file or folder of the browser's workspace carries. */
+const ENTRY_DRAG = 'application/x-workspace-entry'
+
+/** `items` by `key`, each group in the order its items came in. */
+function groupBy<TItem, TKey>(
+  items: ReadonlyArray<TItem>,
+  key: (item: TItem) => TKey,
+) {
+  const groups = new Map<TKey, Array<TItem>>()
+  for (const item of items) {
+    const group = groups.get(key(item))
+    if (group) group.push(item)
+    else groups.set(key(item), [item])
+  }
+  return groups
+}
 
 type Edit = {
   kind: 'file' | 'folder'
@@ -164,14 +181,16 @@ function MenuEntry({
 }
 
 export function FileExplorer({
+  files: allFiles,
   activeId,
   onImport,
 }: {
+  /** Every file of the workspace, with a tab or not. */
+  files: Array<WorkspaceFile>
   activeId: string | null
   onImport: () => void
 }) {
   const dragFeedback = useDragFeedback()
-  const allFiles = useWorkspaceFiles()
   const roots = useSelector(rootsStore, (state) => state)
   const canOpenFolders = useCanOpenFolders()
   // Tabs of open folders show in their own workspace, the rest in the browser's.
@@ -192,6 +211,15 @@ export function FileExplorer({
     q
       .from({ folder: foldersCollection })
       .orderBy(({ folder }) => folder.name, 'asc'),
+  )
+  // The tree by parent, built once rather than searched again per folder. A
+  // file whose folder is gone shows at the top.
+  const folderIds = new Set(folders.map((folder) => folder.id))
+  const foldersIn = groupBy(folders, (folder) => folder.parentId)
+  const filesIn = groupBy(
+    [...files].sort((a, b) => a.name.localeCompare(b.name)),
+    (file) =>
+      file.folderId && folderIds.has(file.folderId) ? file.folderId : null,
   )
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -377,7 +405,7 @@ export function FileExplorer({
   )
   const dropProps = (parentId: string | null) => ({
     onDragOver: (event: React.DragEvent) => {
-      if (event.dataTransfer.types.includes('application/x-workspace-entry')) {
+      if (event.dataTransfer.types.includes(ENTRY_DRAG)) {
         event.preventDefault()
         event.stopPropagation()
         event.dataTransfer.dropEffect = 'move'
@@ -387,7 +415,7 @@ export function FileExplorer({
     onDragLeave: dragFeedback.leave,
     onDrop: (event: React.DragEvent) => {
       dragFeedback.clear()
-      const value = event.dataTransfer.getData('application/x-workspace-entry')
+      const value = event.dataTransfer.getData(ENTRY_DRAG)
       if (!value) return
       event.preventDefault()
       event.stopPropagation()
@@ -396,7 +424,7 @@ export function FileExplorer({
     },
   })
   const drag = (event: React.DragEvent, kind: string, id: string) => {
-    event.dataTransfer.setData('application/x-workspace-entry', `${kind}:${id}`)
+    event.dataTransfer.setData(ENTRY_DRAG, `${kind}:${id}`)
     event.dataTransfer.effectAllowed = 'move'
     dragFeedback.start(event)
   }
@@ -450,8 +478,9 @@ export function FileExplorer({
     ancestors = new Set<string>(),
   ): React.ReactNode => (
     <>
-      {folders
-        .filter((f) => f.parentId === parentId && !ancestors.has(f.id))
+      {foldersIn
+        .get(parentId)
+        ?.filter((folder) => !ancestors.has(folder.id))
         .map((folder) => (
           <Collapsible
             key={folder.id}
@@ -487,15 +516,7 @@ export function FileExplorer({
             </CollapsibleContent>
           </Collapsible>
         ))}
-      {files
-        .filter(
-          (f) =>
-            (f.folderId && folders.some((d) => d.id === f.folderId)
-              ? f.folderId
-              : null) === parentId,
-        )
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(fileRow)}
+      {filesIn.get(parentId)?.map(fileRow)}
     </>
   )
   const removeFolderTree = () => {

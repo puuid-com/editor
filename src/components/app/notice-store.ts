@@ -17,6 +17,11 @@ export interface Notice {
 
 type NoticeOptions = Pick<Notice, 'detail' | 'action' | 'sticky'>
 
+/** What went wrong, for the detail of an error notice. */
+export function errorDetail(error: unknown) {
+  return error instanceof Error ? error.message : undefined
+}
+
 /** How long info and success messages stay up. Errors and sticky ones wait to be dismissed. */
 export const NOTICE_MS = 2500
 

@@ -1,4 +1,4 @@
-import { LANGUAGE_EXTENSIONS } from './document'
+import { LANGUAGE_EXTENSIONS } from './languages'
 
 // Reading and changing a folder opened from disk, through the handles of the
 // File System Access API. Paths run from the folder with `/` between names,

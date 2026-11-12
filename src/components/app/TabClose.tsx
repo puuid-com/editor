@@ -1,9 +1,6 @@
 import { IconX } from '@tabler/icons-react'
-import { useSelector } from '@tanstack/react-store'
-
 import { closeTab } from './ui-store'
-import { useFileContent } from '#/hooks/use-files'
-import { diskStore } from '#/lib/store/disk'
+import { useUnsaved } from '#/hooks/use-unsaved'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
@@ -14,35 +11,7 @@ import type { TabFile } from './files'
  * the close button on hover.
  */
 export function TabClose({ file, active }: { file: TabFile; active: boolean }) {
-  const saved = useSelector(diskStore, (links) => links[file.id]?.saved)
-  if (saved === undefined) return <CloseButton file={file} active={active} />
-  return <LinkedClose file={file} active={active} saved={saved} />
-}
-
-// Apart from TabClose so only linked tabs follow the content as it's typed.
-function LinkedClose({
-  file,
-  active,
-  saved,
-}: {
-  file: TabFile
-  active: boolean
-  saved: string
-}) {
-  const content = useFileContent(file.id)
-  const unsaved = !!content && content.content !== saved
-  return <CloseButton file={file} active={active} unsaved={unsaved} />
-}
-
-function CloseButton({
-  file,
-  active,
-  unsaved = false,
-}: {
-  file: TabFile
-  active: boolean
-  unsaved?: boolean
-}) {
+  const unsaved = useUnsaved(file.id)
   return (
     <button
       type="button"

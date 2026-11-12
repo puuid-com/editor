@@ -8,6 +8,21 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.50.1] - 2026-11-11
+
+### Changed
+
+- The editor loads about a fifth less code before it shows. The label parser behind ZPL's explanations, the largest piece, now loads the first time a ZPL file opens, and the comparison view's code loads with the first comparison.
+- The About and Changelog pages load far less: they no longer fetch the editor's storage code or open its database, and the Changelog no longer fetches the editor's grammars.
+- Typing does less work behind the scenes. The unsaved dots on tabs and explorer rows, and everything that reads a file's profile, no longer follow each file's text as it changes, and the tabs are read once for the whole screen instead of once per pane.
+- The explorer builds its folder tree in one pass, so large workspaces list faster.
+- A ZPL file's editor no longer rebuilds its setup on every key typed.
+
+### Fixed
+
+- Switching tabs no longer reads the links to files on disk and the open folders again from storage. Besides the wasted work, a link being saved at that moment could be replaced by its older copy, showing a saved file as unsaved.
+- ZPL explanations that failed to load, such as offline, are tried again with the next ZPL file instead of staying off until a reload.
+
 ## [1.50.0] - 2026-11-11
 
 ### Changed

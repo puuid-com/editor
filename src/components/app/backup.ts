@@ -1,4 +1,4 @@
-import { notify } from './notice-store'
+import { errorDetail, notify } from './notice-store'
 import { setRestorePreview } from './ui-store'
 import { editorStore, getText } from '#/components/editor/editor-store'
 import { formatDateTime } from '#/lib/dates'
@@ -52,7 +52,7 @@ async function readBackup(file: File) {
     text = await file.text()
   } catch (error) {
     notify.error(m.backup_read_failed({ name }), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
     return
   }
@@ -77,7 +77,7 @@ export async function replaceWorkspace(backup: Backup) {
     notify.success(m.restore_done())
   } catch (error) {
     notify.error(m.restore_failed(), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
   }
 }

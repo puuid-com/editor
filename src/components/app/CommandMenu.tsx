@@ -95,7 +95,7 @@ import {
 import { Kbd } from '#/components/ui/kbd'
 import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
 import { useCanWriteDisk } from '#/hooks/use-can-write-disk'
-import { useOpenFiles } from '#/hooks/use-files'
+import type { WorkspaceFile } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
 import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive } from '#/lib/store/session'
@@ -111,9 +111,12 @@ import type { DocLanguage } from '#/lib/document'
 
 /** Centered palette of files and actions, opened with ⌘K or the logo. */
 export function CommandMenu({
+  files,
   activeId,
   onOpenFromDisk,
 }: {
+  /** The open tabs. */
+  files: Array<WorkspaceFile>
   activeId: string | null
   onOpenFromDisk: () => void
 }) {
@@ -144,7 +147,11 @@ export function CommandMenu({
           <DialogTitle>{m.palette_title()}</DialogTitle>
           <DialogDescription>{m.palette_description()}</DialogDescription>
         </DialogHeader>
-        <FileCommands activeId={activeId} onOpenFromDisk={onOpenFromDisk} />
+        <FileCommands
+          files={files}
+          activeId={activeId}
+          onOpenFromDisk={onOpenFromDisk}
+        />
       </DialogContent>
     </Dialog>
   )
@@ -166,13 +173,14 @@ export function CommandMenuButton() {
 
 // Mounted only while the dialog is open, so the search resets each time.
 function FileCommands({
+  files,
   activeId,
   onOpenFromDisk,
 }: {
+  files: Array<WorkspaceFile>
   activeId: string | null
   onOpenFromDisk: () => void
 }) {
-  const files = useOpenFiles()
   const [search, setSearch] = useState('')
   // "Compare with…" and "Change type" open a second page of choices.
   const [page, setPage] = useState<Page>('root')
@@ -338,7 +346,7 @@ function RootCommands({
   onChangeType,
   onOpenFromDisk,
 }: {
-  files: ReturnType<typeof useOpenFiles>
+  files: Array<WorkspaceFile>
   activeId: string | null
   comparing: boolean
   run: Run
@@ -375,7 +383,7 @@ function OpenFiles({
   activeId,
   run,
 }: {
-  files: ReturnType<typeof useOpenFiles>
+  files: Array<WorkspaceFile>
   activeId: string | null
   run: Run
 }) {
@@ -408,7 +416,7 @@ function CurrentFile({
   onChangeType,
 }: {
   activeId: string
-  files: ReturnType<typeof useOpenFiles>
+  files: Array<WorkspaceFile>
   comparing: boolean
   run: Run
   onCompare: () => void

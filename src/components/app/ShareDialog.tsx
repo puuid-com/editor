@@ -16,7 +16,6 @@ import {
 import { Label } from '#/components/ui/label'
 import { Switch } from '#/components/ui/switch'
 import { useDefaults } from '#/hooks/use-defaults'
-import { useOpenFiles } from '#/hooks/use-files'
 import { useHighlights } from '#/hooks/use-highlights'
 import { usePins } from '#/hooks/use-pins'
 import { useActiveProfile } from '#/hooks/use-profiles'
@@ -24,14 +23,18 @@ import { useVariables } from '#/hooks/use-variables'
 import { m } from '#/paraglide/messages'
 
 /** Picks what a share link of the active file carries, then copies it. */
-export function ShareLinkDialog({ activeId }: { activeId: string | null }) {
+export function ShareLinkDialog({
+  name,
+}: {
+  /** The active file's name, if there is one. */
+  name: string | undefined
+}) {
   const open = useSelector(uiStore, (s) => s.shareOpen)
-  const file = useOpenFiles().find((f) => f.id === activeId)
 
   return (
-    <Dialog open={open && !!file} onOpenChange={setShareOpen}>
+    <Dialog open={open && name !== undefined} onOpenChange={setShareOpen}>
       <DialogContent className="sm:max-w-md">
-        {file && <ShareLinkForm name={file.name} />}
+        {name !== undefined && <ShareLinkForm name={name} />}
       </DialogContent>
     </Dialog>
   )

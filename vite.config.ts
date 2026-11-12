@@ -34,8 +34,9 @@ const config = defineConfig({
                   test: /node_modules[\\/](react|react-dom|scheduler|@tanstack[\\/]redact)[\\/]/,
                 },
                 {
+                  // Without the merge view, which only comparisons load.
                   name: 'codemirror',
-                  test: /node_modules[\\/](@codemirror|@lezer|crelt|style-mod|w3c-keyname)[\\/]/,
+                  test: /node_modules[\\/](@codemirror[\\/](?!merge[\\/])|@lezer[\\/]|crelt[\\/]|style-mod[\\/]|w3c-keyname[\\/])/,
                 },
                 {
                   name: 'tanstack-db',

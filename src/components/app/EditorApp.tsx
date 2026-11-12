@@ -38,7 +38,7 @@ import {
   sidebarDefaultOpen,
 } from '#/components/ui/sidebar'
 import { useEditorTitle } from '#/hooks/use-editor-title'
-import { useOpenFiles } from '#/hooks/use-files'
+import { openFiles, useWorkspaceFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { onSaveFailed } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
@@ -46,7 +46,9 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
 export function EditorApp() {
-  const files = useOpenFiles()
+  // The one read of the files: everything below takes them from here.
+  const workspaceFiles = useWorkspaceFiles()
+  const files = openFiles(workspaceFiles)
   const panes = useSelector(sessionStore, (s) => s.panes)
   const storedActive = useSelector(sessionStore, (s) => s.activeId)
   const wide = useMediaQuery('(min-width: 768px)')
@@ -58,7 +60,8 @@ export function EditorApp() {
   const activeId = files.some((f) => f.id === storedActive)
     ? storedActive
     : (files.at(0)?.id ?? null)
-  useEditorTitle(files.find((file) => file.id === activeId)?.name)
+  const activeName = files.find((file) => file.id === activeId)?.name
+  useEditorTitle(activeName)
   useEffect(() => {
     if (activeId !== storedActive) setActive(activeId)
   }, [activeId, storedActive])
@@ -135,12 +138,17 @@ export function EditorApp() {
           e.target.value = ''
         }}
       />
-      <FileExplorer activeId={activeId} onImport={openFromDisk} />
+      <FileExplorer
+        files={workspaceFiles}
+        activeId={activeId}
+        onImport={openFromDisk}
+      />
       {/* The workspace sheet: panes above, the active file's bar below. */}
       <SidebarInset id="main" className="min-h-0 min-w-0 overflow-hidden">
         <div className="min-h-0 flex-1">
           {activeId ? (
             <MixedWorkspace
+              files={files}
               fileId={activeId}
               compareId={compareId}
               wide={wide}
@@ -157,7 +165,11 @@ export function EditorApp() {
       <PdfExportDialog />
       <RenameDialog />
       <ArchiveDialog />
-      <CommandMenu activeId={activeId} onOpenFromDisk={openFromDisk} />
+      <CommandMenu
+        files={files}
+        activeId={activeId}
+        onOpenFromDisk={openFromDisk}
+      />
       <DeleteDialog openIds={files.map((f) => f.id)} />
       <DefaultsConfirmDialog />
       <VarsConfirmDialog />
@@ -166,7 +178,7 @@ export function EditorApp() {
       <ProfileDialog />
       <DeleteProfileDialog />
       <QuickHighlight />
-      <ShareLinkDialog activeId={activeId} />
+      <ShareLinkDialog name={activeName} />
       <OpenSharedDialog />
 
       <div

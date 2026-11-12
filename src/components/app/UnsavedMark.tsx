@@ -1,7 +1,4 @@
-import { useSelector } from '@tanstack/react-store'
-
-import { useFileContent } from '#/hooks/use-files'
-import { diskStore } from '#/lib/store/disk'
+import { useUnsaved } from '#/hooks/use-unsaved'
 import { m } from '#/paraglide/messages'
 
 /**
@@ -15,23 +12,7 @@ export function UnsavedMark({
   fileId: string
   srOnly?: boolean
 }) {
-  const saved = useSelector(diskStore, (links) => links[fileId]?.saved)
-  if (saved === undefined) return null
-  return <UnsavedDot fileId={fileId} saved={saved} srOnly={srOnly} />
-}
-
-// Apart from UnsavedMark so only linked tabs follow the content as it's typed.
-function UnsavedDot({
-  fileId,
-  saved,
-  srOnly,
-}: {
-  fileId: string
-  saved: string
-  srOnly?: boolean
-}) {
-  const file = useFileContent(fileId)
-  if (!file || file.content === saved) return null
+  if (!useUnsaved(fileId)) return null
   return (
     <span
       role="img"

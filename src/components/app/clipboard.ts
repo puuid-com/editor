@@ -1,4 +1,4 @@
-import { notify } from './notice-store'
+import { errorDetail, notify } from './notice-store'
 import { m } from '#/paraglide/messages'
 
 /**
@@ -10,7 +10,7 @@ export async function copyText(text: string, detail?: string) {
     await navigator.clipboard.writeText(text)
   } catch (error) {
     notify.error(m.copy_failed(), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
     return false
   }

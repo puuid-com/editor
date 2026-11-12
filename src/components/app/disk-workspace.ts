@@ -1,7 +1,7 @@
 import { readFileContent } from '#/lib/image-file'
 import { Debouncer } from '@tanstack/react-pacer'
 
-import { notify } from './notice-store'
+import { errorDetail, notify } from './notice-store'
 import { closeTabs, profileFor } from './files'
 import { saveToDisk } from '#/components/editor/disk'
 import {
@@ -14,6 +14,7 @@ import {
   removeEntry,
   renameEntry,
 } from '#/lib/disk-tree'
+import { isAbort } from '#/lib/file-io'
 import type { DiskEntry, EntryKind } from '#/lib/disk-tree'
 import {
   addDiskRoot,
@@ -36,6 +37,7 @@ import {
 } from '#/lib/store/files'
 import type { XmlFile } from '#/lib/store/files'
 import { newId } from '#/lib/store/persist'
+import { isUnsaved } from '#/lib/store/unsaved'
 import { claimWriter, setActive, writerId } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 
@@ -45,14 +47,6 @@ import { m } from '#/paraglide/messages'
 
 /** How long after the last edit a tab writes to its file. */
 const DISK_SAVE_MS = 600
-
-function detail(error: unknown) {
-  return error instanceof Error ? error.message : undefined
-}
-
-function isAbort(error: unknown) {
-  return error instanceof DOMException && error.name === 'AbortError'
-}
 
 /** Asks for a folder and adds it as a workspace. */
 export async function openFolder() {
@@ -64,13 +58,13 @@ export async function openFolder() {
     })
   } catch (error) {
     if (!isAbort(error))
-      notify.error(m.folder_open_failed(), { detail: detail(error) })
+      notify.error(m.folder_open_failed(), { detail: errorDetail(error) })
     return
   }
   try {
     return await addDiskRoot(handle)
   } catch (error) {
-    notify.error(m.folder_open_failed(), { detail: detail(error) })
+    notify.error(m.folder_open_failed(), { detail: errorDetail(error) })
   }
 }
 
@@ -84,12 +78,6 @@ function tabsOf(rootId: string, path?: string) {
   )
 }
 
-/** Whether a tab has edits its file on disk doesn't have yet. */
-function unsaved(file: XmlFile) {
-  const link = diskStore.state[file.id]
-  return !!link && link.saved !== file.content
-}
-
 /** Asks again for access to a folder, then catches up on what changed. */
 export async function reconnectFolder(root: DiskRoot) {
   if (!(await requestRootAccess(root))) {
@@ -98,7 +86,7 @@ export async function reconnectFolder(root: DiskRoot) {
   }
   await Promise.all(
     tabsOf(root.id)
-      .filter(unsaved)
+      .filter(isUnsaved)
       .map((file) => saveToDisk(file.id, false, true)),
   )
   await syncFromDisk()
@@ -143,7 +131,7 @@ async function readIntoTab(root: DiskRoot, entry: DiskEntry) {
     return file.id
   } catch (error) {
     notify.error(m.file_import_failed({ name: entry.name }), {
-      detail: detail(error),
+      detail: errorDetail(error),
     })
   }
 }
@@ -153,7 +141,10 @@ function failed(error: unknown) {
     error instanceof EntryExistsError
       ? m.folder_entry_exists({ name: error.message })
       : m.explorer_failed(),
-    { detail: error instanceof EntryExistsError ? undefined : detail(error) },
+    {
+      detail:
+        error instanceof EntryExistsError ? undefined : errorDetail(error),
+    },
   )
   return false
 }
@@ -267,7 +258,7 @@ export async function closeDiskFile(id: string) {
   await flushDiskSave(id)
   const file = filesCollection.get(id)
   if (!file) return true
-  if (!unsaved(file)) {
+  if (!isUnsaved(file)) {
     await dropTabs([id])
     return true
   }
@@ -285,7 +276,7 @@ function writable(file: XmlFile | undefined) {
     !!file?.location &&
     file.deletedAt === null &&
     diskRoot(file.location.rootId)?.access === 'granted' &&
-    unsaved(file)
+    isUnsaved(file)
   )
 }
 
@@ -348,7 +339,7 @@ export async function reloadFromDisk(id: string) {
     )
   } catch (error) {
     notify.error(m.file_import_failed({ name: file.name }), {
-      detail: detail(error),
+      detail: errorDetail(error),
     })
   }
 }
@@ -374,7 +365,7 @@ async function syncFile(file: XmlFile) {
     const disk = await link.handle.getFile()
     if (disk.lastModified === link.modified) return
     const text = await readFileContent(disk)
-    if (text === file.content || !unsaved(file)) {
+    if (text === file.content || !isUnsaved(file)) {
       await takeDiskText(file, link.handle, text, disk.lastModified)
       return
     }

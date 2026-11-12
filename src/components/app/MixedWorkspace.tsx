@@ -9,7 +9,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '#/components/ui/resizable'
-import { useOpenFiles, useFileContent } from '#/hooks/use-files'
+import { useFileContent } from '#/hooks/use-files'
+import type { WorkspaceFile } from '#/hooks/use-files'
 import { languageOf } from '#/lib/document'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { SidePanel } from './SidePanel'
@@ -43,15 +44,17 @@ const CompareView = lazy(() =>
 )
 
 export function MixedWorkspace({
+  files,
   fileId,
   compareId,
   wide,
 }: {
+  /** The open tabs. */
+  files: Array<WorkspaceFile>
   fileId: string
   compareId: string | null
   wide: boolean
 }) {
-  const files = useOpenFiles()
   const stored = useSelector(sessionStore, (s) => s.panes)
   const panes = useMemo(
     () =>
@@ -76,6 +79,7 @@ export function MixedWorkspace({
           {index > 0 && <ResizableHandle />}
           <ResizablePanel id={pane.id} minSize="20%">
             <FilePane
+              files={files}
               pane={pane}
               active={pane.activeId === fileId}
               compareId={pane.activeId === fileId ? compareId : null}
@@ -92,6 +96,7 @@ export function MixedWorkspace({
 }
 
 function FilePane({
+  files,
   pane,
   active,
   compareId,
@@ -100,6 +105,7 @@ function FilePane({
   first,
   last,
 }: {
+  files: Array<WorkspaceFile>
   pane: FilePaneGroup
   active: boolean
   compareId: string | null
@@ -114,7 +120,6 @@ function FilePane({
   const image = !!file && (!!imageMime(file.name) || isImageData(file.content))
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const live = useSelector(editorPrefs, (s) => s.markdownLive)
-  const files = useOpenFiles()
   const markdown = language === 'md'
   // ZPL has its own label preview; SQL and plain text have nothing to show
   // beside them, and live Markdown renders in the editor itself.

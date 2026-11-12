@@ -40,6 +40,9 @@ import type { DocLanguage } from '#/lib/document'
 // doesn't have the focus. When they don't fit, the strip scrolls, fades at
 // the edge that has more, and the full list sits behind a menu at its end.
 
+/** What a dragged tab carries: its file's id. */
+const TAB_DRAG = 'text/x-xml-tab'
+
 /** Fades the strip's edges that hide more tabs. */
 function edgeMask(start: boolean, end: boolean) {
   if (!start && !end) return undefined
@@ -87,10 +90,10 @@ export function TabStrip({
     <div
       className="flex h-full min-w-0 flex-1 items-stretch"
       onDragOver={(e) => {
-        if (e.dataTransfer.types.includes('text/x-xml-tab')) e.preventDefault()
+        if (e.dataTransfer.types.includes(TAB_DRAG)) e.preventDefault()
       }}
       onDrop={(e) => {
-        const id = e.dataTransfer.getData('text/x-xml-tab')
+        const id = e.dataTransfer.getData(TAB_DRAG)
         if (!id) return
         e.preventDefault()
         e.stopPropagation()
@@ -125,21 +128,19 @@ export function TabStrip({
                     data-tab-id={file.id}
                     onDragStart={(e) => {
                       e.dataTransfer.effectAllowed = 'move'
-                      e.dataTransfer.setData('text/x-xml-tab', file.id)
+                      e.dataTransfer.setData(TAB_DRAG, file.id)
                     }}
                     onDragOver={(e) => {
-                      if (!e.dataTransfer.types.includes('text/x-xml-tab'))
-                        return
+                      if (!e.dataTransfer.types.includes(TAB_DRAG)) return
                       e.preventDefault()
                       setOverId(file.id)
                     }}
                     onDragLeave={() => setOverId(null)}
                     onDrop={(e) => {
-                      if (!e.dataTransfer.types.includes('text/x-xml-tab'))
-                        return
+                      if (!e.dataTransfer.types.includes(TAB_DRAG)) return
                       e.preventDefault()
                       e.stopPropagation()
-                      const id = e.dataTransfer.getData('text/x-xml-tab')
+                      const id = e.dataTransfer.getData(TAB_DRAG)
                       if (id) moveTab(id, paneId, file.id)
                       setOverId(null)
                     }}

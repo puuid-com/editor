@@ -2,6 +2,7 @@
 // actions treat XML and JSON files the same way.
 
 import { imageMime, isImageData } from './image-file'
+import { LANGUAGE_EXTENSIONS } from './languages'
 import { isFlatFile, parseFlat } from './flat/parse'
 import { setJsonValue } from './json/edit'
 import { formatJson } from './json/format'
@@ -17,44 +18,6 @@ import type { FormatOptions, FormatResult } from './xml/format'
 import type { DocLanguage, XmlDocument, XmlElement } from './xml/model'
 
 export type { DocLanguage }
-
-/** Extensions read as each language, the file pickers' list included. */
-export const LANGUAGE_EXTENSIONS = {
-  xml: [
-    '.xml',
-    '.xsd',
-    '.xsl',
-    '.xslt',
-    '.wsdl',
-    '.svg',
-    '.plist',
-    '.config',
-    '.csproj',
-    '.xaml',
-    '.rss',
-    '.atom',
-    '.kml',
-    '.gpx',
-  ],
-  json: ['.json', '.geojson', '.jsonld', '.webmanifest', '.har', '.ipynb'],
-  flat: ['.txt', '.dat'],
-  sql: ['.sql', '.ddl', '.dml'],
-  zpl: ['.zpl'],
-  md: ['.md', '.markdown'],
-  txt: ['.txt', '.text', '.log'],
-  image: [
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.jfif',
-    '.gif',
-    '.webp',
-    '.avif',
-    '.bmp',
-    '.ico',
-    '.apng',
-  ],
-} as const satisfies Record<DocLanguage, ReadonlyArray<`.${string}`>>
 
 const extensionPattern = (extensions: ReadonlyArray<string>) =>
   new RegExp(`(${extensions.map((ext) => `\\${ext}`).join('|')})$`, 'i')

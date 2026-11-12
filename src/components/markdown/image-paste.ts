@@ -1,7 +1,7 @@
 import { EditorView } from '@codemirror/view'
 
 import { diskKeys, vaultQuery } from '#/components/app/disk-queries'
-import { notify } from '#/components/app/notice-store'
+import { errorDetail, notify } from '#/components/app/notice-store'
 import { docLanguage } from '#/components/editor/language'
 import { fileIdField } from '#/components/editor/extensions'
 import { browserQueryClient } from '#/integrations/tanstack-query/root-provider'
@@ -64,7 +64,7 @@ async function saveImages(
     })
   } catch (error) {
     notify.error(m.md_image_failed(), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
   }
 }

@@ -3,25 +3,10 @@ import {
   StreamLanguage,
   syntaxHighlighting,
 } from '@codemirror/language'
-import { Facet } from '@codemirror/state'
-import {
-  Decoration,
-  EditorView,
-  ViewPlugin,
-  WidgetType,
-  hoverTooltip,
-} from '@codemirror/view'
-import type { EditorState, Extension, Text } from '@codemirror/state'
-import type { DecorationSet, ViewUpdate } from '@codemirror/view'
+import { Compartment, Facet } from '@codemirror/state'
+import { EditorView, ViewPlugin } from '@codemirror/view'
+import type { Extension } from '@codemirror/state'
 import { tags } from '@lezer/highlight'
-import { findCommandAtOffset, parseDocument } from 'zplr/web'
-import type { ZplDocument } from 'zplr/web'
-
-import {
-  explainCommand,
-  explainDocument,
-  parameterIndexAt,
-} from '#/lib/zpl/explain'
 
 interface ZplTokenState {
   /** Inside ^FD/^FV field data or a ^FX comment, which run until the next command. */
@@ -64,142 +49,14 @@ const zplHighlightStyle = HighlightStyle.define([
 ])
 
 /** The printer dpi the explanations convert dots to inches with. */
-const labelDpi = Facet.define<number, number>({
+export const labelDpi = Facet.define<number, number>({
   combine: (values) => values.at(-1) ?? 203,
 })
 
-/** Docs are immutable, so each version is parsed at most once. */
-const parsed = new WeakMap<Text, ZplDocument>()
-
-function documentOf(state: EditorState): ZplDocument {
-  let document = parsed.get(state.doc)
-  if (!document) {
-    document = parseDocument(state.doc.toString())
-    parsed.set(state.doc, document)
-  }
-  return document
-}
-
-function element<TTag extends keyof HTMLElementTagNameMap>(
-  tag: TTag,
-  className: string | null,
-  text?: string,
-) {
-  const node = document.createElement(tag)
-  if (className) node.className = className
-  if (text !== undefined) node.textContent = text
-  return node
-}
-
-/**
- * Hovering a command explains it in plain words: what it does and what
- * each of its values means, with the hovered value picked out.
- */
-const commandTooltip = hoverTooltip((view, pos) => {
-  const command = findCommandAtOffset(documentOf(view.state), pos)
-  if (!command) return null
-  // Spans run on through the line break after the command.
-  const source = view.state.sliceDoc(command.span.start, command.span.end)
-  const end = command.span.start + source.trimEnd().length
-  if (pos > end) return null
-
-  const explanation = explainCommand(command, {
-    dpi: view.state.facet(labelDpi),
-  })
-  const hovered = parameterIndexAt(command, pos)
-
-  return {
-    pos: command.span.start,
-    end,
-    above: true,
-    create() {
-      const dom = element('div', 'cm-zpl-command-tooltip')
-
-      dom.appendChild(
-        element('strong', null, `${explanation.canonical} ${explanation.name}`),
-      )
-
-      dom.appendChild(element('p', null, explanation.summary))
-      if (explanation.parameters.length > 0) {
-        const list = element('dl', 'cm-zpl-tooltip-parameters')
-        for (const parameter of explanation.parameters) {
-          const row = element(
-            'div',
-            parameter.rawIndex === hovered ? 'cm-zpl-tooltip-active' : null,
-          )
-          const value = element('dd', null)
-          value.appendChild(element('code', null, parameter.value ?? '–'))
-          value.appendChild(document.createTextNode(` ${parameter.meaning}`))
-          row.appendChild(element('dt', null, parameter.name))
-          row.appendChild(value)
-          list.appendChild(row)
-        }
-        dom.appendChild(list)
-      }
-      return { dom }
-    },
-  }
+/** Whether each line ends with a note saying what it does. */
+export const explainLines = Facet.define<boolean, boolean>({
+  combine: (values) => values.at(-1) ?? true,
 })
-
-class HintWidget extends WidgetType {
-  constructor(readonly text: string) {
-    super()
-  }
-
-  eq(other: HintWidget) {
-    return other.text === this.text
-  }
-
-  toDOM() {
-    const dom = element('span', 'cm-zpl-hint', this.text)
-    dom.setAttribute('aria-hidden', 'true')
-    return dom
-  }
-}
-
-function buildHints(view: EditorView): DecorationSet {
-  const { doc } = view.state
-  const hints = explainDocument(documentOf(view.state), {
-    dpi: view.state.facet(labelDpi),
-  })
-
-  // Several items on one line share a single note at its end.
-  const byLine = new Map<number, string[]>()
-  for (const hint of hints) {
-    const line = doc.lineAt(Math.min(hint.offset, doc.length)).number
-    byLine.set(line, [...(byLine.get(line) ?? []), hint.text])
-  }
-
-  return Decoration.set(
-    [...byLine].map(([number, texts]) =>
-      Decoration.widget({
-        widget: new HintWidget(texts.join(' · ')),
-        side: 1,
-      }).range(doc.line(number).to),
-    ),
-  )
-}
-
-/** A plain-language note at the end of each line saying what it does. */
-const explainHints = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet
-
-    constructor(view: EditorView) {
-      this.decorations = buildHints(view)
-    }
-
-    update(update: ViewUpdate) {
-      if (
-        update.docChanged ||
-        update.startState.facet(labelDpi) !== update.state.facet(labelDpi)
-      ) {
-        this.decorations = buildHints(update.view)
-      }
-    }
-  },
-  { decorations: (plugin) => plugin.decorations },
-)
 
 /** The parts of the language that depend on the panel's settings. */
 export function zplHelp({
@@ -209,8 +66,50 @@ export function zplHelp({
   dpi: number
   explain: boolean
 }): Extension {
-  return [labelDpi.of(dpi), explain ? explainHints : []]
+  return [labelDpi.of(dpi), explainLines.of(explain)]
 }
+
+// The explanations read each command through the label parser, which is far
+// larger than the rest of the editor. It loads the first time a ZPL file
+// shows, so files of every other type never pay for it.
+let explanations: Promise<Extension> | undefined
+
+/** Starts fetching the command explanations, once. */
+export function loadZplExplanations() {
+  return (explanations ??= import('./zpl-help').then(
+    (mod) => mod.zplExplain,
+    (error: unknown) => {
+      // Offline, say: the next ZPL file to show tries again.
+      explanations = undefined
+      throw error
+    },
+  ))
+}
+
+const explainSlot = new Compartment()
+
+/** Puts the explanations in the editor once they have loaded. */
+const explainLoader = ViewPlugin.fromClass(
+  class {
+    destroyed = false
+
+    constructor(view: EditorView) {
+      void loadZplExplanations().then(
+        (explain) => {
+          // Gone with a file switch, or already in a state that was kept.
+          if (this.destroyed || explainSlot.get(view.state) === explain) return
+          view.dispatch({ effects: explainSlot.reconfigure(explain) })
+        },
+        // The file still edits, without its explanations.
+        () => undefined,
+      )
+    }
+
+    destroy() {
+      this.destroyed = true
+    }
+  },
+)
 
 const MONO_FONT = 'var(--font-mono)'
 const SANS_FONT = "'Geist Variable', ui-sans-serif, system-ui, sans-serif"
@@ -298,7 +197,8 @@ export function zpl(): Extension {
   return [
     zplStreamLanguage,
     syntaxHighlighting(zplHighlightStyle),
-    commandTooltip,
     editorTheme,
+    explainSlot.of([]),
+    explainLoader,
   ]
 }

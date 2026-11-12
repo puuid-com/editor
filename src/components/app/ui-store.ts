@@ -53,7 +53,7 @@ export interface VarsPreview {
 }
 
 /** A backup read from disk, with its date formatted for the reader's locale. */
-export interface RestorePreview {
+interface RestorePreview {
   backup: Backup
   date: string
 }
@@ -75,7 +75,7 @@ export interface PasteChoice {
 export type ProfileDialog =
   { mode: 'create' } | { mode: 'clone' | 'edit'; profileId: string }
 
-export interface QuickHighlight {
+interface QuickHighlight {
   tag: string
   /** Viewport coordinates to anchor the picker at. */
   x: number
@@ -101,13 +101,28 @@ export const uiStore = new Store<UiState>({
   compareIgnoreFormatting: false,
 })
 
-export function setPaletteOpen(paletteOpen: boolean) {
-  uiStore.setState((s) => ({ ...s, paletteOpen }))
+/** A function that sets one field of the store. */
+function setter<TKey extends keyof UiState>(key: TKey) {
+  return (value: UiState[TKey]) =>
+    uiStore.setState((s) => ({ ...s, [key]: value }))
 }
 
-export function askRename(renameId: string | null) {
-  uiStore.setState((s) => ({ ...s, renameId }))
-}
+export const setPaletteOpen = setter('paletteOpen')
+export const askRename = setter('renameId')
+export const setTabListOpen = setter('tabListOpen')
+export const setArchiveOpen = setter('archiveOpen')
+export const setShareOpen = setter('shareOpen')
+export const setQuickHighlight = setter('quickHighlight')
+export const setDefaultsPreview = setter('defaultsPreview')
+export const setVarsPreview = setter('varsPreview')
+export const setProfileDialog = setter('profileDialog')
+export const setPasteChoice = setter('pasteChoice')
+export const askDeleteProfile = setter('deleteProfileId')
+export const setRestorePreview = setter('restorePreview')
+export const askVariableValue = setter('variableName')
+/** Compares the active file with `compareId`, or closes the comparison. */
+export const setCompareId = setter('compareId')
+export const setCompareIgnoreFormatting = setter('compareIgnoreFormatting')
 
 /** Closes one tab, or several. Nothing is lost, so nothing is asked. */
 export function closeTab(ids: string | Array<string>) {
@@ -124,40 +139,6 @@ export function askDelete(ids: string | Array<string> | null) {
   uiStore.setState((s) => ({ ...s, deleteIds }))
 }
 
-export function setTabListOpen(tabListOpen: boolean) {
-  uiStore.setState((s) => ({ ...s, tabListOpen }))
-}
-
-export function setArchiveOpen(archiveOpen: boolean) {
-  uiStore.setState((s) => ({ ...s, archiveOpen }))
-}
-
-export function setShareOpen(shareOpen: boolean) {
-  uiStore.setState((s) => ({ ...s, shareOpen }))
-}
-
-export function setQuickHighlight(quickHighlight: QuickHighlight | null) {
-  uiStore.setState((s) => ({ ...s, quickHighlight }))
-}
-
-export function setDefaultsPreview(
-  defaultsPreview: Array<DefaultSummary> | null,
-) {
-  uiStore.setState((s) => ({ ...s, defaultsPreview }))
-}
-
-export function setVarsPreview(varsPreview: VarsPreview | null) {
-  uiStore.setState((s) => ({ ...s, varsPreview }))
-}
-
-export function setProfileDialog(profileDialog: ProfileDialog | null) {
-  uiStore.setState((s) => ({ ...s, profileDialog }))
-}
-
-export function setPasteChoice(pasteChoice: PasteChoice | null) {
-  uiStore.setState((s) => ({ ...s, pasteChoice }))
-}
-
 /** Changes what the paste bar has picked. */
 export function updatePasteChoice(
   changes: Partial<Pick<PasteChoice, 'language' | 'profileId'>>,
@@ -165,25 +146,4 @@ export function updatePasteChoice(
   uiStore.setState((s) =>
     s.pasteChoice ? { ...s, pasteChoice: { ...s.pasteChoice, ...changes } } : s,
   )
-}
-
-export function askDeleteProfile(deleteProfileId: string | null) {
-  uiStore.setState((s) => ({ ...s, deleteProfileId }))
-}
-
-export function setRestorePreview(restorePreview: RestorePreview | null) {
-  uiStore.setState((s) => ({ ...s, restorePreview }))
-}
-
-export function askVariableValue(variableName: string | null) {
-  uiStore.setState((s) => ({ ...s, variableName }))
-}
-
-/** Compares the active file with `compareId`, or closes the comparison. */
-export function setCompareId(compareId: string | null) {
-  uiStore.setState((s) => ({ ...s, compareId }))
-}
-
-export function setCompareIgnoreFormatting(compareIgnoreFormatting: boolean) {
-  uiStore.setState((s) => ({ ...s, compareIgnoreFormatting }))
 }

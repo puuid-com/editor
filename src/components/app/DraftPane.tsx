@@ -34,7 +34,7 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
-import { LANGUAGE_EXTENSIONS } from '#/lib/document'
+import { LANGUAGE_EXTENSIONS } from '#/lib/languages'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { createFile, saveContent } from '#/lib/store/files'
 import { activeProfileId } from '#/lib/store/profiles'

@@ -46,10 +46,11 @@ export function StatusBar({
   const typed = !!activeId && !empty
   // SQL, ZPL, Markdown and text have no highlights, defaults or variables;
   // SQL and Markdown's fenced code can still be formatted.
-  const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
-  const zpl = useSelector(editorStore, (s) => s.doc.language === 'zpl')
-  const markdown = useSelector(editorStore, (s) => s.doc.language === 'md')
-  const sql = useSelector(editorStore, (s) => s.doc.language === 'sql')
+  const language = useSelector(editorStore, (s) => s.doc.language)
+  const plain = isPlain(language)
+  const zpl = language === 'zpl'
+  const markdown = language === 'md'
+  const sql = language === 'sql'
 
   return (
     <footer className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground [scrollbar-width:none] md:h-9">

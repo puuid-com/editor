@@ -15,7 +15,15 @@ import { dpiFor } from '#/lib/zpl/settings'
 import { LabelPreview } from './label-preview'
 import { compareStore, zplStore, selectFile, zplCandidates } from './store'
 import { useLabelRender } from './use-label-render'
-import { zplHelp } from './zpl-language'
+import {
+  explainLines,
+  labelDpi,
+  loadZplExplanations,
+  zplHelp,
+} from './zpl-language'
+
+// Fetched with the pane, so they're there by the time its editor shows.
+void loadZplExplanations().catch(() => undefined)
 
 export function ZplPane({
   fileId,
@@ -26,22 +34,30 @@ export function ZplPane({
 }) {
   const { render, isRendering, error, retry } = useLabelRender(fileId)
   const file = useSelector(zplStore, (s) => selectFile(s, fileId))
-  const files = useSelector(zplStore, (s) => s.files)
   const explain = useSelector(zplStore, (s) => s.explain)
   const active = useSelector(sessionStore, (s) => s.activeId === fileId)
   const target = useSelector(compareStore, (s) => s[fileId])
   // A target that was closed or stopped being ZPL compares with nothing.
-  const compareTarget =
-    zplCandidates({ files }, fileId).find((f) => f.id === target)?.id ?? null
+  // Read as an id, so edits to other files don't render this pane again.
+  const compareTarget = useSelector(
+    zplStore,
+    (s) => zplCandidates(s, fileId).find((f) => f.id === target)?.id ?? null,
+  )
   const dpi = dpiFor(file?.settings.dpmm ?? 8)
 
   // The focused editor gets diagnostics; every visible preview renders independently.
   useEffect(() => {
     const view = getFileView(fileId)
     if (view?.state.field(fileIdField, false) !== fileId) return
-    view.dispatch({
-      effects: zplHelpCompartment.reconfigure(zplHelp({ dpi, explain })),
-    })
+    // Only when they change: a reconfigure rebuilds the editor's whole setup,
+    // and this runs on every edit.
+    if (
+      view.state.facet(labelDpi) !== dpi ||
+      view.state.facet(explainLines) !== explain
+    )
+      view.dispatch({
+        effects: zplHelpCompartment.reconfigure(zplHelp({ dpi, explain })),
+      })
     const warnings =
       render?.source === view.state.doc.toString() ? render.warnings : []
     view.dispatch(

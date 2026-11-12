@@ -97,24 +97,34 @@ export function uniqueName(base: string) {
   }
 }
 
-export function createFile(
-  name: string,
-  content = '',
-  profileId = DEFAULT_PROFILE_ID,
+/** Adds a file with a tab of its own, after the others. */
+function openFile(
+  fields: Pick<XmlFile, 'name' | 'content' | 'profileId' | 'location'>,
 ): XmlFile {
   const file: XmlFile = {
     id: newId(),
-    name: uniqueName(name),
     folderId: null,
-    content,
     order: nextOrder(),
     writer: writerId,
     deletedAt: null,
     closed: false,
-    profileId,
+    ...fields,
   }
   filesCollection.insert(file)
   return file
+}
+
+export function createFile(
+  name: string,
+  content = '',
+  profileId = DEFAULT_PROFILE_ID,
+) {
+  return openFile({ name: uniqueName(name), content, profileId })
+}
+
+/** The last name of a path whose names `/` separates. */
+function baseName(path: string) {
+  return path.slice(path.lastIndexOf('/') + 1)
 }
 
 /** Opens a file of a folder on disk in a tab, under its name there. */
@@ -122,21 +132,13 @@ export function createDiskFile(
   location: FileLocation,
   content: string,
   profileId: string,
-): XmlFile {
-  const file: XmlFile = {
-    id: newId(),
-    name: location.path.split('/').at(-1) ?? location.path,
-    folderId: null,
+) {
+  return openFile({
+    name: baseName(location.path),
     content,
-    order: nextOrder(),
-    writer: writerId,
-    deletedAt: null,
-    closed: false,
     profileId,
     location,
-  }
-  filesCollection.insert(file)
-  return file
+  })
 }
 
 /** The open tab of a file in a folder on disk, if there is one. */
@@ -168,7 +170,7 @@ export async function relocateFile(
       return
     }
     draft.location = location
-    draft.name = location.path.split('/').at(-1) ?? draft.name
+    draft.name = baseName(location.path)
   }).isPersisted.promise
 }
 

@@ -1,7 +1,8 @@
 import { readFileContent, contentBlob, isImageData } from '#/lib/image-file'
 import { downloadFile, formatActiveAsync } from './actions'
 import { editorStore, getText, getView } from './editor-store'
-import { notify } from '#/components/app/notice-store'
+import { errorDetail, notify } from '#/components/app/notice-store'
+import { isAbort } from '#/lib/file-io'
 import { writeFile } from '#/lib/disk-tree'
 import {
   canWriteDisk,
@@ -22,10 +23,6 @@ function textOf(id: string) {
   const file = filesCollection.get(id)
   if (!file) return
   return editorStore.state.fileId === id && getView() ? getText() : file.content
-}
-
-function isAbort(error: unknown) {
-  return error instanceof DOMException && error.name === 'AbortError'
 }
 
 /** Asks for write access if needed. Needs a click or key press to prompt. */
@@ -97,7 +94,7 @@ export async function saveToDisk(id: string, force = false, quiet = false) {
     await write(id, handle, quiet)
   } catch (error) {
     notify.error(m.disk_save_failed({ name: handle.name }), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
       action: { label: m.file_save_disk(), run: () => void saveAs(id) },
     })
   }
@@ -123,7 +120,7 @@ export async function saveAs(id: string) {
   } catch (error) {
     if (!isAbort(error)) {
       notify.error(m.disk_save_failed({ name: file.name }), {
-        detail: error instanceof Error ? error.message : undefined,
+        detail: errorDetail(error),
       })
     }
     return
@@ -135,7 +132,7 @@ export async function saveAs(id: string) {
     if (saved && handle.name !== file.name) renameFile(id, handle.name)
   } catch (error) {
     notify.error(m.disk_save_failed({ name: handle.name }), {
-      detail: error instanceof Error ? error.message : undefined,
+      detail: errorDetail(error),
     })
   }
 }

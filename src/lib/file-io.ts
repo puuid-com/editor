@@ -1,5 +1,10 @@
-// Browser file transfers that don't go through the File System Access API:
-// downloads, and the file picker of an `<input type="file">`.
+// Browser file transfers: downloads, the file picker of an
+// `<input type="file">`, and what the File System Access pickers share.
+
+/** Whether a file picker was closed without a choice, which is no failure. */
+export function isAbort(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError'
+}
 
 /** Saves `blob` as `name` and returns the filename for download notices. */
 export function downloadBlob(blob: Blob, name: string) {
