@@ -8,13 +8,13 @@ import {
 import { errorDetail, notify } from './notice-store'
 import { setDiskLink } from '#/lib/store/disk'
 import { LANGUAGE_EXTENSIONS } from '#/lib/languages'
-import { closeDiskFile } from './disk-workspace'
+import { flushBeforeClose, forgetDiskLinks } from './disk-workspace'
 import { dropEditorState } from '#/components/editor/editor-session'
 import {
-  archiveFile,
+  archiveFiles,
+  closeFiles,
   createFile,
   filesCollection,
-  hideFile,
   isOpen,
   openFileIds,
   reopenFile,
@@ -94,14 +94,15 @@ export function survivor(
 }
 
 /**
- * Takes `ids` off the tabs, and if the active one goes, moves to the nearest
- * one left. `remove` does that to each file. On failure the active tab comes
- * back, if it is still open.
+ * Takes `ids` off the tabs in one go. If the active one goes, the nearest tab
+ * left takes over; if none is left, it stays until they're all gone, so the
+ * strip doesn't step through each tab on the way. On failure the active tab
+ * comes back, if it is still open.
  */
 async function leaveTabs(
   ids: ReadonlyArray<string>,
   openIds: ReadonlyArray<string>,
-  remove: (id: string) => Promise<void>,
+  remove: (ids: ReadonlyArray<string>) => Promise<void>,
 ) {
   const activeId = sessionStore.state.activeId
   const closing = new Set(ids)
@@ -110,23 +111,19 @@ async function leaveTabs(
     const pane = sessionStore.state.panes?.find((p) =>
       p.fileIds.includes(activeId),
     )
-    setActive(
+    const next =
       (pane && survivor(pane.fileIds, closing, activeId)) ??
-        survivor(openIds, closing, activeId) ??
-        null,
-    )
+      survivor(openIds, closing, activeId)
+    if (next) setActive(next)
   }
   try {
-    // One at a time, so the archive keeps them in the order they were open.
-    for (const id of ids) {
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      await remove(id)
-      dropEditorState(id)
-    }
+    await remove(ids)
   } catch (error) {
     if (wasActive && isOpen(filesCollection.get(activeId))) setActive(activeId)
     throw error
   }
+  if (wasActive && sessionStore.state.activeId === activeId) setActive(null)
+  for (const id of ids) dropEditorState(id)
 }
 
 /**
@@ -137,10 +134,14 @@ export function closeTabs(
   ids: ReadonlyArray<string>,
   openIds: ReadonlyArray<string>,
 ) {
-  return leaveTabs(ids, openIds, async (id) => {
-    const saved =
-      !!filesCollection.get(id)?.location && (await closeDiskFile(id))
-    if (!saved) await hideFile(id)
+  return leaveTabs(ids, openIds, async (closing) => {
+    const onDisk = closing.filter((id) => !!filesCollection.get(id)?.location)
+    const saved = new Set(await flushBeforeClose(onDisk))
+    await closeFiles(
+      closing.filter((id) => !saved.has(id)),
+      [...saved],
+    )
+    await forgetDiskLinks([...saved])
   })
 }
 
@@ -149,7 +150,7 @@ export function deleteFiles(
   ids: ReadonlyArray<string>,
   openIds: ReadonlyArray<string>,
 ) {
-  return leaveTabs(ids, openIds, archiveFile)
+  return leaveTabs(ids, openIds, archiveFiles)
 }
 
 /** Archives a folder tree's files before removing its folders, children first. */

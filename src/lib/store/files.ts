@@ -175,22 +175,37 @@ export async function relocateFile(
 }
 
 /**
- * Drops a tab without archiving it, for a file whose text is safe on disk.
+ * Closes tabs in one write, so a batch leaves the strip at once rather than
+ * tab by tab. `drop` are files whose text is safe on disk: they go. The rest
+ * stay in the explorer, in the browser only.
  */
-export async function forgetFile(id: string) {
+export async function closeFiles(
+  hide: ReadonlyArray<string>,
+  drop: ReadonlyArray<string> = [],
+) {
+  // Like archiveFile: a pending content save would reopen the tabs.
   await drainContentSaves()
-  if (!filesCollection.has(id)) return
-  await filesCollection.delete(id).isPersisted.promise
-}
-
-/** Closes a browser file's tab, keeping the file in the explorer. */
-export async function hideFile(id: string) {
-  // Like archiveFile: a pending content save would reopen the tab.
-  await drainContentSaves()
-  if (!isOpen(filesCollection.get(id))) return
-  await filesCollection.update(id, (draft) => {
-    draft.closed = true
-  }).isPersisted.promise
+  const hideIds = [...new Set(hide)].filter((id) =>
+    isOpen(filesCollection.get(id)),
+  )
+  const dropIds = [...new Set(drop)].filter((id) => filesCollection.has(id))
+  if (!hideIds.length && !dropIds.length) return
+  const transaction = createTransaction({
+    mutationFn: async ({ transaction: tx }) => {
+      await filesCollection.utils.acceptMutations(tx)
+    },
+  })
+  transaction.mutate(() => {
+    if (hideIds.length)
+      filesCollection.update(hideIds, (drafts) => {
+        for (const draft of drafts) {
+          draft.closed = true
+          delete draft.location
+        }
+      })
+    if (dropIds.length) filesCollection.delete(dropIds)
+  })
+  await transaction.isPersisted.promise
 }
 
 /** Gives a closed browser file its tab back, at the end. */
@@ -205,26 +220,45 @@ export async function reopenFile(id: string) {
 }
 
 /** Archive and evict in one storage write, so failure rolls back both changes. */
-export async function archiveFile(id: string) {
+export function archiveFile(id: string) {
+  return archiveFiles([id])
+}
+
+/**
+ * Archives files in one write, the last of `ids` as the newest, and evicts
+ * what falls past the archive's limit.
+ */
+export async function archiveFiles(ids: ReadonlyArray<string>) {
   // A paced save carries a full record snapshot. Let it settle first so it
-  // cannot overwrite deletedAt and reopen this file after the archive write.
+  // cannot overwrite deletedAt and reopen these files after the archive write.
   await drainContentSaves()
-  const file = filesCollection.get(id)
-  if (!file || file.deletedAt !== null) return
+  const live = [...new Set(ids)].filter(
+    (id) => filesCollection.get(id)?.deletedAt === null,
+  )
+  if (!live.length) return
   const archived = archivedFiles()
-  // Keep deletion order stable even for multiple closes in the same millisecond.
-  const deletedAt = Math.max(Date.now(), (archived[0]?.deletedAt ?? 0) + 1)
+  // Keep deletion order stable even for several closes in the same millisecond.
+  const first = Math.max(Date.now(), (archived[0]?.deletedAt ?? 0) + 1)
+  const newest = [...live].reverse()
+  const expired = new Set([
+    ...newest.slice(ARCHIVE_LIMIT),
+    ...archived
+      .slice(Math.max(ARCHIVE_LIMIT - live.length, 0))
+      .map((entry) => entry.id),
+  ])
+  const kept = live.filter((id) => !expired.has(id))
+  const stamp = new Map(live.map((id, index) => [id, first + index]))
   const archiveTransaction = createTransaction({
     mutationFn: async ({ transaction }) => {
       await filesCollection.utils.acceptMutations(transaction)
     },
   })
   archiveTransaction.mutate(() => {
-    filesCollection.update(id, (draft) => {
-      draft.deletedAt = deletedAt
-    })
-    const expired = archived.slice(ARCHIVE_LIMIT - 1).map((entry) => entry.id)
-    if (expired.length) filesCollection.delete(expired)
+    if (kept.length)
+      filesCollection.update(kept, (drafts) => {
+        for (const draft of drafts) draft.deletedAt = stamp.get(draft.id)!
+      })
+    if (expired.size) filesCollection.delete([...expired])
   })
   await archiveTransaction.isPersisted.promise
 }

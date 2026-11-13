@@ -9,7 +9,6 @@ import {
 } from 'vitest'
 
 import {
-  closeDiskFile,
   deleteDiskEntry,
   openDiskFile,
   renameDiskEntry,
@@ -119,7 +118,7 @@ describe('folders opened from disk', () => {
     const { root, entry, read } = await openFolder({ 'a.xml': '<a/>' })
     const id = (await openDiskFile(root, await entry('a.xml')))!
     saveContent({ id, content: '<a>last</a>' })
-    expect(await closeDiskFile(id)).toBe(true)
+    await closeTabs([id], [id])
     expect(read('a.xml')).toBe('<a>last</a>')
     expect(filesCollection.has(id)).toBe(false)
   })

@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { fileProfileIds } from './file-profiles'
 import {
   createFile,
-  forgetFile,
+  closeFiles,
   saveContent,
   setFileProfile,
   settleContentSave,
@@ -25,7 +25,7 @@ describe('the profile of each file', () => {
     await setFileProfile(file.id, DEFAULT_PROFILE_ID)
     expect(profiles.state.get(file.id)).toBe(DEFAULT_PROFILE_ID)
 
-    await forgetFile(file.id)
+    await closeFiles([], [file.id])
     expect(profiles.state.has(file.id)).toBe(false)
   })
 

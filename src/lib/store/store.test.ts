@@ -7,6 +7,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   archiveFile,
+  archiveFiles,
   archivedFiles,
   ARCHIVE_LIMIT,
   createFile,
@@ -120,6 +121,21 @@ describe('files', () => {
     } finally {
       now.mockRestore()
     }
+  })
+
+  it('archives a batch in one write, the last as the newest, within the limit', async () => {
+    const old = createFile('old.xml')
+    await archiveFile(old.id)
+    const ids = Array.from(
+      { length: 12 },
+      (_, i) => createFile(`batch-${i}.xml`).id,
+    )
+    await archiveFiles(ids)
+    expect(openOrder()).toEqual([])
+    expect(archivedFiles().map((file) => file.name)).toEqual(
+      Array.from({ length: 10 }, (_, i) => `batch-${11 - i}.xml`),
+    )
+    expect(filesCollection.has(old.id)).toBe(false)
   })
 
   it('restores at the end, preserves contents, and resolves open-name collisions', async () => {

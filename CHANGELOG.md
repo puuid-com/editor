@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.63.1] - 2026-11-13
+
+### Fixed
+
+- Closing several tabs at once (close all, close others, close to the right) now closes them together, instead of switching to each tab and closing them one by one.
+
 ## [1.63.0] - 2026-11-13
 
 ### Changed

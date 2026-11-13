@@ -31,8 +31,8 @@ import {
   openFileIds,
   createDiskFile,
   fileAt,
+  closeFiles,
   filesCollection,
-  forgetFile,
   relocateFile,
   settleContentSave,
 } from '#/lib/store/files'
@@ -240,31 +240,27 @@ export async function closeFolder(root: DiskRoot) {
 }
 
 async function dropTabs(ids: ReadonlyArray<string>) {
+  await closeFiles([], ids)
+  await forgetDiskLinks(ids)
+}
+
+/** Stops saving files whose tabs are gone, and forgets their links to disk. */
+export async function forgetDiskLinks(ids: ReadonlyArray<string>) {
   for (const id of ids) {
     savers.get(id)?.cancel()
     savers.delete(id)
-    // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    await forgetFile(id)
-    // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    await deleteDiskLink(id)
   }
+  await Promise.all(ids.map(deleteDiskLink))
 }
 
 /**
- * Closes the tab of a file on disk once its edits are written. Returns false
- * when they couldn't be: the file then stays in the browser only, kept in
- * its explorer like any other.
+ * Writes the pending edits of files on disk before their tabs close, and
+ * returns those whose text is now safe there. The others couldn't be
+ * written: their tabs stay in the browser only, kept in its explorer.
  */
-export async function closeDiskFile(id: string) {
-  await flushDiskSave(id)
-  const file = filesCollection.get(id)
-  if (!file) return true
-  if (!isUnsaved(file)) {
-    await dropTabs([id])
-    return true
-  }
-  await relocateFile(id, undefined)
-  return false
+export async function flushBeforeClose(ids: ReadonlyArray<string>) {
+  await Promise.all(ids.map(flushDiskSave))
+  return ids.filter((id) => !isUnsaved(filesCollection.get(id)))
 }
 
 // Writing edits to disk as they're made.

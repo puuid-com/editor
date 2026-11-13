@@ -87,4 +87,31 @@ describe('closing a browser tab', () => {
     expect(openFileIds().at(-1)).toBe(a.id)
     expect(sessionStore.state.activeId).toBe(a.id)
   })
+
+  it('closes every tab in one step, without showing each on the way', async () => {
+    for (const id of openFileIds()) setActive(id)
+    await closeTabs(openFileIds(), openFileIds())
+    const ids = ['all-a.xml', 'all-b.xml', 'all-c.xml'].map(
+      (name) => createFile(name, '<a/>').id,
+    )
+    setActive(ids[0])
+    const seen: Array<string | null> = []
+    const counts: Array<number> = []
+    const stopActive = sessionStore.subscribe(() =>
+      seen.push(sessionStore.state.activeId),
+    )
+    const stopFiles = filesCollection.subscribeChanges(() =>
+      counts.push(openFileIds().length),
+    )
+    try {
+      await closeTabs(ids, openFileIds())
+    } finally {
+      stopActive.unsubscribe()
+      stopFiles.unsubscribe()
+    }
+    expect(openFileIds()).toEqual([])
+    // The write and its confirmation; never a strip with some tabs left.
+    expect(new Set(counts)).toEqual(new Set([0]))
+    expect(seen).toEqual([null])
+  })
 })

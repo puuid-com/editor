@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { deleteDiskLink, setDiskLink } from './disk'
-import { createFile, forgetFile, saveContent, settleContentSave } from './files'
+import { createFile, closeFiles, saveContent, settleContentSave } from './files'
 import { unsavedStore } from './unsaved'
 import { workspaceReady } from './workspace'
 
@@ -47,7 +47,7 @@ describe('tabs with edits not on disk', () => {
     expect(unsaved.state.has(file.id)).toBe(true)
 
     await settleContentSave()
-    await forgetFile(file.id)
+    await closeFiles([], [file.id])
     expect(unsaved.state.has(file.id)).toBe(false)
   })
 
