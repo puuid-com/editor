@@ -13,16 +13,10 @@ import type { TabFile } from './files'
 export function TabClose({ file, active }: { file: TabFile; active: boolean }) {
   const unsaved = useUnsaved(file.id)
   return (
-    <button
-      type="button"
-      aria-label={m.tab_close({ name: file.name })}
+    <TabCloseButton
+      label={m.tab_close({ name: file.name })}
       onClick={() => closeTab(file.id)}
-      className={cn(
-        'group/close relative grid size-5 shrink-0 place-items-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-1.5 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-md:after:-inset-3',
-        !active &&
-          !unsaved &&
-          'max-md:hidden md:opacity-0 md:group-hover/tab:opacity-100 md:focus-visible:opacity-100',
-      )}
+      hidden={!active && !unsaved}
     >
       {unsaved ? (
         <>
@@ -32,6 +26,35 @@ export function TabClose({ file, active }: { file: TabFile; active: boolean }) {
       ) : (
         <IconX className="size-3" />
       )}
+    </TabCloseButton>
+  )
+}
+
+/** The close button's look, shared by file tabs and the settings tab. */
+export function TabCloseButton({
+  label,
+  onClick,
+  hidden,
+  children = <IconX className="size-3" />,
+}: {
+  label: string
+  onClick: () => void
+  /** Shown only on hover, as on a tab that isn't picked. */
+  hidden: boolean
+  children?: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className={cn(
+        'group/close relative grid size-5 shrink-0 place-items-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-1.5 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-md:after:-inset-3',
+        hidden &&
+          'max-md:hidden md:opacity-0 md:group-hover/tab:opacity-100 md:focus-visible:opacity-100',
+      )}
+    >
+      {children}
     </button>
   )
 }

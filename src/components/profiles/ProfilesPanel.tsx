@@ -13,7 +13,7 @@ import { profileShortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
-/** Profiles tab of the settings popover: switch the file's profile, or manage it. */
+/** Profiles section of the settings tab: switch the file's profile, or manage it. */
 export function ProfilesPanel() {
   const profiles = useProfiles()
   const active = useActiveProfile()
@@ -24,7 +24,7 @@ export function ProfilesPanel() {
       <RadioGroup
         value={active.id}
         onValueChange={(id) => void switchProfile(id)}
-        className="max-h-72 gap-0 overflow-y-auto py-1"
+        className="gap-0 py-1"
       >
         {profiles.map((profile, index) => (
           <Label

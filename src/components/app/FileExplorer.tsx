@@ -40,6 +40,7 @@ import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
 import { askDelete, closeTab, setPaletteOpen } from './ui-store'
 import { ArchiveButton } from './ArchiveDialog'
+import { SettingsButton } from './SettingsPage'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
@@ -748,6 +749,7 @@ export function FileExplorer({
         </SidebarContent>
         <SidebarFooter className="flex-row items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
           <ArchiveButton />
+          <SettingsButton />
           <Link
             to="/changelog"
             aria-label={m.app_version_label({ version: appVersion })}

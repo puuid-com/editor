@@ -238,6 +238,8 @@
   "sidebar_move_right": "Move sidebar to the right",
   "word_wrap_toggle": "Toggle word wrap",
   "editor_settings": "Settings",
+  "settings_open": "Open settings",
+  "settings_close": "Close settings",
   "settings_general": "General",
   "settings_dark_theme": "Dark theme",
   "settings_word_wrap": "Word wrap",

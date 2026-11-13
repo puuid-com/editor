@@ -1,6 +1,6 @@
 import { ImagePreview } from '#/components/image/ImagePreview'
 import { imageMime, isImageData } from '#/lib/image-file'
-import { Fragment, Suspense, lazy, useEffect, useMemo } from 'react'
+import { Fragment, Suspense, lazy, useEffect, useMemo, useRef } from 'react'
 import { useSelector } from '@tanstack/react-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
 import { editorPrefs } from '#/components/editor/word-wrap'
@@ -13,9 +13,12 @@ import { useFileContent } from '#/hooks/use-files'
 import type { WorkspaceFile } from '#/hooks/use-files'
 import { languageOf } from '#/lib/document'
 import { sessionStore, setActive } from '#/lib/store/session'
+import { SettingsPage } from './SettingsPage'
+import { setSettingsActive, settingsPane, settingsTab } from './settings-tab'
 import { SidePanel } from './SidePanel'
 import { normalizePanes, savePanes } from './panes'
 import { AppHeader } from './AppHeader'
+import { cn } from '#/lib/utils'
 import { PasteBar } from './PasteBar'
 import type { FilePaneGroup } from '#/lib/store/pane-layout'
 
@@ -72,6 +75,13 @@ export function MixedWorkspace({
   const rendered = wide
     ? panes
     : panes.filter((p) => p.fileIds.includes(fileId))
+  const settings = useSelector(settingsTab, (s) => s)
+  // Phones show one pane, so the settings tab goes with it.
+  const settingsId = !settings.open
+    ? null
+    : wide
+      ? settingsPane(settings.paneId, panes, fileId)?.id
+      : rendered.at(0)?.id
   return (
     <ResizablePanelGroup orientation="horizontal">
       {rendered.map((pane, index) => (
@@ -84,6 +94,8 @@ export function MixedWorkspace({
               active={pane.activeId === fileId}
               compareId={pane.activeId === fileId ? compareId : null}
               wide={wide}
+              settings={settingsId === pane.id}
+              settingsActive={settingsId === pane.id && settings.active}
               count={panes.length}
               first={index === 0}
               last={index === rendered.length - 1}
@@ -101,6 +113,8 @@ function FilePane({
   active,
   compareId,
   wide,
+  settings,
+  settingsActive,
   count,
   first,
   last,
@@ -110,6 +124,10 @@ function FilePane({
   active: boolean
   compareId: string | null
   wide: boolean
+  /** The settings tab sits in this pane. */
+  settings: boolean
+  /** The settings page shows in place of the pane's file. */
+  settingsActive: boolean
   count: number
   first: boolean
   last: boolean
@@ -130,6 +148,12 @@ function FilePane({
     language !== 'txt' &&
     !(markdown && live)
   const showPanel = active && panelOpen && hasPanel && !!file?.content
+  // Opening another file here, from the sidebar or a new tab, shows it.
+  const shownId = useRef(fileId)
+  useEffect(() => {
+    if (shownId.current !== fileId && settings) setSettingsActive(false)
+    shownId.current = fileId
+  }, [fileId, settings])
   return (
     <section
       aria-label={file?.name}
@@ -152,6 +176,8 @@ function FilePane({
         last={last}
         wide={wide}
         hasPanel={hasPanel}
+        settings={settings}
+        settingsActive={settingsActive}
         actions={
           language === 'zpl' && (
             <Suspense>
@@ -167,8 +193,14 @@ function FilePane({
           )
         }
       />
-      {!image && <PasteBar fileId={fileId} />}
-      <div className="min-h-0 flex-1">
+      {!image && !settingsActive && <PasteBar fileId={fileId} />}
+      {settingsActive && (
+        <div className="min-h-0 flex-1">
+          <SettingsPage />
+        </div>
+      )}
+      {/* The file stays mounted under the settings page, to keep its place. */}
+      <div className={cn('min-h-0 flex-1', settingsActive && 'hidden')}>
         {image ? (
           <ImagePreview
             key={file.content}

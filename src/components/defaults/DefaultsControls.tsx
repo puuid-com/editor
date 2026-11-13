@@ -19,7 +19,7 @@ import { defaultKeys } from '#/lib/xml/defaults'
 import { m } from '#/paraglide/messages'
 import type { DefaultValue } from '#/lib/store/defaults'
 
-/** Default value rules, shown in the bottom bar's settings popover. */
+/** Default value rules, shown in the settings tab. */
 export function DefaultsRules() {
   const rules = useDefaults()
 
@@ -30,7 +30,7 @@ export function DefaultsRules() {
       </p>
       <Separator />
       {rules.length > 0 ? (
-        <ul className="flex max-h-72 flex-col overflow-y-auto py-1">
+        <ul className="flex flex-col py-1">
           {rules.map((rule) => (
             <RuleRow key={rule.id} rule={rule} />
           ))}

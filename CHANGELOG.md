@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.60.0] - 2026-11-12
+
+### Changed
+
+- Settings now open as a tab beside your files, from the gear at the bottom of the sidebar or the command menu, instead of a popover at the bottom right. General, Format, Defaults, Variables and Profiles sit down the side of the page, with room for long lists. Click a file's tab to go back to it; the Settings tab stays open until you close it.
+
 ## [1.59.1] - 2026-11-12
 
 ### Fixed

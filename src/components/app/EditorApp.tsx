@@ -19,6 +19,8 @@ import {
 } from './files'
 import { RenameDialog } from './RenameDialog'
 import { RestoreDialog } from './RestoreDialog'
+import { SettingsSheet } from './SettingsPage'
+import { settingsPane, settingsTab } from './settings-tab'
 import { OpenSharedDialog } from './OpenSharedDialog'
 import { ShareLinkDialog } from './ShareDialog'
 import { StatusBar } from './StatusBar'
@@ -54,6 +56,7 @@ export function EditorApp() {
   const sidebarRight = useSelector(editorPrefs, (s) => s.sidebarRight)
   const storedActive = useSelector(sessionStore, (s) => s.activeId)
   const wide = useMediaQuery('(min-width: 768px)')
+  const settings = useSelector(settingsTab, (s) => s)
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -105,6 +108,18 @@ export function EditorApp() {
       files.map((f) => f.id),
     onOpenFromDisk: openFromDisk,
   })
+
+  // The bottom bar is about the focused file, so it empties while the
+  // settings page covers that file.
+  const settingsShown =
+    settings.open &&
+    (!activeId ||
+      (settings.active &&
+        (!wide ||
+          !panes?.length ||
+          !!settingsPane(settings.paneId, panes, activeId)?.fileIds.includes(
+            activeId,
+          ))))
 
   const hasFiles = (e: React.DragEvent) =>
     e.dataTransfer.types.includes('Files')
@@ -159,11 +174,14 @@ export function EditorApp() {
               compareId={compareId}
               wide={wide}
             />
+          ) : settings.open ? (
+            <SettingsSheet />
           ) : (
             <DraftPane />
           )}
         </div>
         <StatusBar
+          settings={settingsShown}
           leading={!activeId && <DraftControls onOpenFromDisk={openFromDisk} />}
         />
       </SidebarInset>

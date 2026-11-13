@@ -238,6 +238,8 @@
   "sidebar_move_right": "Déplacer la barre latérale à droite",
   "word_wrap_toggle": "Activer ou désactiver le retour à la ligne",
   "editor_settings": "Réglages",
+  "settings_open": "Ouvrir les réglages",
+  "settings_close": "Fermer les réglages",
   "settings_general": "Général",
   "settings_dark_theme": "Thème sombre",
   "settings_word_wrap": "Retour à la ligne",

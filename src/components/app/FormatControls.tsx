@@ -13,7 +13,7 @@ import type { SortOrder } from '#/lib/xml/format'
 const SHORTEN_AT = [80, 200, 500, 1000]
 
 /**
- * Format settings, shown in the bottom bar's settings popover. Plain files
+ * Format settings, shown in the settings tab. Plain files
  * (SQL, Markdown) only get format on save: the rest shape XML and JSON.
  */
 export function FormatOptions({ structured }: { structured: boolean }) {

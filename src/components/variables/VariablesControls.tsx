@@ -18,7 +18,7 @@ import { findVars } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
 import type { Variable } from '#/lib/store/variables'
 
-/** Variable values of the active profile, shown in the settings popover. */
+/** Variable values of the active profile, shown in the settings tab. */
 export function VariablesList() {
   const variables = useVariables()
 
@@ -29,7 +29,7 @@ export function VariablesList() {
       </p>
       <Separator />
       {variables.length > 0 ? (
-        <ul className="flex max-h-72 flex-col overflow-y-auto py-1">
+        <ul className="flex flex-col py-1">
           {variables.map((variable) => (
             <VariableRow key={variable.id} variable={variable} />
           ))}

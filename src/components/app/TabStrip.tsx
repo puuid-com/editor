@@ -1,14 +1,15 @@
-import { IconPlus } from '@tabler/icons-react'
+import { IconPlus, IconSettings } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { MAX_PANES, joinPanes, moveTab, openBeside } from './panes'
 import { newFile } from './files'
-import { TabClose } from './TabClose'
+import { TabClose, TabCloseButton } from './TabClose'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
 import { closeTab, askRename, uiStore } from './ui-store'
+import { closeSettings, setSettingsActive } from './settings-tab'
 import { UnsavedMark } from './UnsavedMark'
 import { focusFileView } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
@@ -47,6 +48,23 @@ function carriesTab(event: React.DragEvent) {
   return event.dataTransfer.types.includes(TAB_DRAG)
 }
 
+/** The settings tab's value among the file ids. */
+const SETTINGS = 'settings'
+
+/** A tab's pill: filled when picked, fainter in a pane without the focus. */
+function tabClass(active: boolean, focused: boolean, outline: boolean) {
+  return cn(
+    'group/tab relative flex h-9 max-w-56 min-w-0 shrink-0 items-center rounded-md pr-1.5 md:h-7',
+    // Keyboard focus outlines the whole tab, not the name.
+    outline &&
+      'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
+    !active ? 'hover:bg-muted/70' : focused ? 'bg-muted' : 'bg-muted/60',
+  )
+}
+
+const triggerClass =
+  'h-full! min-w-0 flex-1 justify-start gap-2 pr-1 pl-2.5 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none data-active:font-medium'
+
 /** Fades the strip's edges that hide more tabs. */
 function edgeMask(start: boolean, end: boolean) {
   if (!start && !end) return undefined
@@ -59,11 +77,17 @@ export function TabStrip({
   activeId,
   paneId,
   focused = true,
+  settings = false,
+  settingsActive = false,
 }: {
   files: Array<TabFile>
   activeId: string | null
   paneId: string
   focused?: boolean
+  /** The settings tab sits at the end of this strip. */
+  settings?: boolean
+  /** The settings tab is picked rather than `activeId`. */
+  settingsActive?: boolean
 }) {
   const profiles = useProfiles()
   const [overId, setOverId] = useState<string | null>(null)
@@ -74,13 +98,14 @@ export function TabStrip({
   const edges = useScrollEdges(stripRef)
   const listOpen = useSelector(uiStore, (s) => s.tabListOpen) && focused
   const overflowing = edges.start || edges.end
+  const picked = settingsActive ? SETTINGS : activeId
 
   // Bring the active tab into view, with a sliver of its neighbours.
   useEffect(() => {
     const strip = stripRef.current
-    if (!strip || !activeId) return
+    if (!strip || !picked) return
     const tab = [...strip.querySelectorAll<HTMLElement>('[data-tab-id]')].find(
-      (el) => el.dataset.tabId === activeId,
+      (el) => el.dataset.tabId === picked,
     )
     if (!tab) return
     const peek = 32
@@ -88,7 +113,7 @@ export function TabStrip({
     const right = tab.offsetLeft + tab.offsetWidth + peek - strip.clientWidth
     if (strip.scrollLeft > left) strip.scrollLeft = left
     else if (strip.scrollLeft < right) strip.scrollLeft = right
-  }, [activeId, files.length])
+  }, [picked, files.length, settings])
 
   return (
     <div
@@ -106,8 +131,12 @@ export function TabStrip({
       }}
     >
       <Tabs
-        value={activeId ?? ''}
-        onValueChange={setActive}
+        value={picked ?? ''}
+        onValueChange={(value) => {
+          if (value === SETTINGS) return setSettingsActive(true)
+          if (settings) setSettingsActive(false)
+          setActive(value)
+        }}
         className="min-w-0 flex-initial gap-0"
       >
         <TabsList
@@ -151,17 +180,9 @@ export function TabStrip({
                     onDragEnd={() => {
                       setOverId(null)
                     }}
-                    data-active={file.id === activeId || undefined}
+                    data-active={file.id === picked || undefined}
                     className={cn(
-                      'group/tab relative flex h-9 max-w-56 min-w-0 shrink-0 items-center rounded-md pr-1.5 md:h-7',
-                      // Keyboard focus outlines the whole tab, not the name.
-                      !pressed &&
-                        'has-[[role=tab]:focus-visible]:outline-2 has-[[role=tab]:focus-visible]:-outline-offset-2 has-[[role=tab]:focus-visible]:outline-ring',
-                      file.id !== activeId
-                        ? 'hover:bg-muted/70'
-                        : focused
-                          ? 'bg-muted'
-                          : 'bg-muted/60',
+                      tabClass(file.id === picked, focused, !pressed),
                       overId === file.id &&
                         'shadow-[inset_2px_0_0_var(--ring)]',
                     )}
@@ -175,7 +196,7 @@ export function TabStrip({
                       onAuxClick={(e) => {
                         if (e.button === 1) closeTab(file.id)
                       }}
-                      className="h-full! min-w-0 flex-1 justify-start gap-2 pr-1 pl-2.5 font-normal after:hidden focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none data-active:font-medium"
+                      className={triggerClass}
                     >
                       {profile && !file.empty && (
                         <span
@@ -191,13 +212,30 @@ export function TabStrip({
                       )}
                       <UnsavedMark fileId={file.id} srOnly />
                     </TabsTrigger>
-                    <TabClose file={file} active={file.id === activeId} />
+                    <TabClose file={file} active={file.id === picked} />
                   </div>
                 </ContextMenuTrigger>
                 <TabContextMenu files={files} index={index} paneId={paneId} />
               </ContextMenu>
             )
           })}
+          {settings && (
+            <div
+              data-tab-id={SETTINGS}
+              data-active={settingsActive || undefined}
+              className={tabClass(settingsActive, focused, !pressed)}
+            >
+              <TabsTrigger value={SETTINGS} className={triggerClass}>
+                <IconSettings className="size-3.5 text-muted-foreground" />
+                <span className="truncate">{m.editor_settings()}</span>
+              </TabsTrigger>
+              <TabCloseButton
+                label={m.settings_close()}
+                onClick={closeSettings}
+                hidden={!settingsActive}
+              />
+            </div>
+          )}
         </TabsList>
       </Tabs>
       <div className="flex shrink-0 items-center gap-0.5 pl-0.5">

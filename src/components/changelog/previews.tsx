@@ -4662,6 +4662,88 @@ function SettingsInOnePlace() {
 }
 
 /**
+ * Since 1.60.0 settings open as a tab beside the files, with the sections
+ * down the side, instead of a popover at the bottom right.
+ */
+function SettingsAsTab() {
+  const row = (label: string, on: boolean) => (
+    <div className="flex items-center justify-between px-2 py-1">
+      {label}
+      <span
+        className={cn(
+          'flex h-3 w-5 rounded-full p-0.5',
+          on ? 'justify-end bg-foreground' : 'bg-muted-foreground/30',
+        )}
+      >
+        <span className="size-2 rounded-full bg-background" />
+      </span>
+    </div>
+  )
+  const rows = (
+    <>
+      {row(m.settings_dark_theme(), false)}
+      {row(m.settings_word_wrap(), true)}
+      {row(m.settings_sidebar_right(), true)}
+    </>
+  )
+  return (
+    <BeforeAfter
+      className="h-44"
+      before={
+        <div className="flex h-full flex-col justify-end gap-1 p-1.5">
+          <div className="w-44 self-end rounded-lg border bg-popover text-[10px]">
+            <div className="flex gap-2 border-b px-2 py-1 text-muted-foreground">
+              <span className="text-foreground">{m.settings_general()}</span>
+              <span>{m.action_format()}</span>
+              <span>{m.profiles_title()}</span>
+            </div>
+            {rows}
+          </div>
+          <span className="flex items-center gap-1 self-end rounded-md px-1.5 py-0.5 text-[10px]">
+            <IconAdjustmentsHorizontal className="size-3" />
+            {m.editor_settings()}
+          </span>
+        </div>
+      }
+      after={
+        <div className="flex h-full flex-col">
+          <PillTabs>
+            <PillTab name="invoice.xml" />
+            <PillTab name={m.editor_settings()} active />
+            <NewTab />
+          </PillTabs>
+          <div className="flex gap-3 p-2 text-[10px]">
+            <div className="flex w-16 shrink-0 flex-col gap-0.5">
+              {[
+                m.settings_general(),
+                m.action_format(),
+                m.defaults_tab(),
+                m.variables_tab(),
+                m.profiles_title(),
+              ].map((label, i) => (
+                <span
+                  key={label}
+                  className={cn(
+                    'truncate rounded-md px-1.5 py-0.5',
+                    i === 0 ? 'bg-muted font-medium' : 'text-muted-foreground',
+                  )}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 font-semibold">{m.settings_general()}</div>
+              <div className="rounded-md border">{rows}</div>
+            </div>
+          </div>
+        </div>
+      }
+    />
+  )
+}
+
+/**
  * Since 1.58.0 the editor's text is bigger and fuller, Markdown wraps, and the
  * text size can be picked.
  */
@@ -4952,6 +5034,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.60.0': figure(SettingsAsTab),
   '1.59.0': figure(SettingsInOnePlace),
   '1.58.0': figure(BiggerEditorText),
   '1.57.0': figure(ReadableMarkdown),

@@ -1,6 +1,7 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
 import {
   IconSearch,
+  IconSettings,
   IconArchive,
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -51,6 +52,7 @@ import {
 } from './files'
 import { openFolder } from './disk-workspace'
 import { readLastCommand, saveLastCommand } from './last-command'
+import { openSettings } from './settings-tab'
 import {
   askDeleteProfile,
   askRename,
@@ -719,6 +721,10 @@ function Workspace({
       </CommandGroup>
       <CommandSeparator />
       <CommandGroup heading={m.palette_preferences()}>
+        <CommandItem onSelect={() => run(() => openSettings())}>
+          <IconSettings />
+          {m.settings_open()}
+        </CommandItem>
         <CommandItem onSelect={() => run(toggleTheme)}>
           <IconMoon />
           {m.theme_toggle()}

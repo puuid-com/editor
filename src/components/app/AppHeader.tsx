@@ -45,6 +45,8 @@ export function AppHeader({
   last,
   wide,
   hasPanel,
+  settings = false,
+  settingsActive = false,
   actions,
   menuItems,
 }: {
@@ -61,6 +63,10 @@ export function AppHeader({
   wide: boolean
   /** Whether the file type has a side panel to toggle. */
   hasPanel: boolean
+  /** The settings tab sits in this pane. */
+  settings?: boolean
+  /** The settings tab is picked, in place of `fileId`. */
+  settingsActive?: boolean
   /** The file type's own actions, before the split and ⋯ buttons. */
   actions?: React.ReactNode
   /** The file type's own entries at the end of the ⋯ menu. */
@@ -82,6 +88,8 @@ export function AppHeader({
         activeId={fileId}
         paneId={paneId}
         focused={active}
+        settings={settings}
+        settingsActive={settingsActive}
       />
       {actions}
       {first && <CommandMenuButton />}
