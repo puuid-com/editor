@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.59.1] - 2026-11-12
+
+### Fixed
+
+- Picking a font in Settings no longer closes the Settings popover.
+
 ## [1.59.0] - 2026-11-12
 
 ### Changed

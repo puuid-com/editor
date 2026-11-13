@@ -107,6 +107,19 @@ function Divider() {
 }
 
 /**
+ * A select's menu renders outside the popover, so moving focus into it (to
+ * pick a font) would close the popover; keep it open instead.
+ */
+function keepOpenForSelect(event: Event) {
+  const target = event.target
+  if (
+    target instanceof Element &&
+    target.closest('[data-slot="select-content"]')
+  )
+    event.preventDefault()
+}
+
+/**
  * Every setting: General applies to every file and profile, the rest to the
  * active profile. Plain files only get what applies to them: formatting on
  * save when they can be formatted, and profiles.
@@ -144,6 +157,7 @@ function SettingsPopover({
         side="top"
         align="end"
         className="w-96 max-w-[calc(100vw-1rem)] gap-0 p-0"
+        onInteractOutside={keepOpenForSelect}
       >
         {profile && tab !== 'general' && (
           <div className="flex items-center justify-between gap-4 border-b px-3 py-2 text-muted-foreground">
