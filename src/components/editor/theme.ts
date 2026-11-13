@@ -2,15 +2,20 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
 
+import { codeSize } from './code-font'
+
 // Colours come from CSS tokens, so one theme serves light and dark.
 const theme = EditorView.theme({
   '&': {
     height: '100%',
     // Keeps gutter and marker z-indexes from escaping above dialogs.
     isolation: 'isolate',
-    fontSize: '13px',
     color: 'var(--foreground)',
     backgroundColor: 'var(--background)',
+    // Fuller strokes than the page's thin `antialiased`, which made code
+    // hard to read on a Mac.
+    '-webkit-font-smoothing': 'auto',
+    '-moz-osx-font-smoothing': 'auto',
   },
   '.cm-scroller': {
     fontFamily: 'var(--font-mono)',
@@ -254,4 +259,9 @@ const highlightStyle = HighlightStyle.define([
   },
 ])
 
-export const editorTheme = [theme, syntaxHighlighting(highlightStyle)]
+/** The editor's look, at the text size chosen in the Font menu. */
+export const editorTheme = () => [
+  theme,
+  syntaxHighlighting(highlightStyle),
+  codeSize(),
+]

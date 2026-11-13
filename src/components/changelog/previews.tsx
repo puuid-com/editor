@@ -79,7 +79,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Kbd } from '#/components/ui/kbd'
 import { Switch } from '#/components/ui/switch'
-import { CODE_FONT_PROPERTY, codeFonts } from '#/lib/code-font'
+import { CODE_FONT_PROPERTY, codeFonts, codeSizes } from '#/lib/code-font'
 import { LANGUAGE_EXTENSIONS } from '#/lib/languages'
 import { HIGHLIGHT_PRESETS, highlightCss } from '#/lib/store/colors'
 import type { HighlightPreset } from '#/lib/store/colors'
@@ -4597,6 +4597,56 @@ function SidebarRight() {
 }
 
 /**
+ * Since 1.58.0 the editor's text is bigger and fuller, Markdown wraps, and the
+ * Font menu sets the text size.
+ */
+function BiggerEditorText() {
+  const note = (after: boolean) => (
+    <Code
+      wrap={after}
+      format={(line) => line}
+      className={cn(after && 'text-[12px] leading-[22px] subpixel-antialiased')}
+      lines={[
+        <span className="font-semibold">
+          <span className="text-(--syntax-meta)"># </span>Release notes
+        </span>,
+        'We shipped the new sidebar and fixed bugs.',
+        <span className="italic">
+          <span className="text-(--syntax-meta)">&gt; </span>Staging first.
+        </span>,
+      ]}
+    />
+  )
+  return (
+    <>
+      <BeforeAfter className="h-28" before={note(false)} after={note(true)} />
+      <Shot label={m.code_font()} className="flex items-center gap-6 p-3">
+        <div className="w-28 shrink-0 rounded-lg border bg-popover py-1 shadow-md">
+          <div className="px-2 py-1.5 font-medium text-muted-foreground">
+            {m.code_size()}
+          </div>
+          {codeSizes.map((size) => (
+            <MenuItem key={size} checked={size === 16}>
+              <span className="tabular-nums">{m.code_size_px({ size })}</span>
+            </MenuItem>
+          ))}
+        </div>
+        <p className="grid font-mono text-[16px] leading-relaxed subpixel-antialiased">
+          <span>
+            <span className="text-(--sql-keyword)">const</span> env{' '}
+            <span className="text-(--sql-operator)">=</span>{' '}
+            <span className="text-(--sql-string)">'staging'</span>
+          </span>
+          <span>
+            <span className="text-(--sql-function)">deploy</span>(env)
+          </span>
+        </p>
+      </Shot>
+    </>
+  )
+}
+
+/**
  * Since 1.57.0 a Markdown file's code and quotes keep the text's contrast, and
  * code colours, markup and line numbers are easier to read.
  */
@@ -4837,6 +4887,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.58.0': figure(BiggerEditorText),
   '1.57.0': figure(ReadableMarkdown),
   '1.56.0': figure(ToggleAtEdge),
   '1.55.0': figure(NoSidebarLogo),

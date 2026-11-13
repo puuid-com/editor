@@ -5,6 +5,7 @@ import {
   IconArrowBackUp,
   IconArrowForwardUp,
   IconCheck,
+  IconTextSize,
   IconTypography,
   IconClipboard,
   IconCopy,
@@ -103,14 +104,14 @@ import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { joinPanes } from './panes'
 import { toggleTheme } from '#/lib/theme'
-import { setCodeFont } from '#/components/editor/code-font'
+import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
 import {
   editorPrefs,
   toggleSidebarSide,
   toggleWordWrap,
 } from '#/components/editor/word-wrap'
 import { toggleMarkdownLive } from '#/components/markdown/md-live'
-import { codeFonts } from '#/lib/code-font'
+import { codeFonts, codeSizes } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 import { isPlain } from '#/lib/document'
 import type { DocLanguage } from '#/lib/document'
@@ -653,6 +654,7 @@ function Workspace({
   const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
   const canOpenFolders = useCanOpenFolders()
   const codeFont = useSelector(editorPrefs, (s) => s.codeFont)
+  const codeSize = useSelector(editorPrefs, (s) => s.codeSize)
   const markdownLive = useSelector(editorPrefs, (s) => s.markdownLive)
   const sidebarRight = useSelector(editorPrefs, (s) => s.sidebarRight)
   return (
@@ -745,6 +747,15 @@ function Workspace({
             <IconTypography />
             {m.code_font_option({ font: font.name })}
             {font.id === codeFont && (
+              <IconCheck className="size-3 text-muted-foreground" />
+            )}
+          </CommandItem>
+        ))}
+        {codeSizes.map((size) => (
+          <CommandItem key={size} onSelect={() => run(() => setCodeSize(size))}>
+            <IconTextSize />
+            {m.code_size_option({ size })}
+            {size === codeSize && (
               <IconCheck className="size-3 text-muted-foreground" />
             )}
           </CommandItem>

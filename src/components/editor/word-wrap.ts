@@ -1,6 +1,7 @@
 import { Compartment } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 
+import { DEFAULT_CODE_SIZE } from '#/lib/code-font'
 import { defaultCentered } from '#/lib/md-center'
 import { persistedStore } from '#/lib/store/persist'
 
@@ -9,8 +10,10 @@ export const editorPrefs = persistedStore(
   'editor-preferences',
   () => localStorage,
   {
+    /** Soft wrapping in every file but Markdown, which always wraps. */
     wordWrap: false,
     codeFont: 'geist-mono',
+    codeSize: DEFAULT_CODE_SIZE,
     /** Markdown renders in the editor, as Obsidian's live preview, with no preview panel. */
     markdownLive: false,
     /** Markdown blocks shown in the middle of the page instead of at the start. */

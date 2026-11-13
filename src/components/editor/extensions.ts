@@ -288,7 +288,7 @@ export function editorExtensions(
     placeholder(m.editor_placeholder()),
     zplBase64Input,
     pasteOverStarter,
-    editorTheme,
+    editorTheme(),
     wordWrap(),
     parentTags,
     varHighlighter,

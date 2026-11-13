@@ -1,6 +1,7 @@
+import { EditorView } from '@codemirror/view'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { setCodeFont } from './code-font'
+import { codeSize, setCodeFont, setCodeSize } from './code-font'
 import { editorPrefs } from './word-wrap'
 import {
   CODE_FONT_PROPERTY,
@@ -89,4 +90,17 @@ describe('codeFontScript', () => {
       expect(applied()).toBe('')
     },
   )
+})
+
+describe('setCodeSize', () => {
+  it('sizes open editors and remembers the choice', () => {
+    const view = new EditorView({
+      parent: document.body,
+      extensions: codeSize(),
+    })
+    setCodeSize(18)
+    expect(editorPrefs.state.codeSize).toBe(18)
+    expect(getComputedStyle(view.dom).fontSize).toBe('18px')
+    view.destroy()
+  })
 })

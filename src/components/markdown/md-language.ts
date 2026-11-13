@@ -186,6 +186,8 @@ export function markdownSupport() {
     syntaxHighlighting(style),
     // Text takes the chosen font's `--text-font`; see `.md-editor` in styles.css.
     EditorView.editorAttributes.of({ class: 'md-editor' }),
+    // Prose always wraps; the word wrap toggle is for the other files.
+    EditorView.lineWrapping,
     quoteLines,
     codeBlocks(new Set(Object.keys(CODE))),
     markdownTables(language),

@@ -76,7 +76,7 @@ function sideExtensions(language: DocLanguage, editable: boolean): Extension {
     keymap.of(searchKeymap),
     searchNoAutofill,
     languageExtension(language),
-    editorTheme,
+    editorTheme(),
     compareTheme,
     wordWrap(),
   ]

@@ -28,6 +28,11 @@ export const codeFonts = [
 export type CodeFontId = (typeof codeFonts)[number]['id']
 type CodeFont = (typeof codeFonts)[number]
 
+/** Text sizes the editor offers, in pixels. */
+export const codeSizes = [13, 14, 15, 16, 18, 20] as const
+export type CodeSize = (typeof codeSizes)[number]
+export const DEFAULT_CODE_SIZE: CodeSize = 14
+
 /** The CSS variable `--font-mono` reads, set on `<html>`. */
 export const CODE_FONT_PROPERTY = '--code-font'
 /** Markdown's text font, set on `<html>` only by a font with `text`. */

@@ -89,7 +89,7 @@ export function DraftPane() {
           drawSelection(),
           highlightActiveLine(),
           placeholder(placeholderContent()),
-          editorTheme,
+          editorTheme(),
           EditorView.lineWrapping,
           keymap.of([
             { key: shortcuts.save.key, run: nothingToSave },

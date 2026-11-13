@@ -23,17 +23,17 @@ const THEMES = {
   },
   dark: {
     darkMode: true,
-    background: '#0a0a0a',
+    background: '#161616',
     primaryColor: '#171717',
     primaryTextColor: '#ededed',
     primaryBorderColor: '#525252',
     secondaryColor: '#262626',
-    tertiaryColor: '#0a0a0a',
+    tertiaryColor: '#161616',
     lineColor: '#a3a3a3',
     textColor: '#ededed',
     noteBkgColor: '#262626',
     noteBorderColor: '#404040',
-    edgeLabelBackground: '#0a0a0a',
+    edgeLabelBackground: '#161616',
   },
 }
 

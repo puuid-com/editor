@@ -8,6 +8,18 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.58.0] - 2026-11-12
+
+### Added
+
+- Pick the editor's text size, from 13 to 20 pixels, in the Font menu at the bottom of the sidebar or from the command menu. It applies to every file and is remembered.
+
+### Changed
+
+- The editor's text is bigger (14 pixels instead of 13) and drawn with fuller strokes, so code and Markdown are easier to read.
+- Markdown files always wrap long lines, so prose never runs off the edge. The word wrap toggle now applies to the other files.
+- The dark theme's background is a little lighter, so bright text glares less.
+
 ## [1.57.0] - 2026-11-12
 
 ### Changed

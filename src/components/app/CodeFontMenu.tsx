@@ -2,7 +2,7 @@ import { IconTypography } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
 import { ToolbarButton } from './ToolbarButton'
-import { setCodeFont } from '#/components/editor/code-font'
+import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import {
   DropdownMenu,
@@ -10,15 +10,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { codeFonts, fontFace } from '#/lib/code-font'
-import type { CodeFontId } from '#/lib/code-font'
+import { codeFonts, codeSizes, fontFace } from '#/lib/code-font'
+import type { CodeFontId, CodeSize } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 
-/** Picks the font of the editor and code, for every file and profile. */
+/** Picks the font and text size of the editor, for every file and profile. */
 export function CodeFontMenu() {
   const current = useSelector(editorPrefs, (s) => s.codeFont)
+  const size = useSelector(editorPrefs, (s) => s.codeSize)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,6 +45,22 @@ export function CodeFontMenu() {
               style={{ fontFamily: fontFace(font) }}
             >
               {font.name}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{m.code_size()}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={String(size)}
+          onValueChange={(value) => setCodeSize(Number(value) as CodeSize)}
+        >
+          {codeSizes.map((option) => (
+            <DropdownMenuRadioItem
+              key={option}
+              value={String(option)}
+              className="tabular-nums"
+            >
+              {m.code_size_px({ size: option })}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
