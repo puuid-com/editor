@@ -29,6 +29,16 @@ describe('vars', () => {
     expect(findVarProblems('<a>{{$stuff$}}</a>')).toHaveLength(1)
   })
 
+  it('accepts dynamic variables called with arguments', () => {
+    const text = 'id {{$randomRegex([A-Z]{3}(x))}} and <<$f(1, 2)>>'
+    expect(findVars(text).map((v) => v.name)).toEqual([
+      '$randomRegex([A-Z]{3}(x))',
+      '$f(1, 2)',
+    ])
+    expect(findVarProblems(text)).toEqual([])
+    expect(findVarProblems('<a>{{plain(x)}}</a>')).toHaveLength(1)
+  })
+
   it('keeps ${$name$} as written when switching to another style', () => {
     expect(convertVars('${$a$} ${b}', 'curly')).toEqual({
       text: '${$a$} {{b}}',

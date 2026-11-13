@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.62.1] - 2026-11-13
+
+### Fixed
+
+- Dynamic variables called with arguments, such as `{{$randomRegex([A-Z]{3})}}`, are no longer marked invalid. Functions the app doesn't know are left as written.
+
 ## [1.62.0] - 2026-11-13
 
 ### Added

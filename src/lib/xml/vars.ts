@@ -11,13 +11,20 @@ const VAR_CLOSE = ''
 
 /** Longest variable name accepted; keeps masking windows bounded. */
 const VAR_MAX_NAME = 64
-/** Longest possible `<<$name>>`, `{{$name}}` or `${$name$}` sequence. */
-export const VAR_MAX_LENGTH = VAR_MAX_NAME + 5
+/** Longest argument list of a `$name(…)` call. */
+const VAR_MAX_ARGS = 200
+/** Longest possible `<<$name(…)>>`, `{{$name(…)}}` or `${$name$}` sequence. */
+export const VAR_MAX_LENGTH = VAR_MAX_NAME + VAR_MAX_ARGS + 7
 
+const IDENT = `[A-Za-z_][\\w.-]{0,${VAR_MAX_NAME - 1}}`
+// A dynamic variable may take arguments, such as `{{$randomRegex([A-Z]{3})}}`.
+// One level of nested parentheses is allowed. Functions the app doesn't know
+// are still accepted and left as written.
+const ARGS = `\\((?:[^()<>\\n]|\\([^()<>\\n]*\\)){0,${VAR_MAX_ARGS}}\\)`
 // A leading `$` marks Postman's dynamic variables, such as `<<$randomInt>>`.
-const NAME = `\\$?[A-Za-z_][\\w.-]{0,${VAR_MAX_NAME - 1}}`
+const NAME = `\\$${IDENT}(?:${ARGS})?|${IDENT}`
 // `${…}` also takes a name wrapped in dollars, such as `${$stuff$}`.
-const DOLLAR_NAME = `\\$[A-Za-z_][\\w.-]{0,${VAR_MAX_NAME - 1}}\\$|${NAME}`
+const DOLLAR_NAME = `\\$${IDENT}\\$|${NAME}`
 
 // The name is in group 1 for `<<name>>`, group 2 for `{{name}}` and group 3
 // for `${name}`.
