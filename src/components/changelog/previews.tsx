@@ -4600,6 +4600,49 @@ function SidebarRight() {
 }
 
 /** Since 1.61.0 formatting can drop line breaks inside tag values. */
+/** Since 1.62.0 SOAP envelope tags can hide their xmlns declarations and shorten URLs to an expandable `…`. */
+function SoapNamespaces() {
+  const chip = (
+    <span className="mx-1 inline-flex items-center gap-0.5 rounded-full bg-muted px-1.5 align-[1px] text-[10px] leading-4 text-muted-foreground">
+      …
+      <IconChevronDown className="size-3" />
+    </span>
+  )
+  return (
+    <BeforeAfter
+      before={
+        <Code
+          lines={[
+            '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">',
+            '  <soap:Body>',
+            '    <m:Price>12</m:Price>',
+            '  </soap:Body>',
+            '</soap:Envelope>',
+          ]}
+        />
+      }
+      after={
+        <Code
+          lines={[
+            <>
+              <Syn k="punct">{'<'}</Syn>
+              <Syn k="tag">soap:Envelope</Syn>{' '}
+              <Syn k="attr">soap:encodingStyle</Syn>
+              <Syn k="punct">=</Syn>
+              <Syn k="value">"{chip}"</Syn>
+              <Syn k="punct">{'>'}</Syn>
+            </>,
+            '  <soap:Body>',
+            '    <m:Price>12</m:Price>',
+            '  </soap:Body>',
+            '</soap:Envelope>',
+          ]}
+        />
+      }
+    />
+  )
+}
+
 function JoinedValues() {
   return (
     <BeforeAfter
@@ -5048,6 +5091,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.62.0': figure(SoapNamespaces),
   '1.61.0': figure(JoinedValues),
   '1.60.0': figure(SettingsAsTab),
   '1.59.0': figure(SettingsInOnePlace),

@@ -196,6 +196,7 @@ const theme = EditorView.theme({
     color: 'inherit',
     font: 'inherit',
     cursor: 'pointer',
+    gap: '2px',
   },
   '.cm-long-value button:hover': { color: 'var(--foreground)' },
   '.cm-long-value button:focus-visible': {

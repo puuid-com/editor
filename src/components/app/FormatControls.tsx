@@ -70,6 +70,20 @@ function StructuredSwitches() {
         {m.format_strip_prefixes()}
       </SettingSwitch>
       <SettingSwitch
+        id="format-hide-soap-namespaces"
+        checked={settings.hideSoapNamespaces}
+        onCheckedChange={(v) => setFormatSetting('hideSoapNamespaces', v)}
+      >
+        {m.format_hide_soap_namespaces()}
+      </SettingSwitch>
+      <SettingSwitch
+        id="format-shorten-soap-urls"
+        checked={settings.shortenSoapUrls}
+        onCheckedChange={(v) => setFormatSetting('shortenSoapUrls', v)}
+      >
+        {m.format_shorten_soap_urls()}
+      </SettingSwitch>
+      <SettingSwitch
         id="format-highlighted-first"
         checked={settings.highlightedFirst}
         onCheckedChange={(v) => setFormatSetting('highlightedFirst', v)}

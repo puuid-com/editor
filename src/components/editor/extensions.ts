@@ -54,6 +54,7 @@ import {
 } from './dynamic-vars'
 import { docLanguage } from './language'
 import { shortenLongValues } from './long-values'
+import { soapDisplay } from './soap-namespaces'
 import { zplLinks } from './zpl-links'
 import { zplBase64Input } from '#/components/zpl/editor-support'
 import { pasteOverStarter, pastedWhole } from './paste'
@@ -296,6 +297,7 @@ export function editorExtensions(
     defaultRulesCompartment.of(defaultRulesFacet.of(defaults)),
     defaultMarks,
     shortenLongValues(shortenAt),
+    soapDisplay(),
     zplLinks(),
     // The linter doubles as the parse loop: it runs after typing pauses and
     // publishes the model the tree and status bar read.

@@ -1,5 +1,5 @@
 import { EditorView } from '@codemirror/view'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { RefObject } from 'react'
 
 import { notify } from '#/components/app/notice-store'
@@ -27,6 +27,7 @@ import { imagePaste } from '#/components/markdown/image-paste'
 import { liveEmbeds } from '#/components/markdown/md-live-embeds'
 import { setMarkdownLive } from '#/components/markdown/md-live'
 import { setLongValueLimit } from './long-values'
+import { setSoapDisplay } from './soap-namespaces'
 import { setZplTags } from './zpl-links'
 import { setTagHighlights } from './tag-highlights'
 import { TagContextMenu } from './TagContextMenu'
@@ -141,6 +142,17 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     setLongValueLimit,
   )
   const zplTags = useViewSetting(viewRef, format.zplTags, setZplTags)
+  const soap = useViewSetting(
+    viewRef,
+    useMemo(
+      () => ({
+        hideNamespaces: format.hideSoapNamespaces,
+        shortenUrls: format.shortenSoapUrls,
+      }),
+      [format.hideSoapNamespaces, format.shortenSoapUrls],
+    ),
+    setSoapDisplay,
+  )
   const wrap = useViewSetting(
     viewRef,
     useSelector(editorPrefs, (s) => s.wordWrap),
@@ -157,6 +169,7 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     values,
     shortenAt,
     zplTags,
+    soap,
     wrap,
     live,
   ]

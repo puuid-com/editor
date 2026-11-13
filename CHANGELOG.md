@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.62.0] - 2026-11-13
+
+### Added
+
+- Two new format settings for SOAP messages: "Hide namespace declarations on SOAP tags" hides the `xmlns:…="…"` attributes on the Envelope, Header, Body and Fault tags, and "Shorten URLs on SOAP tags" shows the URLs in those tags as `…`, with a button to expand them. Display only: the file keeps its text.
+
 ## [1.61.0] - 2026-11-13
 
 ### Added
