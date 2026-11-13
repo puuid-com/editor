@@ -140,8 +140,9 @@ const language = new Language(
 )
 
 // The text reads as the preview shows it: headings sized, bold, italic,
-// struck, highlighted and code text styled, links underlined. The markup
-// (`#`, `*`, `>`, fences) stays visible and steps back to the meta colour.
+// struck, highlighted and code text styled, links underlined. Code and quotes
+// keep the text's full contrast, as in the preview. The markup (`#`, `*`,
+// `>`, fences) stays visible and steps back to the meta colour.
 const HEADING = { color: 'var(--foreground)', fontWeight: '600' }
 
 const style = HighlightStyle.define(
@@ -154,8 +155,8 @@ const style = HighlightStyle.define(
     { tag: t.strong, fontWeight: '700' },
     { tag: t.emphasis, fontStyle: 'italic' },
     { tag: t.strikethrough, textDecoration: 'line-through' },
-    { tag: t.monospace, color: 'var(--muted-foreground)' },
-    { tag: t.quote, color: 'var(--muted-foreground)', fontStyle: 'italic' },
+    { tag: t.monospace, color: 'var(--foreground)' },
+    { tag: t.quote, color: 'var(--foreground)', fontStyle: 'italic' },
     // Its look is `.md-inline-code`, marked on its text by `codeColors`.
     { tag: inlineCode, color: 'inherit' },
     {

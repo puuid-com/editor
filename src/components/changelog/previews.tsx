@@ -4596,6 +4596,57 @@ function SidebarRight() {
   )
 }
 
+/**
+ * Since 1.57.0 a Markdown file's code and quotes keep the text's contrast, and
+ * code colours, markup and line numbers are easier to read.
+ */
+function ReadableMarkdown() {
+  const note = (faint: boolean) => {
+    const mark = (text: string) => (
+      <span className="text-(--syntax-meta)">{text}</span>
+    )
+    const tone = (role: string, text: string) => (
+      <span
+        style={{
+          color: `var(--sql-${role})`,
+          fontStyle: role === 'comment' ? 'italic' : undefined,
+        }}
+      >
+        {text}
+      </span>
+    )
+    const dim = faint ? 'text-muted-foreground' : 'text-foreground'
+    return (
+      <div className={cn(faint && 'syntax-faint')}>
+        <Code
+          format={(line) => line}
+          marks={{ 3: 'code', 4: 'code', 5: 'code', 6: 'code' }}
+          lines={[
+            <>
+              {mark('# ')}
+              <span className="font-semibold">Deploy</span>
+            </>,
+            'Ship once the checks pass.',
+            <span className={cn('italic', dim)}>
+              {mark('> ')}Staging first.
+            </span>,
+            mark('```ts'),
+            <span className={dim}>
+              {tone('keyword', 'const')} env {tone('operator', '=')}{' '}
+              {tone('string', "'prod'")}
+            </span>,
+            <span className={dim}>
+              {tone('function', 'deploy')}(env) {tone('comment', '// go')}
+            </span>,
+            mark('```'),
+          ]}
+        />
+      </div>
+    )
+  }
+  return <BeforeAfter before={note(true)} after={note(false)} />
+}
+
 /** Since 1.56.0 the sidebar toggle sits at the screen edge, so it stays put. */
 function ToggleAtEdge() {
   const row = (atEdge: boolean) => (
@@ -4786,6 +4837,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.57.0': figure(ReadableMarkdown),
   '1.56.0': figure(ToggleAtEdge),
   '1.55.0': figure(NoSidebarLogo),
   '1.54.0': figure(ResizableSidebar),

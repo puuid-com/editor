@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.57.0] - 2026-11-12
+
+### Changed
+
+- Code is easier to read. In Markdown files, code blocks and quotes are no longer greyed out in the editor, so they read like the rest of the text, as in the preview.
+- Syntax colours are darker in light mode and a little brighter in dark mode, and brackets, operators, Markdown's `#` and `*` marks and line numbers stand out more from the background.
+
 ## [1.56.0] - 2026-11-12
 
 ### Changed

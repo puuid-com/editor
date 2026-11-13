@@ -93,13 +93,13 @@
   --syntax-leaf: var(--sql-table);
   --syntax-attr: var(--sql-alias);
   --syntax-value: var(--sql-string);
-  --syntax-punct: oklch(0.75 0 0);
+  --syntax-punct: oklch(0.6 0 0);
   --syntax-comment: var(--sql-comment);
   --syntax-meta: var(--sql-operator);
   --syntax-entity: var(--sql-number);
   --syntax-var: oklch(0.5 0 0);
   --syntax-default: oklch(0.55 0.15 245);
-  --syntax-gutter: oklch(0.72 0 0);
+  --syntax-gutter: oklch(0.62 0 0);
   --syntax-selection: oklch(0.145 0 0 / 10%);
   --syntax-active-line: oklch(0.145 0 0 / 3%);
   --syntax-match: oklch(0.145 0 0 / 7%);
@@ -113,8 +113,9 @@
   --hl-green: oklch(0.62 0.16 150);
   --hl-teal: oklch(0.62 0.11 190);
   --hl-gray: oklch(0.6 0 0);
-  /* Lightness of highlight-coloured text, from the colour's own `l`. */
-  --hl-ink-l: min(l - 0.1, 0.56);
+  /* Lightness of highlight-coloured text, from the colour's own `l`. Dark
+     enough to read at 5.5:1 or better on a code block's grey. */
+  --hl-ink-l: min(l - 0.15, 0.48);
 
   /* SQL roles, after the usual SQL editor colours: blue keywords, red
      strings, green comments, magenta functions, grey operators. Inked from
@@ -127,8 +128,10 @@
   --sql-table: oklch(from var(--hl-teal) var(--hl-ink-l) c h);
   --sql-alias: oklch(from var(--hl-purple) var(--hl-ink-l) c h);
   --sql-column: var(--foreground);
-  --sql-literal: var(--muted-foreground);
-  --sql-operator: var(--muted-foreground);
+  /* Darker than `--muted-foreground`, so markup and operators step back
+     without fading on a code block's grey. */
+  --sql-literal: oklch(0.48 0 0);
+  --sql-operator: oklch(0.48 0 0);
 }
 
 .dark {
@@ -166,10 +169,10 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
-  --syntax-punct: oklch(0.45 0 0);
+  --syntax-punct: oklch(0.58 0 0);
   --syntax-var: oklch(0.7 0 0);
   --syntax-default: oklch(0.74 0.12 245);
-  --syntax-gutter: oklch(0.42 0 0);
+  --syntax-gutter: oklch(0.55 0 0);
   --syntax-selection: oklch(1 0 0 / 14%);
   --syntax-active-line: oklch(1 0 0 / 3%);
   --syntax-match: oklch(1 0 0 / 9%);
@@ -182,7 +185,9 @@
   --hl-green: oklch(0.74 0.16 152);
   --hl-teal: oklch(0.76 0.11 190);
   --hl-gray: oklch(0.68 0 0);
-  --hl-ink-l: max(l + 0.04, 0.74);
+  --hl-ink-l: max(l + 0.06, 0.78);
+  --sql-literal: oklch(0.74 0 0);
+  --sql-operator: oklch(0.74 0 0);
 }
 
 @theme inline {
@@ -379,6 +384,22 @@
   --syntax-attr: oklch(0.62 0 0);
   --syntax-value: oklch(0.95 0 0);
   --syntax-comment: oklch(0.5 0 0);
+}
+
+/* The fainter code colours from before 1.57.0, for its changelog picture. */
+.syntax-faint {
+  --hl-ink-l: min(l - 0.1, 0.56);
+  --sql-keyword: oklch(from var(--hl-blue) var(--hl-ink-l) c h);
+  --sql-function: oklch(from var(--hl-pink) var(--hl-ink-l) c h);
+  --sql-string: oklch(from var(--hl-red) var(--hl-ink-l) c h);
+  --sql-comment: oklch(from var(--hl-green) var(--hl-ink-l) c h);
+  --sql-operator: var(--muted-foreground);
+  --syntax-meta: var(--muted-foreground);
+  --syntax-gutter: oklch(0.72 0 0);
+}
+.dark .syntax-faint {
+  --hl-ink-l: max(l + 0.04, 0.74);
+  --syntax-gutter: oklch(0.42 0 0);
 }
 
 /* A tag that holds other elements; leaf tags keep `--syntax-leaf`. */

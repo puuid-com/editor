@@ -130,7 +130,7 @@ export function codeBlocks(nested: ReadonlySet<string>) {
     EditorView.decorations.of(
       (view) => view.plugin(plugin)?.lines ?? Decoration.none,
     ),
-    // Highest, so token colours sit inside the grammar's grey code spans.
+    // Highest, so token colours sit inside the grammar's code spans.
     Prec.highest(
       EditorView.decorations.of(
         (view) => view.plugin(plugin)?.tokens ?? Decoration.none,
