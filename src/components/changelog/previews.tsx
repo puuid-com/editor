@@ -4599,6 +4599,20 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.61.0 formatting can drop line breaks inside tag values. */
+function JoinedValues() {
+  return (
+    <BeforeAfter
+      before={
+        <Code
+          lines={['<label>', '  <tab>', 'fddadwad', '  </tab>', '</label>']}
+        />
+      }
+      after={<Code lines={['<label>', '  <tab>fddadwad</tab>', '</label>']} />}
+    />
+  )
+}
+
 /** Since 1.59.0 every setting sits in the Settings popover, with a General tab for theme, wrap, font and sidebar side. */
 function SettingsInOnePlace() {
   const icon = 'size-3.5 shrink-0 text-muted-foreground'
@@ -5034,6 +5048,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.61.0': figure(JoinedValues),
   '1.60.0': figure(SettingsAsTab),
   '1.59.0': figure(SettingsInOnePlace),
   '1.58.0': figure(BiggerEditorText),

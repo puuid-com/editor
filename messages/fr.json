@@ -32,6 +32,7 @@
   "action_format": "Formater",
   "format_on_save": "Formater à l'enregistrement",
   "format_remove_empty_lines": "Supprimer les lignes vides",
+  "format_join_lines": "Retirer les sauts de ligne dans les valeurs",
   "format_trim_vars": "Retirer les espaces dans les variables",
   "format_strip_prefixes": "Retirer les préfixes des balises (ns:)",
   "format_sort": "Trier les éléments et attributs",

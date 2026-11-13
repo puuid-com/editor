@@ -98,6 +98,7 @@ function CompareFiles({
         ignoreFormatting,
         {
           removeEmptyLines: format.removeEmptyLines,
+          joinLines: format.joinLines,
           trimVars: format.trimVars,
           stripPrefixes: format.stripPrefixes,
           sort: format.sort,
@@ -112,6 +113,7 @@ function CompareFiles({
       contentB,
       ignoreFormatting,
       format.removeEmptyLines,
+      format.joinLines,
       format.trimVars,
       format.stripPrefixes,
       format.sort,

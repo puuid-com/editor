@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.61.0] - 2026-11-13
+
+### Added
+
+- New "Remove line breaks in values" format setting for XML: a value written over several lines, like `<tab>` on one line and its text on the next, formats onto one line as `<tab>…</tab>`.
+
 ## [1.60.0] - 2026-11-12
 
 ### Changed

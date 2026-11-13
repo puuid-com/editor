@@ -32,6 +32,7 @@
   "action_format": "Format",
   "format_on_save": "Format on save",
   "format_remove_empty_lines": "Remove empty lines",
+  "format_join_lines": "Remove line breaks in values",
   "format_trim_vars": "Trim spaces in variables",
   "format_strip_prefixes": "Remove tag prefixes (ns:)",
   "format_sort": "Sort elements and attributes",

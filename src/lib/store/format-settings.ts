@@ -7,6 +7,8 @@ export const formatSettingsSchema = z.object({
   formatOnSave: z.boolean(),
   removeEmptyLines: z.boolean(),
   trimVars: z.boolean(),
+  /** Drop line breaks inside tag values when formatting XML. */
+  joinLines: z.boolean().default(false),
   stripPrefixes: z.boolean().default(false),
   sort: z.enum([
     'none',
@@ -32,6 +34,7 @@ export const DEFAULT_FORMAT: FormatSettings = {
   formatOnSave: false,
   removeEmptyLines: true,
   trimVars: false,
+  joinLines: false,
   stripPrefixes: false,
   sort: 'none',
   customOrder: [],

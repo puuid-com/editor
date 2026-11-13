@@ -49,6 +49,13 @@ function StructuredSwitches() {
         {m.format_remove_empty_lines()}
       </SettingSwitch>
       <SettingSwitch
+        id="format-join-lines"
+        checked={settings.joinLines}
+        onCheckedChange={(v) => setFormatSetting('joinLines', v)}
+      >
+        {m.format_join_lines()}
+      </SettingSwitch>
+      <SettingSwitch
         id="format-trim-vars"
         checked={settings.trimVars}
         onCheckedChange={(v) => setFormatSetting('trimVars', v)}

@@ -81,6 +81,7 @@ export function formatActive() {
   }
   const {
     removeEmptyLines,
+    joinLines,
     trimVars,
     stripPrefixes,
     sort,
@@ -95,6 +96,7 @@ export function formatActive() {
   const text = view.state.doc.toString()
   const result = formatDocument(text, activeLanguage(), {
     removeEmptyLines,
+    joinLines,
     trimVars,
     stripPrefixes,
     sort,

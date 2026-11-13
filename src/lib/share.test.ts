@@ -29,6 +29,7 @@ describe('share links', () => {
       format: {
         formatOnSave: false,
         removeEmptyLines: true,
+        joinLines: false,
         trimVars: false,
         stripPrefixes: false,
         sort: 'custom' as const,

@@ -13,6 +13,11 @@ export interface FormatOptions {
   indent?: string
   /** Drop blank lines. When off, one blank line between elements is kept. */
   removeEmptyLines?: boolean
+  /**
+   * Join values written over several lines: `<a>\n  x\n</a>` → `<a>x</a>`.
+   * Line breaks and the indentation around them are dropped.
+   */
+  joinLines?: boolean
   /** Rewrite `<< name >>` as `<<name>>`. */
   trimVars?: boolean
   /** Rewrite `<ns:Body>` as `<Body>`. Attributes and `xmlns:` declarations stay. */
@@ -42,6 +47,7 @@ export function formatXml(
   {
     indent = '  ',
     removeEmptyLines = true,
+    joinLines = false,
     trimVars = false,
     stripPrefixes = false,
     sort = 'none',
@@ -114,8 +120,10 @@ export function formatXml(
   }
 
   // Blank lines inside text content, which is otherwise kept as written.
-  const clean = (raw: string) =>
-    removeEmptyLines ? raw.replace(/\n[ \t]*(?=\r?\n)/g, '') : raw
+  const clean = (raw: string) => {
+    if (joinLines) return raw.replace(/[ \t]*\r?\n\s*/g, '')
+    return removeEmptyLines ? raw.replace(/\n[ \t]*(?=\r?\n)/g, '') : raw
+  }
 
   writeAll(doc.nodes, 0)
   let out = lines.join('\n') + '\n'

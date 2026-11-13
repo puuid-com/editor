@@ -198,6 +198,15 @@ describe('formatXml', () => {
     })
   })
 
+  it('removes line breaks inside values', () => {
+    const input =
+      '<a>\n  <tab>\nfddadwad\n  </tab>\n  <b>x <i>y</i>\n  z</b>\n</a>'
+    expect(formatXml(input, { joinLines: true })).toEqual({
+      ok: true,
+      text: '<a>\n  <tab>fddadwad</tab>\n  <b>x <i>y</i>z</b>\n</a>\n',
+    })
+  })
+
   it('trims spaces inside variables', () => {
     const input = '<a k="<< id >>">Hi <<  name>></a>'
     expect(formatXml(input, { trimVars: true })).toEqual({
