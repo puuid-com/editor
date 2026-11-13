@@ -41,6 +41,8 @@ export interface FormatOptions {
  * Pretty-prints XML. Elements holding only other elements are indented one per
  * line; anything with text (including mixed content) is kept as written so
  * whitespace that matters is never touched. Refuses documents with errors.
+ * XML pasted from a log or a string literal is unwrapped first (see
+ * `unwrapXml`).
  */
 export function formatXml(
   text: string,
@@ -55,6 +57,7 @@ export function formatXml(
     first = [],
   }: FormatOptions = {},
 ): FormatResult {
+  text = unwrapXml(text)
   let doc = parseXml(text)
   if (doc.errors.length > 0) return { ok: false, errors: doc.errors }
   if (stripPrefixes) {
@@ -129,6 +132,18 @@ export function formatXml(
   let out = lines.join('\n') + '\n'
   if (trimVars) out = out.replace(varRegExp(), trimVar)
   return { ok: true, text: out }
+}
+
+/**
+ * XML copied out of a log or a string literal: `\"` becomes `"`, and
+ * anything before the first `<` or after the last `>`, like
+ * `log: "<a/>" end"`, is dropped.
+ */
+function unwrapXml(text: string) {
+  text = text.replace(/\\+"/g, '"')
+  const from = text.indexOf('<')
+  const to = text.lastIndexOf('>')
+  return from === -1 || to < from ? text : text.slice(from, to + 1)
 }
 
 /** `text` with every tag name's prefix dropped: `</s:Body>` → `</Body>`. */

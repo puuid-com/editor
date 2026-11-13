@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.63.0] - 2026-11-13
+
+### Changed
+
+- Formatting XML now cleans up XML pasted from a log or a string literal: `\"` becomes `"`, and text before the first `<` or after the last `>` is removed.
+
 ## [1.62.1] - 2026-11-13
 
 ### Fixed

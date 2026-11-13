@@ -180,6 +180,14 @@ describe('formatXml', () => {
     })
   })
 
+  it('unwraps XML pasted from a log or string literal', () => {
+    const input = 'dwadwad " <a x=\\"1\\"><b>\\"hi\\"</b></a>" dwadaw"'
+    expect(formatXml(input)).toEqual({
+      ok: true,
+      text: '<a x="1">\n  <b>"hi"</b>\n</a>\n',
+    })
+  })
+
   it('is idempotent', () => {
     const input = '<a>\n<b>\n<c>1</c>\n</b>\n</a>'
     const once = formatXml(input)

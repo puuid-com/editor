@@ -4643,6 +4643,16 @@ function SoapNamespaces() {
   )
 }
 
+/** Since 1.63.0 formatting strips text around pasted XML and `\"` escapes. */
+function UnwrappedXml() {
+  return (
+    <BeforeAfter
+      before={<Code lines={['log " <a x=\\"1\\"><b>hi</b></a>" end"']} />}
+      after={<Code lines={['<a x="1">', '  <b>hi</b>', '</a>']} />}
+    />
+  )
+}
+
 function JoinedValues() {
   return (
     <BeforeAfter
@@ -5091,6 +5101,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.63.0': figure(UnwrappedXml),
   '1.62.0': figure(SoapNamespaces),
   '1.61.0': figure(JoinedValues),
   '1.60.0': figure(SettingsAsTab),
