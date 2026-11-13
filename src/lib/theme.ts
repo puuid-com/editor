@@ -30,3 +30,18 @@ export function toggleTheme() {
     // Storage is off; the choice lasts until the page reloads.
   }
 }
+
+/** Whether the page is dark right now. */
+export function isDark() {
+  return document.documentElement.classList.contains('dark')
+}
+
+/** Calls `onChange` whenever the page switches between light and dark. */
+export function subscribeTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+  return () => observer.disconnect()
+}

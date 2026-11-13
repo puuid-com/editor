@@ -1,5 +1,8 @@
 import {
   IconAdjustmentsHorizontal,
+  IconTypography,
+  IconMoon,
+  IconArchive,
   IconAlertTriangle,
   IconAlignCenter,
   IconAlignLeft,
@@ -4596,9 +4599,71 @@ function SidebarRight() {
   )
 }
 
+/** Since 1.59.0 every setting sits in the Settings popover, with a General tab for theme, wrap, font and sidebar side. */
+function SettingsInOnePlace() {
+  const icon = 'size-3.5 shrink-0 text-muted-foreground'
+  const footer = (rest: ReactNode) => (
+    <div className="flex items-center gap-1.5 bg-sidebar px-2 py-1.5">
+      <IconArchive className={icon} />
+      {rest}
+      <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+        v1.58
+      </span>
+    </div>
+  )
+  const row = (label: string, on: boolean) => (
+    <div className="flex items-center justify-between px-2 py-1">
+      {label}
+      <span
+        className={cn(
+          'flex h-3 w-5 rounded-full p-0.5',
+          on ? 'justify-end bg-foreground' : 'bg-muted-foreground/30',
+        )}
+      >
+        <span className="size-2 rounded-full bg-background" />
+      </span>
+    </div>
+  )
+  return (
+    <BeforeAfter
+      className="h-40"
+      before={
+        <div className="flex h-full flex-col justify-end">
+          {footer(
+            <>
+              <IconTextWrap className={icon} />
+              <IconLayoutSidebarRight className={icon} />
+              <IconTypography className={icon} />
+              <IconMoon className={icon} />
+            </>,
+          )}
+        </div>
+      }
+      after={
+        <div className="flex h-full flex-col justify-end gap-1 p-1.5">
+          <div className="w-44 self-end rounded-lg border bg-popover text-[10px]">
+            <div className="flex gap-2 border-b px-2 py-1 text-muted-foreground">
+              <span className="text-foreground">{m.settings_general()}</span>
+              <span>{m.action_format()}</span>
+              <span>{m.profiles_title()}</span>
+            </div>
+            {row(m.settings_dark_theme(), false)}
+            {row(m.settings_word_wrap(), true)}
+            {row(m.settings_sidebar_right(), true)}
+          </div>
+          <span className="flex items-center gap-1 self-end rounded-md px-1.5 py-0.5 text-[10px]">
+            <IconAdjustmentsHorizontal className="size-3" />
+            {m.editor_settings()}
+          </span>
+        </div>
+      }
+    />
+  )
+}
+
 /**
  * Since 1.58.0 the editor's text is bigger and fuller, Markdown wraps, and the
- * Font menu sets the text size.
+ * text size can be picked.
  */
 function BiggerEditorText() {
   const note = (after: boolean) => (
@@ -4887,6 +4952,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.59.0': figure(SettingsInOnePlace),
   '1.58.0': figure(BiggerEditorText),
   '1.57.0': figure(ReadableMarkdown),
   '1.56.0': figure(ToggleAtEdge),

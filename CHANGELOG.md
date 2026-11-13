@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.59.0] - 2026-11-12
+
+### Changed
+
+- Every setting now lives behind the Settings button at the bottom right. Its new General tab holds the theme, word wrap, sidebar side, font and text size, which used to be separate buttons at the bottom of the sidebar. Settings is there even with no file open.
+
 ## [1.58.0] - 2026-11-12
 
 ### Added

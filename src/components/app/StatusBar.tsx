@@ -1,11 +1,12 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { IconAdjustmentsHorizontal, IconFileTypePdf } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
 import { ActionBar, FormatButton } from './ActionBar'
 import { CenterMenu } from './CenterMenu'
 import { FormatOptions } from './FormatControls'
+import { GeneralSettings } from './GeneralSettings'
 import { MarkdownLiveToggle } from './MarkdownLiveToggle'
 import { StatusNotice } from './StatusNotice'
 import { editorStore } from '#/components/editor/editor-store'
@@ -33,7 +34,7 @@ const ZplStatusControls = lazy(() =>
   })),
 )
 
-/** Bottom bar of the workspace: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync) on the right. What applies to every file sits in the sidebar. */
+/** Bottom bar of the workspace: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync) on the right. Settings, global and per profile, sit behind the Settings button. */
 export function StatusBar({
   leading,
 }: {
@@ -63,12 +64,10 @@ export function StatusBar({
         </div>
       )}
       {typed && !plain && <ActionBar />}
-      {typed && (
-        <SettingsPopover
-          structured={!plain}
-          formattable={!plain || sql || markdown}
-        />
-      )}
+      <SettingsPopover
+        structured={typed && !plain}
+        formattable={typed && (!plain || sql || markdown)}
+      />
       {typed && zpl && (
         <>
           <Divider />
@@ -108,8 +107,9 @@ function Divider() {
 }
 
 /**
- * The file's settings. Plain files only get what applies to them: formatting
- * on save when they can be formatted, and profiles.
+ * Every setting: General applies to every file and profile, the rest to the
+ * active profile. Plain files only get what applies to them: formatting on
+ * save when they can be formatted, and profiles.
  */
 function SettingsPopover({
   structured,
@@ -121,6 +121,13 @@ function SettingsPopover({
   formattable: boolean
 }) {
   const profile = useActiveProfile()
+  const [picked, setPicked] = useState('general')
+  // A tab the open file doesn't have falls back to General.
+  const tab =
+    (picked === 'format' && !formattable) ||
+    ((picked === 'defaults' || picked === 'variables') && !structured)
+      ? 'general'
+      : picked
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -138,17 +145,17 @@ function SettingsPopover({
         align="end"
         className="w-96 max-w-[calc(100vw-1rem)] gap-0 p-0"
       >
-        {profile && (
+        {profile && tab !== 'general' && (
           <div className="flex items-center justify-between gap-4 border-b px-3 py-2 text-muted-foreground">
             {m.profile_settings_scope()}
             <ProfileTag profile={profile} />
           </div>
         )}
-        <Tabs
-          defaultValue={formattable ? 'format' : 'profiles'}
-          className="gap-0"
-        >
+        <Tabs value={tab} onValueChange={setPicked} className="gap-0">
           <TabsList variant="line" className="w-full justify-start px-2">
+            <TabsTrigger value="general" className="flex-none px-2">
+              {m.settings_general()}
+            </TabsTrigger>
             {formattable && (
               <TabsTrigger value="format" className="flex-none px-2">
                 {m.action_format()}
@@ -169,6 +176,9 @@ function SettingsPopover({
             </TabsTrigger>
           </TabsList>
           <Separator />
+          <TabsContent value="general">
+            <GeneralSettings />
+          </TabsContent>
           {formattable && (
             <TabsContent value="format">
               <FormatOptions structured={structured} />

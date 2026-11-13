@@ -28,6 +28,16 @@ export function toggleWordWrap() {
   editorPrefs.setState((s) => ({ ...s, wordWrap: !s.wordWrap }))
 }
 
+/** Turns soft wrapping on or off in every editor. */
+export function setWordWrapPref(on: boolean) {
+  editorPrefs.setState((s) => ({ ...s, wordWrap: on }))
+}
+
+/** Puts the sidebar right of the sheet, or left. */
+export function setSidebarRight(right: boolean) {
+  editorPrefs.setState((s) => ({ ...s, sidebarRight: right }))
+}
+
 /** Moves the sidebar to the other side of the sheet. */
 export function toggleSidebarSide() {
   editorPrefs.setState((s) => ({ ...s, sidebarRight: !s.sidebarRight }))

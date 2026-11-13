@@ -145,7 +145,7 @@ function SortOptions() {
   )
 }
 
-function SettingSwitch({
+export function SettingSwitch({
   id,
   checked,
   onCheckedChange,

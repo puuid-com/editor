@@ -259,7 +259,7 @@ const highlightStyle = HighlightStyle.define([
   },
 ])
 
-/** The editor's look, at the text size chosen in the Font menu. */
+/** The editor's look, at the text size chosen in Settings. */
 export const editorTheme = () => [
   theme,
   syntaxHighlighting(highlightStyle),

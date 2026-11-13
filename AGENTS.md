@@ -10,7 +10,7 @@ Website template: TanStack Start on Cloudflare Workers, shadcn/ui, Tailwind v4, 
 - UI uses shadcn/ui and Tailwind. Before building a component, check whether shadcn has it and install it with `bunx shadcn@latest add <name>`. Don't hand-write a replacement.
 - Design follows https://vercel.com/design.md: Geist, monochrome tokens from `src/styles.css`, no decorative gradients or motion.
 - Corners: controls `rounded-md`, menus and popovers `rounded-lg`, dialogs and the workspace sheet `rounded-xl`. No `rounded-none` on a control, and no all-caps labels.
-- The editor's shell is the shadcn `Sidebar` (inset variant) in `FileExplorer.tsx` beside one sheet. What applies to every file (archive, wrap, font, theme, version) goes in the sidebar's footer; what applies to the open file goes in `StatusBar.tsx`.
+- The editor's shell is the shadcn `Sidebar` (inset variant) in `FileExplorer.tsx` beside one sheet. Every setting (theme, wrap, font, sidebar side, format, defaults, variables, profiles) lives in the Settings popover in `StatusBar.tsx`: global ones in its General tab, the rest in the profile tabs. The sidebar footer keeps only the archive and version; the open file's actions go in `StatusBar.tsx`.
 - Import from `src` with the `#/` alias (`#/lib/utils`, `#/components/ui/button`).
 - Every user-facing string goes in `messages/en.json` and `messages/fr.json` and is used through `m.key()`. Don't hardcode copy.
 - Every page route sets `head: () => seo({ title, path })`. Public pages also go in `site.sitemapPaths`.
