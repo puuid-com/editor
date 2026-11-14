@@ -3,6 +3,7 @@ import { EditorSelection } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 
 import { docLanguage } from './language'
+import { parseEditor } from './parse'
 import { parseDocument } from '#/lib/document'
 import { elementAt, elementByPath } from '#/lib/xml/locate'
 import type { TextChange } from '#/lib/xml/edit'
@@ -64,6 +65,8 @@ function pathAt(doc: XmlDocument, pos: number) {
 }
 
 export function publishParse(fileId: string, doc: XmlDocument) {
+  if (editorStore.state.fileId === fileId && editorStore.state.doc === doc)
+    return
   editorStore.setState((s) => ({
     ...s,
     fileId,
@@ -75,7 +78,9 @@ export function publishParse(fileId: string, doc: XmlDocument) {
 
 export function publishCursor(pos: number, line: number) {
   editorStore.setState((s) =>
-    s.pos === pos ? s : { ...s, pos, line, selectedPath: pathAt(s.doc, pos) },
+    s.pos === pos && s.line === line
+      ? s
+      : { ...s, pos, line, selectedPath: pathAt(s.doc, pos) },
   )
 }
 
@@ -97,7 +102,7 @@ export function editAtPath(
   const view = currentView
   if (!view) return
   const text = view.state.doc.toString()
-  const doc = parseActive(text)
+  const doc = parseActive()
   const el = elementByPath(doc.nodes, path)
   if (!el) return
   applyChanges(build(el, text, doc))
@@ -106,8 +111,10 @@ export function editAtPath(
 }
 
 /** Parses `text` as the language of the file in the editor. */
-export function parseActive(text = getText()) {
-  return parseDocument(text, activeLanguage())
+export function parseActive(text?: string) {
+  return text === undefined && currentView
+    ? parseEditor(currentView)
+    : parseDocument(text ?? '', activeLanguage())
 }
 
 export function activeLanguage() {
@@ -145,9 +152,15 @@ let pendingFocus: { fileId: string; until: number } | null = null
 
 export function registerFileView(fileId: string, view: EditorView | null) {
   if (!view) {
+    const previous = views.get(fileId)
+    if (previous) shown.delete(previous)
     views.delete(fileId)
     return
   }
+  const previous = shown.get(view)
+  if (previous) views.delete(previous)
+  const replaced = views.get(fileId)
+  if (replaced) shown.delete(replaced)
   views.set(fileId, view)
   shown.set(view, fileId)
   if (pendingFocus?.fileId === fileId) {

@@ -327,6 +327,7 @@
   "vars_resolved_partly": "Variables remplacées : {count}. Restées sans valeur : {unresolved}",
   "vars_resolved_invalid": "{message}. Le résultat contient des erreurs.",
   "vars_confirm_title": "Remplacer les variables ?",
+  "vars_preview_stale": "Le fichier a changé depuis cet aperçu. Résolvez à nouveau les variables pour vérifier ses valeurs actuelles.",
   "vars_confirm_description": "Ces valeurs sont écrites dans le fichier. Vous pouvez annuler.",
   "vars_confirm": "Remplacer",
   "vars_confirm_unset": "(aucune valeur, laissée telle quelle)",

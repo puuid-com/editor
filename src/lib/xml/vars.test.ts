@@ -76,6 +76,34 @@ describe('varStyleOf', () => {
   })
 })
 
+describe('variable validation', () => {
+  it('reports stray brackets once without swallowing adjacent valid variables', () => {
+    const text = '😀 {{{a}}} {{b}}{{c}} <<<<d>>>> ${e}} $${f}'
+    const problems = findVarProblems(text, 10)
+    expect(
+      problems.map(({ from, to }) => text.slice(from - 10, to - 10)),
+    ).toEqual(['{{{a}}}', '<<<<d>>>>', '${e}}', '$${f}'])
+    expect(problems[0].from).toBe(13)
+  })
+
+  it('keeps malformed ranges separate across lines and masks consumed closers', () => {
+    const text = '{{bad name}} <<bad name>> ${bad name}\n{{bad name\n}}'
+    expect(
+      findVarProblems(text).map(({ from, to }) => text.slice(from, to)),
+    ).toEqual(['{{bad name}}', '<<bad name>>', '${bad name}', '{{', '}}'])
+  })
+
+  it('validates a large run of variables with accurate trailing diagnostics', () => {
+    const prefix = '{{value}} <<name>> ${id} '.repeat(20_000)
+    const problems = findVarProblems(prefix + '{{bad name}}')
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toMatchObject({
+      from: prefix.length,
+      to: prefix.length + '{{bad name}}'.length,
+    })
+  })
+})
+
 describe('varStyles', () => {
   it('counts variables and reads the style they share', () => {
     expect(varStyles('<a>{{x}}</a><b>{{ y }}</b>')).toEqual({

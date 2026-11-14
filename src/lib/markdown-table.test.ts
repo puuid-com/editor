@@ -6,6 +6,7 @@ import {
   alignColumn,
   cellText,
   columnAt,
+  columnCount,
   emptyTable,
   formatTable,
   parseTable,
@@ -66,6 +67,19 @@ describe('reading and laying out tables', () => {
       '| --- | --- |',
       '| 1   | 2   |',
     ])
+  })
+
+  it('sizes and formats tables beyond the JavaScript function argument limit', () => {
+    const rows = Array.from({ length: 150_000 }, () => ['x'])
+    rows.push(['longest', 'last'])
+    const table = { prefix: '', aligns: [], rows }
+    expect(columnCount(table)).toBe(2)
+    const lines = formatTable(table)
+    expect(lines).toHaveLength(rows.length + 1)
+    expect(lines[0]).toBe('| x       |      |')
+    expect(lines[1]).toBe('| ------- | ---- |')
+    expect(lines.at(-1)).toBe('| longest | last |')
+    expect(addRow(table, { row: 0, col: 0 }).table.rows[1]).toEqual(['', ''])
   })
 
   it('lays tables out as Format does', async () => {

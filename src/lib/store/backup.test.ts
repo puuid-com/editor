@@ -138,6 +138,26 @@ describe('workspace backup', () => {
     expect(JSON.stringify((await stored()).files)).not.toContain('other.xml')
   })
 
+  it('removes optional file fields absent from the restored backup', async () => {
+    const file = createFile('note.xml', '<note/>')
+    const backup = createBackup()
+    await filesCollection.update(file.id, (draft) => {
+      draft.location = { rootId: 'disk', path: 'note.xml' }
+      draft.zplSettings = { dpmm: 8, widthIn: 4, heightIn: 6 }
+    }).isPersisted.promise
+
+    await restoreBackup(backup)
+
+    expect(filesCollection.get(file.id)).toMatchObject({
+      location: undefined,
+      zplSettings: undefined,
+    })
+    expect((await stored()).files[0]).toMatchObject({
+      location: undefined,
+      zplSettings: undefined,
+    })
+  })
+
   it('restores variables under their profiles', async () => {
     const staging = await createProfile({ name: 'Staging' })
     setVariable('host', 'example.com', 'default')

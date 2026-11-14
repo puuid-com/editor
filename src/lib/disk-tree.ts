@@ -80,19 +80,20 @@ export async function fileAtPath(
   return directory.getFileHandle(baseName(path))
 }
 
+const nameCollator = new Intl.Collator(undefined, { numeric: true })
+
 const byKindThenName = (a: DiskEntry, b: DiskEntry) =>
   a.kind === b.kind
-    ? a.name.localeCompare(b.name, undefined, { numeric: true })
+    ? nameCollator.compare(a.name, b.name)
     : a.kind === 'directory'
       ? -1
       : 1
 
 async function readDirectory(
-  root: FileSystemDirectoryHandle,
+  directory: FileSystemDirectoryHandle,
   path: string,
   keep: (name: string, kind: EntryKind) => boolean,
 ) {
-  const directory = await directoryAt(root, path)
   const entries: Array<DiskEntry> = []
   for await (const handle of directory.values()) {
     if (keep(handle.name, handle.kind)) {
@@ -111,8 +112,15 @@ async function readDirectory(
  * A folder's entries but hidden ones, files the editor can't open included:
  * folders first, then files, by name.
  */
-export function listDirectory(root: FileSystemDirectoryHandle, path: string) {
-  return readDirectory(root, path, (name) => !isHidden(name))
+export async function listDirectory(
+  root: FileSystemDirectoryHandle,
+  path: string,
+) {
+  return readDirectory(
+    await directoryAt(root, path),
+    path,
+    (name) => !isHidden(name),
+  )
 }
 
 /** Folders search skips: installed packages, rarely what anyone edits. */
@@ -128,34 +136,39 @@ export async function listFiles(
 ) {
   const keep = all ? (name: string) => !isHidden(name) : isListed
   const files: Array<DiskEntry> = []
-  const queue = ['']
-  while (queue.length && files.length < limit) {
+  const queue = [{ handle: root, path: '' }]
+  for (let index = 0; index < queue.length && files.length < limit; index++) {
+    const directory = queue[index]
+    // Reuse handles returned by enumeration instead of resolving every ancestor.
     // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    for (const entry of await readDirectory(root, queue.shift()!, keep)) {
+    for (const entry of await readDirectory(
+      directory.handle,
+      directory.path,
+      keep,
+    )) {
       if (entry.kind === 'file') {
         if (files.length < limit) files.push(entry)
-      } else if (!UNSEARCHED.has(entry.name)) queue.push(entry.path)
+      } else if (!UNSEARCHED.has(entry.name)) {
+        queue.push({
+          handle: entry.handle as FileSystemDirectoryHandle,
+          path: entry.path,
+        })
+      }
     }
   }
   return files
 }
 
-/** Whether `directory` holds an entry called `name`, of either kind. */
-async function exists(directory: FileSystemDirectoryHandle, name: string) {
-  for (const get of [
-    () => directory.getFileHandle(name),
-    () => directory.getDirectoryHandle(name),
-  ]) {
-    try {
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      await get()
-      return true
-    } catch (error) {
-      // A folder asked for as a file, or the reverse, is still taken.
-      if (!isNotFound(error)) return true
-    }
+/** Finds an existing entry, without treating permission or I/O failures as collisions. */
+async function entryAt(directory: FileSystemDirectoryHandle, name: string) {
+  try {
+    return await directory.getFileHandle(name)
+  } catch (error) {
+    if (isNotFound(error)) return undefined
+    if (!(error instanceof DOMException) || error.name !== 'TypeMismatchError')
+      throw error
+    return directory.getDirectoryHandle(name)
   }
-  return false
 }
 
 /** Replaces a file's contents, leaving it as it was if the write fails. */
@@ -196,7 +209,7 @@ export async function writeNewFile(
   for (let i = 1; ; i++) {
     const candidate = i === 1 ? name : `${stem}-${i}${ext}`
     // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    if (await exists(directory, candidate)) continue
+    if (await entryAt(directory, candidate)) continue
     // react-doctor-disable-next-line react-doctor/async-await-in-loop
     const handle = await directory.getFileHandle(candidate, { create: true })
     // react-doctor-disable-next-line react-doctor/async-await-in-loop
@@ -216,7 +229,7 @@ export async function createEntry(
   kind: EntryKind,
 ) {
   const directory = await directoryAt(root, parent)
-  if (await exists(directory, name)) throw new EntryExistsError(name)
+  if (await entryAt(directory, name)) throw new EntryExistsError(name)
   const handle =
     kind === 'file'
       ? await directory.getFileHandle(name, { create: true })
@@ -273,12 +286,12 @@ export async function renameEntry(
   const path = joinPath(parent, name)
   if (path === entry.path) return path
   const directory = await directoryAt(root, parent)
-  // A change of case alone names the same entry on most systems.
-  const sameEntry =
-    parent === parentPath(entry.path) &&
-    baseName(entry.path).toLowerCase() === name.toLowerCase()
-  if (!sameEntry && (await exists(directory, name)))
-    throw new EntryExistsError(name)
+  // Case alone cannot establish identity on a case-sensitive filesystem.
+  const destination = await entryAt(directory, name)
+  const sameEntry = destination
+    ? await destination.isSameEntry(entry.handle)
+    : false
+  if (destination && !sameEntry) throw new EntryExistsError(name)
   const { move } = entry.handle as Movable
   if (move && parent === parentPath(entry.path)) {
     try {

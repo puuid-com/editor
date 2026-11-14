@@ -146,6 +146,16 @@ function tokenize(sql: string): Array<Token> {
     const at = sql.indexOf(close, from)
     return at < 0 ? sql.length : at + close.length
   }
+  const quotedEnd = (close: string, from: number, escapes = false) => {
+    for (let at = from; at < sql.length; at++) {
+      if (escapes && sql[at] === '\\') at++
+      else if (sql[at] === close) {
+        if (sql[at + 1] === close) at++
+        else return at + 1
+      }
+    }
+    return sql.length
+  }
 
   while (i < sql.length) {
     const ch = sql[i]
@@ -160,24 +170,11 @@ function tokenize(sql: string): Array<Token> {
     } else if (ch === '/' && next === '*') {
       push('comment', until('*/', i + 2))
     } else if (ch === "'" || (/[NEXB]/i.test(ch) && next === "'")) {
-      let j = sql.indexOf("'", i) + 1
-      for (;;) {
-        const close = sql.indexOf("'", j)
-        if (close < 0) {
-          j = sql.length
-          break
-        }
-        if (sql[close + 1] === "'") j = close + 2
-        else {
-          j = close + 1
-          break
-        }
-      }
-      push('string', j)
+      push('string', quotedEnd("'", i + (ch === "'" ? 1 : 2), /e/i.test(ch)))
     } else if (ch === '"' || ch === '`') {
-      push('quoted', until(ch, i + 1))
+      push('quoted', quotedEnd(ch, i + 1))
     } else if (ch === '[') {
-      push('quoted', until(']', i + 1))
+      push('quoted', quotedEnd(']', i + 1))
     } else if (/\d/.test(ch) || (ch === '.' && /\d/.test(next))) {
       const match = /^(\d*\.?\d+|\d+\.)(e[+-]?\d+)?/i.exec(sql.slice(i))
       push('number', i + (match?.[0].length ?? 1))

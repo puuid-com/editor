@@ -53,6 +53,7 @@ import {
   varValuesFacet,
 } from './dynamic-vars'
 import { docLanguage } from './language'
+import { parseEditor } from './parse'
 import { shortenLongValues } from './long-values'
 import { soapDisplay } from './soap-namespaces'
 import { zplLinks } from './zpl-links'
@@ -63,7 +64,7 @@ import { namesParent, treeChanged } from './syntax'
 import { tagHighlights } from './tag-highlights'
 import { wordWrap } from './word-wrap'
 import { editorTheme } from './theme'
-import { isPlain, parseDocument } from '#/lib/document'
+import { isPlain } from '#/lib/document'
 import { defaultMatches } from '#/lib/xml/defaults'
 import { varName, varRegExp } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
@@ -304,10 +305,7 @@ export function editorExtensions(
     linter(
       (view) => {
         const fileId = view.state.field(fileIdField)
-        const doc = parseDocument(
-          view.state.doc.toString(),
-          view.state.facet(docLanguage),
-        )
+        const doc = parseEditor(view)
         callbacks.onParse(fileId, doc)
         view.dispatch({
           effects: setDefaultMarks.of(

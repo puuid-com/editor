@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   EntryExistsError,
@@ -67,6 +67,19 @@ describe('reading a folder', () => {
     expect(await listFiles(handle, { limit: 2 })).toHaveLength(2)
   })
 
+  it('reuses enumerated handles when searching nested folders', async () => {
+    const { handle } = fakeFolder('project', {
+      src: { deep: { 'note10.md': 'ten', 'note2.md': 'two' } },
+      node_modules: { 'ignored.json': '{}' },
+    })
+    const lookup = vi.spyOn(handle, 'getDirectoryHandle')
+    expect(names(await listFiles(handle))).toEqual([
+      'src/deep/note2.md',
+      'src/deep/note10.md',
+    ])
+    expect(lookup).not.toHaveBeenCalled()
+  })
+
   it('finds files it can’t edit too when asked, still without hidden ones', async () => {
     const { handle } = folder()
     expect(names(await listFiles(handle, { all: true }))).toEqual([
@@ -128,6 +141,76 @@ describe('changing a folder', () => {
     expect(await writeNewFile(handle, 'media/new', 'b.png', blob)).toBe(
       'media/new/b.png',
     )
+  })
+
+  it('reports a permission failure instead of trying more file names', async () => {
+    const { handle, has } = fakeFolder('project', {})
+    const denied = new DOMException('Permission denied', 'NotAllowedError')
+    const lookup = vi
+      .spyOn(handle, 'getFileHandle')
+      .mockRejectedValueOnce(denied)
+    await expect(
+      writeNewFile(handle, '', 'a.png', new Blob(['image'])),
+    ).rejects.toBe(denied)
+    expect(lookup).toHaveBeenCalledTimes(1)
+    expect(has('a.png')).toBe(false)
+    expect(has('a-2.png')).toBe(false)
+  })
+
+  it.each([false, true])(
+    'preserves a distinct destination differing only in case (move supported: %s)',
+    async (movable) => {
+      const { handle, read } = fakeFolder(
+        'project',
+        {
+          'a.xml': 'source',
+          'A.xml': 'destination',
+        },
+        movable,
+      )
+      const entry = (await listDirectory(handle, '')).find(
+        (item) => item.name === 'a.xml',
+      )!
+      await expect(renameEntry(handle, entry, 'A.xml')).rejects.toThrow(
+        EntryExistsError,
+      )
+      expect(read('a.xml')).toBe('source')
+      expect(read('A.xml')).toBe('destination')
+    },
+  )
+
+  it.each([false, true])(
+    'uses handle identity for case-only renames (move supported: %s)',
+    async (movable) => {
+      const { handle, read } = fakeFolder(
+        'project',
+        { 'a.xml': 'source' },
+        movable,
+      )
+      const [entry] = await listDirectory(handle, '')
+      // A case-insensitive filesystem resolves both names to the same file.
+      vi.spyOn(handle, 'getFileHandle').mockResolvedValueOnce(
+        entry.handle as FileSystemFileHandle,
+      )
+      if (movable) {
+        await expect(renameEntry(handle, entry, 'A.xml')).resolves.toBe('A.xml')
+        expect(read('A.xml')).toBe('source')
+      } else {
+        // Copying onto that same file before removing the original would lose it.
+        await expect(renameEntry(handle, entry, 'A.xml')).rejects.toThrow(
+          EntryExistsError,
+        )
+        expect(read('a.xml')).toBe('source')
+      }
+    },
+  )
+
+  it('allows a case-only copy when the new name is free', async () => {
+    const { handle, read, has } = fakeFolder('project', { 'a.xml': 'source' })
+    const [entry] = await listDirectory(handle, '')
+    await renameEntry(handle, entry, 'A.xml')
+    expect(read('A.xml')).toBe('source')
+    expect(has('a.xml')).toBe(false)
   })
 
   it("won't rename onto another entry", async () => {

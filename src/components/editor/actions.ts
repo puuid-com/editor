@@ -126,10 +126,18 @@ export function formatActive() {
 
 /** Formats a Markdown file's prose and fenced code, as Prettier and markdownlint would. */
 async function formatMarkdownActive(view: EditorView) {
-  const text = view.state.doc.toString()
+  const { fileId } = editorStore.state
+  const doc = view.state.doc
+  const text = doc.toString()
   const { text: formatted, skipped } = await formatMarkdown(text)
   // Typed over or switched away while the formatters loaded.
-  if (getView() !== view || view.state.doc.toString() !== text) return
+  if (
+    getView() !== view ||
+    editorStore.state.fileId !== fileId ||
+    view.state.doc !== doc ||
+    activeLanguage() !== 'md'
+  )
+    return
   const change = diffChange(text, formatted)
   if (change) view.dispatch({ changes: change, userEvent: 'input.format' })
   if (skipped > 0) notify.error(m.md_format_skipped({ count: skipped }))
@@ -177,15 +185,26 @@ export function commitDefaultsActive() {
  * confirm before the file is changed.
  */
 export function resolveVarsActive() {
-  if (!getView() || isPlain(activeLanguage())) return true
+  const view = getView()
+  const { fileId } = editorStore.state
+  const language = activeLanguage()
+  if (!view || !fileId || isPlain(language)) return true
+  const doc = view.state.doc
   // Faker is large and only needed here, so it loads on first use.
   void import('@faker-js/faker').then(({ faker }) => {
-    const { fileId } = editorStore.state
-    const file = fileId ? filesCollection.get(fileId) : undefined
-    if (!getView() || !file) return
+    const file = filesCollection.get(fileId)
+    if (
+      !file ||
+      getView() !== view ||
+      editorStore.state.fileId !== fileId ||
+      view.state.doc !== doc ||
+      activeLanguage() !== language
+    )
+      return
     // Only errors the values brought in are worth a warning.
     const wasValid = parseActive().errors.length === 0
-    const result = resolveVars(getText(), {
+    const original = doc.toString()
+    const result = resolveVars(original, {
       faker,
       now: new Date(),
       values: variableValues(file.profileId),
@@ -198,7 +217,7 @@ export function resolveVarsActive() {
       )
       return
     }
-    setVarsPreview({ fileId: file.id, wasValid, ...result })
+    setVarsPreview({ fileId: file.id, original, wasValid, ...result })
   })
   return true
 }
@@ -206,6 +225,7 @@ export function resolveVarsActive() {
 /** Writes the confirmed values into the file, as one undo step. */
 export function commitVarsPreview({
   fileId,
+  original,
   text,
   count,
   unresolved,
@@ -215,6 +235,10 @@ export function commitVarsPreview({
   // The preview was made from this file's text, so it only applies there.
   if (!view || editorStore.state.fileId !== fileId) return
   const current = view.state.doc.toString()
+  if (current !== original) {
+    notify.info(m.vars_preview_stale())
+    return
+  }
   const change = diffChange(current, text)
   if (change) view.dispatch({ changes: change, userEvent: 'input.vars' })
   // Values are written as is, so one with `<` or `&` can break the markup.

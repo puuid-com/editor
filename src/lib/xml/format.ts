@@ -158,10 +158,16 @@ function withoutTagPrefixes(text: string, nodes: Array<XmlNode>) {
       edits.push({ from, to: from + el.name.length, insert: name })
     }
   }
-  edits.sort((a, b) => b.from - a.from)
-  for (const { from, to, insert } of edits)
-    text = text.slice(0, from) + insert + text.slice(to)
-  return text
+  if (edits.length === 0) return text
+  edits.sort((a, b) => a.from - b.from)
+  const parts: Array<string> = []
+  let end = 0
+  for (const { from, to, insert } of edits) {
+    parts.push(text.slice(end, from), insert)
+    end = to
+  }
+  parts.push(text.slice(end))
+  return parts.join('')
 }
 
 type Compare = (a: string, b: string) => number

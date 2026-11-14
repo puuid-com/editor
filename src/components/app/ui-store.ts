@@ -44,6 +44,8 @@ interface UiState {
 /** The filled-in copy of `fileId`, computed up front so the dialog shows its values. */
 export interface VarsPreview {
   fileId: string
+  /** Text the preview was made from; later edits must not be overwritten. */
+  original: string
   text: string
   count: number
   unresolved: number

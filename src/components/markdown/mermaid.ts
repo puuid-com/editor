@@ -41,10 +41,12 @@ let count = 0
 // Mermaid keeps one global config, so renders run one at a time.
 let queue: Promise<unknown> = Promise.resolve()
 
-async function renderDiagram(code: string, dark: boolean) {
+async function renderDiagram(code: string, dark: boolean, signal: AbortSignal) {
+  signal.throwIfAborted()
   // Never part of the server bundle: the editor only runs in the browser.
   if (import.meta.env.SSR) throw new Error('Diagrams render in the browser')
   const { default: mermaid } = await import('mermaid')
+  signal.throwIfAborted()
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
@@ -66,8 +68,10 @@ async function renderDiagram(code: string, dark: boolean) {
 export function diagramQuery(code: string, dark: boolean) {
   return queryOptions({
     queryKey: ['mermaid', code, dark],
-    queryFn: () => {
-      const result = queue.then(() => renderDiagram(code, dark))
+    queryFn: ({ signal }) => {
+      // Skip superseded edits and unmounted blocks before they consume the
+      // global render queue. Mermaid cannot interrupt a render already running.
+      const result = queue.then(() => renderDiagram(code, dark, signal))
       queue = result.catch(() => undefined)
       return result
     },

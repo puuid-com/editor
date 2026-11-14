@@ -93,10 +93,14 @@ export function formatTable({
   aligns,
   rows,
 }: MarkdownTable): Array<string> {
-  const count = Math.max(aligns.length, ...rows.map((row) => row.length))
-  const widths = Array.from({ length: count }, (_, col) =>
-    Math.max(3, ...rows.map((row) => (row[col] ?? '').length)),
-  )
+  // Read each cell once, without passing one function argument per row.
+  // Spreading large tables into Math.max exceeds the engine's argument limit.
+  const widths = Array.from({ length: aligns.length }, () => 3)
+  for (const cells of rows) {
+    for (let col = 0; col < cells.length; col++) {
+      widths[col] = Math.max(widths[col] ?? 3, cells[col].length)
+    }
+  }
   const align = (col: number): TableAlign => aligns[col] ?? null
   const line = (cells: Array<string>) => `${prefix}| ${cells.join(' | ')} |`
   const row = (cells: Array<string>) =>
@@ -194,7 +198,10 @@ export function tableFromHeader(line: string): MarkdownTable | null {
 }
 
 export const columnCount = (table: MarkdownTable) =>
-  Math.max(table.aligns.length, ...table.rows.map((row) => row.length))
+  table.rows.reduce(
+    (count, row) => Math.max(count, row.length),
+    table.aligns.length,
+  )
 
 /** Adds a blank row below `cell`'s; the caret starts the new row. */
 export function addRow(table: MarkdownTable, { row }: TableCell): TableEdit {

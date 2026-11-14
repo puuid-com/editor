@@ -4653,6 +4653,34 @@ function UnwrappedXml() {
   )
 }
 
+/** Disk refreshes keep edits typed while the file is being read. */
+function SafeDiskRefresh() {
+  const pane = (kept: boolean) => (
+    <>
+      <PillTabs>
+        <PillTab name="order.xml" active />
+      </PillTabs>
+      <Code
+        lines={[
+          '<order>',
+          `  <status>${kept ? 'ready' : 'pending'}</status>`,
+          '</order>',
+        ]}
+        marks={{ 1: kept ? 'add' : 'remove' }}
+      />
+      <StatusBar>
+        {kept && <IconAlertTriangle className="size-3.5 shrink-0" />}
+        <span className="truncate">
+          {kept
+            ? m.disk_changed({ name: 'order.xml' })
+            : m.saved_to_disk({ name: 'order.xml' })}
+        </span>
+      </StatusBar>
+    </>
+  )
+  return <BeforeAfter before={pane(false)} after={pane(true)} />
+}
+
 function JoinedValues() {
   return (
     <BeforeAfter
@@ -5101,6 +5129,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.63.2': figure(SafeDiskRefresh),
   '1.63.0': figure(UnwrappedXml),
   '1.62.0': figure(SoapNamespaces),
   '1.61.0': figure(JoinedValues),

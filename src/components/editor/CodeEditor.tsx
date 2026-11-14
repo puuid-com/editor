@@ -39,8 +39,7 @@ import { useVariableValues } from '#/hooks/use-variables'
 import { shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { useSelector } from '@tanstack/react-store'
-import { parseDocument } from '#/lib/document'
-import { docLanguage } from './language'
+import { parseEditor } from './parse'
 import { saveContent } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
 import type { EditorState, Extension, StateEffect } from '@codemirror/state'
@@ -230,10 +229,7 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     setActive(fileId)
     setView(view)
     publishCursorFrom(view.state)
-    publishParse(
-      fileId,
-      parseDocument(view.state.doc.toString(), view.state.facet(docLanguage)),
-    )
+    publishParse(fileId, parseEditor(view))
   }
   useEffect(() => {
     if (active) activate()

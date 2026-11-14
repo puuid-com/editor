@@ -75,6 +75,28 @@ describe('formatSql', () => {
     )
   })
 
+  it('preserves doubled delimiters inside quoted identifiers', () => {
+    const identifiers = ['"a""from"', '`a``from`', '[a]]from]']
+    for (const identifier of identifiers) {
+      const expected = `SELECT ${identifier}\nFROM t`
+      expect(formatSql(`select ${identifier} from t`)).toBe(expected)
+      expect(formatSql(expected)).toBe(expected)
+    }
+  })
+
+  it('preserves escaped quotes and backslashes inside PostgreSQL escape strings', () => {
+    const strings = [
+      String.raw`E'it\'s from here'`,
+      String.raw`e'\\'`,
+      "'it''s from here'",
+    ]
+    for (const literal of strings) {
+      const expected = `SELECT ${literal}\nFROM t`
+      expect(formatSql(`select ${literal} from t`)).toBe(expected)
+      expect(formatSql(expected)).toBe(expected)
+    }
+  })
+
   it('gives the same text when run again', () => {
     const once = formatSql(
       'insert into t (a, b) values (1, 2), (3, 4); update t set a = 1, b = 2 where c = 3',

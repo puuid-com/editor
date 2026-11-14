@@ -137,7 +137,15 @@ async function replaceAll<
         updated.map((item) => item.id),
         (drafts) => {
           // Drafts come in the order of the ids.
-          drafts.forEach((draft, i) => Object.assign(draft, updated[i]))
+          drafts.forEach((draft, i) => {
+            const row = updated[i]
+            // A restore replaces rows, including optional fields removed since
+            // this backup. Merging would leave stale disk links or settings.
+            for (const key of Object.keys(draft)) {
+              if (!Object.hasOwn(row, key)) Reflect.deleteProperty(draft, key)
+            }
+            Object.assign(draft, row)
+          })
         },
       )
     }

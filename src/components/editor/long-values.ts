@@ -118,6 +118,7 @@ class ShortenedWidget extends WidgetType {
     return (
       other.value.from === this.value.from &&
       other.value.to === this.value.to &&
+      other.value.text === this.value.text &&
       other.size === this.size
     )
   }
@@ -153,7 +154,9 @@ class ExpandedWidget extends WidgetType {
 
   eq(other: ExpandedWidget) {
     return (
-      other.value.from === this.value.from && other.value.to === this.value.to
+      other.value.from === this.value.from &&
+      other.value.to === this.value.to &&
+      other.value.text === this.value.text
     )
   }
 

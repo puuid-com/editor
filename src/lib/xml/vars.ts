@@ -184,40 +184,42 @@ export function findVarProblems(
       to: to + offset,
       message: m.parse_invalid_variable({ text: text.slice(from, to) }),
     })
-  // Valid variables are blanked so leftover brackets stand out.
+  // Mutate code units in place: rebuilding the whole string for each variable
+  // makes validation quadratic on documents with many placeholders.
   const vars = [...text.matchAll(varRegExp())]
-  let rest = text
+  const rest = text.split('')
   for (const match of vars) {
     const from = match.index
     const to = from + match[0].length
-    rest = rest.slice(0, from) + '\0'.repeat(to - from) + rest.slice(to)
+    rest.fill('\0', from, to)
   }
   for (const match of vars) {
     const from = match.index
     const to = from + match[0].length
-    const [before, after] = STRAY[varStyleOf(match[0])!]
+    const [before, after] =
+      STRAY[match[1] ? 'angle' : match[2] ? 'curly' : 'dollar']
     let start = from
     let end = to
     while (start > 0 && before.has(rest[start - 1])) start--
     while (end < text.length && after.has(rest[end])) end++
     if (start < from || end > to) {
-      rest = rest.slice(0, start) + '\0'.repeat(end - start) + rest.slice(end)
+      rest.fill('\0', start, end)
       report(start, end)
     }
   }
-  for (const match of rest.matchAll(LEFTOVER)) {
+  for (const match of rest.join('').matchAll(LEFTOVER)) {
     const from = match.index
     if (rest[from] === '\0') continue
     const closer = CLOSER[match[0]]
     let to = from + match[0].length
     if (closer) {
       // Takes in the rest of the variable when it is closed on the same line.
-      const window = rest.slice(to, to + VAR_MAX_LENGTH * 2)
+      const window = rest.slice(to, to + VAR_MAX_LENGTH * 2).join('')
       const close = window.search(/\n/)
       const at = window.indexOf(closer)
       if (at >= 0 && (close < 0 || at < close)) to += at + closer.length
     }
-    rest = rest.slice(0, from) + '\0'.repeat(to - from) + rest.slice(to)
+    rest.fill('\0', from, to)
     report(from, to)
   }
   return problems.sort((a, b) => a.from - b.from)

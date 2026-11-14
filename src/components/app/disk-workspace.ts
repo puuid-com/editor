@@ -177,22 +177,38 @@ export async function renameDiskEntry(
   try {
     // Edits not written yet would be lost with the old file.
     await Promise.all(tabs.map((file) => flushDiskSave(file.id)))
+    // Failed/conflicting saves already report why. Moving anyway would give
+    // the stale saved text a fresh disk timestamp and bypass conflict checks.
+    if (tabs.some((file) => isUnsaved(filesCollection.get(file.id))))
+      return false
     const path = await renameEntry(root.handle, entry, name.trim(), parent)
     for (const file of tabs) {
       const moved = rebase(file.location!.path, entry.path, path)
-      const link = diskStore.state[file.id]
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       const handle = await fileAtPath(root.handle, moved)
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      const { lastModified } = await handle.getFile()
+      const disk = await handle.getFile()
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop
+      const text = await readFileContent(disk)
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       await relocateFile(file.id, { rootId: root.id, path: moved })
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop
-      await setDiskLink(file.id, {
-        handle,
-        saved: link?.saved ?? file.content,
-        modified: lastModified,
-      })
+      const current = filesCollection.get(file.id)
+      if (!current) continue
+      if (!isUnsaved(current)) {
+        // A clean tab takes edits made elsewhere before or during the move.
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop
+        await takeDiskText(current, handle, text, disk.lastModified)
+      } else {
+        const saved = diskStore.state[file.id]?.saved ?? file.content
+        // If typing and external edits raced the move, force the next save
+        // to compare contents; the new timestamp cannot validate old text.
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop
+        await setDiskLink(file.id, {
+          handle,
+          saved,
+          modified: text === saved ? disk.lastModified : -1,
+        })
+      }
     }
     return true
   } catch (error) {
@@ -360,12 +376,29 @@ async function syncFromDisk() {
 async function syncFile(file: XmlFile) {
   const link = diskStore.state[file.id]
   if (!link) return
+  // A read can outlive an edit, close, rename or another completed sync.
+  // Only apply its result to the same live file and disk baseline.
+  const currentFile = () => {
+    const current = filesCollection.get(file.id)
+    return current?.deletedAt === null &&
+      !current.closed &&
+      current.location?.rootId === file.location?.rootId &&
+      current.location?.path === file.location?.path &&
+      diskStore.state[file.id] === link
+      ? current
+      : undefined
+  }
   try {
     const disk = await link.handle.getFile()
     if (disk.lastModified === link.modified) return
     const text = await readFileContent(disk)
-    if (text === file.content || !isUnsaved(file)) {
-      await takeDiskText(file, link.handle, text, disk.lastModified)
+    // Pending paced writes contain a full row; let them finish before an
+    // external edit so they cannot restore the old text afterwards.
+    await settleContentSave()
+    const current = currentFile()
+    if (!current) return
+    if (text === current.content || !isUnsaved(current)) {
+      await takeDiskText(current, link.handle, text, disk.lastModified)
       return
     }
     // Touched but not changed: this tab's edits still go on top.
@@ -380,7 +413,7 @@ async function syncFile(file: XmlFile) {
       },
     })
   } catch (error) {
-    if (!isNotFound(error)) return
+    if (!isNotFound(error) || !currentFile()) return
     await relocateFile(file.id, undefined)
     await deleteDiskLink(file.id)
     notify.info(m.folder_file_gone({ name: file.name }))

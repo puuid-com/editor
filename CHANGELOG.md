@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.63.2] - 2026-11-13
+
+### Fixed
+
+- Keep edits made during a disk refresh, prevent case-sensitive rename collisions, and report disk permission failures without repeated retries.
+- Restore backups without retaining settings or file locations that are absent from the backup.
+- Keep copied long values and cursor line numbers current after edits, and apply delayed editor commands only to the file and text they started with.
+- Preserve escaped quotes inside SQL strings and identifiers when formatting.
+- Reduce repeated document parsing, variable validation, XML prefix cleanup and folder traversal; skip obsolete queued diagram renders and handle very large Markdown tables without crashing.
+
 ## [1.63.1] - 2026-11-13
 
 ### Fixed

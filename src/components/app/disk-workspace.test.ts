@@ -11,15 +11,21 @@ import {
 import {
   deleteDiskEntry,
   openDiskFile,
+  reconnectFolder,
   renameDiskEntry,
   startDiskSync,
 } from './disk-workspace'
 import { closeTabs } from './files'
 import { noticeStore } from './notice-store'
+import { saveToDisk } from '#/components/editor/disk'
 import { listDirectory } from '#/lib/disk-tree'
-import { diskStore, rootsStore } from '#/lib/store/disk'
+import { diskStore, rootsStore, setDiskLink } from '#/lib/store/disk'
 import type { DiskRoot } from '#/lib/store/disk'
-import { filesCollection, saveContent } from '#/lib/store/files'
+import {
+  filesCollection,
+  saveContent,
+  settleContentSave,
+} from '#/lib/store/files'
 import { workspaceReady } from '#/lib/store/workspace'
 import { fakeFolder } from '#/test/fake-fs'
 
@@ -106,6 +112,51 @@ describe('folders opened from disk', () => {
     expect(noticeStore.state?.message).toContain('gone.xml')
   })
 
+  it('preserves edits made while a focus refresh is reading the file', async () => {
+    const { root, entry, write } = await openFolder({ 'race.xml': '<a/>' })
+    const id = (await openDiskFile(root, await entry('race.xml')))!
+    const link = diskStore.state[id]!
+    write('race.xml', '<a>outside</a>')
+    const disk = await link.handle.getFile()
+    const pending = Promise.withResolvers<File>()
+    const read = vi
+      .spyOn(link.handle, 'getFile')
+      .mockReturnValueOnce(pending.promise)
+    const refresh = reconnectFolder(root)
+    await vi.waitFor(() => expect(read).toHaveBeenCalled())
+    saveContent({ id, content: '<a>typed during refresh</a>' })
+    pending.resolve(disk)
+    await refresh
+    expect(noticeStore.state?.message).toContain('race.xml')
+    expect(filesCollection.get(id)?.content).toBe('<a>typed during refresh</a>')
+    await settleContentSave()
+  })
+
+  it('ignores an old read after the file acquires a new disk baseline', async () => {
+    const { root, entry, write } = await openFolder({ 'baseline.xml': '<a/>' })
+    const id = (await openDiskFile(root, await entry('baseline.xml')))!
+    const link = diskStore.state[id]!
+    write('baseline.xml', '<a>old disk snapshot</a>')
+    const disk = await link.handle.getFile()
+    const pending = Promise.withResolvers<File>()
+    const read = vi
+      .spyOn(link.handle, 'getFile')
+      .mockReturnValueOnce(pending.promise)
+    const refresh = reconnectFolder(root)
+    await vi.waitFor(() => expect(read).toHaveBeenCalled())
+    saveContent({ id, content: '<a>new baseline</a>' })
+    await settleContentSave()
+    await setDiskLink(id, {
+      ...link,
+      saved: '<a>new baseline</a>',
+      modified: 3,
+    })
+    pending.resolve(disk)
+    await refresh
+    expect(filesCollection.get(id)?.content).toBe('<a>new baseline</a>')
+    expect(diskStore.state[id]?.saved).toBe('<a>new baseline</a>')
+  })
+
   it('closes a saved tab without archiving it', async () => {
     const { root, entry } = await openFolder({ 'a.xml': '<a/>' })
     const id = (await openDiskFile(root, await entry('a.xml')))!
@@ -159,5 +210,59 @@ describe('folders opened from disk', () => {
     expect(await deleteDiskEntry(root, await entry('src'))).toBe(true)
     expect(has('src')).toBe(false)
     expect(filesCollection.has(id)).toBe(false)
+  })
+
+  it('does not rename a file whose pending edits conflict with disk', async () => {
+    const { root, entry, read, write, has } = await openFolder({
+      'conflict.xml': '<a>original</a>',
+    })
+    const target = await entry('conflict.xml')
+    const id = (await openDiskFile(root, target))!
+    saveContent({ id, content: '<a>local</a>' })
+    write('conflict.xml', '<a>external</a>')
+    expect(await renameDiskEntry(root, target, 'renamed.xml')).toBe(false)
+    expect(has('renamed.xml')).toBe(false)
+    expect(read('conflict.xml')).toBe('<a>external</a>')
+    expect(filesCollection.get(id)?.content).toBe('<a>local</a>')
+    expect(diskStore.state[id]?.saved).toBe('<a>original</a>')
+    expect(diskStore.state[id]?.modified).toBe(1)
+  })
+
+  it('refreshes a clean tab from the actual contents of its renamed file', async () => {
+    const { root, entry, read, write } = await openFolder({
+      'changed.xml': '<a>original</a>',
+    })
+    const target = await entry('changed.xml')
+    const id = (await openDiskFile(root, target))!
+    write('changed.xml', '<a>external</a>')
+    expect(await renameDiskEntry(root, target, 'moved.xml')).toBe(true)
+    expect(read('moved.xml')).toBe('<a>external</a>')
+    expect(filesCollection.get(id)?.content).toBe('<a>external</a>')
+    expect(diskStore.state[id]?.saved).toBe('<a>external</a>')
+  })
+
+  it('keeps conflict detection when local and external edits race a rename', async () => {
+    const { root, entry, read, write } = await openFolder({
+      'moving.xml': '<a>original</a>',
+    })
+    const target = await entry('moving.xml')
+    const id = (await openDiskFile(root, target))!
+    const getFileHandle = root.handle.getFileHandle.bind(root.handle)
+    vi.spyOn(root.handle, 'getFileHandle').mockImplementation(
+      async (name, options) => {
+        const handle = await getFileHandle(name, options)
+        if (name === 'moved.xml' && !options?.create) {
+          saveContent({ id, content: '<a>local</a>' })
+          write('moved.xml', '<a>external</a>')
+        }
+        return handle
+      },
+    )
+    expect(await renameDiskEntry(root, target, 'moved.xml')).toBe(true)
+    await saveToDisk(id)
+    expect(read('moved.xml')).toBe('<a>external</a>')
+    expect(filesCollection.get(id)?.content).toBe('<a>local</a>')
+    expect(diskStore.state[id]?.saved).toBe('<a>original</a>')
+    expect(noticeStore.state?.message).toContain('moved.xml')
   })
 })
