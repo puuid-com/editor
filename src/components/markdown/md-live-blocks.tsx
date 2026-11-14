@@ -1,4 +1,3 @@
-import { redo, undo } from '@codemirror/commands'
 import { syntaxTree } from '@codemirror/language'
 import {
   Annotation,
@@ -29,6 +28,7 @@ import type { Root } from 'react-dom/client'
 import type { Parser } from '@lezer/common'
 
 import { renderCell } from './md-cell'
+import { redoIn, undoIn } from '#/components/editor/undo'
 import { isLive, setMarkdownLive } from './md-live'
 import { TableToolbar } from './TableControls'
 import type { TableToolbarInfo } from './TableControls'
@@ -763,13 +763,13 @@ class TableGrid {
     }
     if (mod && !event.altKey && event.key.toLowerCase() === 'z') {
       handled()
-      if (event.shiftKey) redo(this.view)
-      else undo(this.view)
+      if (event.shiftKey) redoIn(this.view)
+      else undoIn(this.view)
       return
     }
     if (mod && !event.altKey && event.key.toLowerCase() === 'y') {
       handled()
-      redo(this.view)
+      redoIn(this.view)
       return
     }
     if ((mod || event.altKey) && !CELL_KEYS.has(event.key.toLowerCase())) {

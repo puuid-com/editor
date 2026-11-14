@@ -11,6 +11,7 @@ import {
   newId,
   withDefaultProfile,
 } from './persist'
+import { withoutHistory } from './history'
 import { writerId } from './session'
 import type { LabelSettings } from '#/lib/zpl/settings'
 import { labelSettingsSchema } from '#/lib/zpl/schema'
@@ -45,9 +46,26 @@ export type XmlFile = z.infer<typeof fileSchema>
 export type FileLocation = NonNullable<XmlFile['location']>
 export const ARCHIVE_LIMIT = 10
 
+// Undo covers what people change about a file: its name, profile, folder and
+// label settings, and deleting it. Text has the editor's history; opening and
+// closing tabs isn't an edit. Files of a folder on disk keep the name and
+// place they have there.
+const BROWSER_FIELDS = [
+  'name',
+  'profileId',
+  'folderId',
+  'deletedAt',
+  'zplSettings',
+]
+const DISK_FIELDS = ['profileId', 'zplSettings']
+
 export const filesCollection = localCollection('files', fileSchema, {
   // Closed tabs of the oldest versions were dropped rather than archived.
   upgrade: (row) => (row.open === false ? null : withDefaultProfile(row)),
+  history: {
+    rows: false,
+    fields: (row) => (row.location ? DISK_FIELDS : BROWSER_FIELDS),
+  },
 })
 
 /** Whether a file has a tab open, as opposed to closed or deleted. */
@@ -376,10 +394,13 @@ function updateMetadata(
 export function saveContent({ id, content }: { id: string; content: string }) {
   return saveFile(() => {
     if (filesCollection.get(id)?.deletedAt !== null) return
-    filesCollection.update(id, (draft) => {
-      draft.content = content
-      draft.writer = writerId
-    })
+    // The editor's own history has the text.
+    withoutHistory(() =>
+      filesCollection.update(id, (draft) => {
+        draft.content = content
+        draft.writer = writerId
+      }),
+    )
   })
 }
 

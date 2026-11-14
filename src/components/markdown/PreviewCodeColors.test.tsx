@@ -8,7 +8,7 @@ import { MarkdownPreview } from './MarkdownPreview'
 import { markdownSupport } from './md-language'
 import { profileFor } from '#/components/app/files'
 import { registerFileView } from '#/components/editor/editor-store'
-import { fileIdField } from '#/components/editor/extensions'
+import { fileIdField } from '#/components/editor/file-id'
 import { createFile, filesCollection } from '#/lib/store/files'
 import { workspaceReady } from '#/lib/store/workspace'
 

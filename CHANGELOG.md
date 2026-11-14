@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.64.0] - 2026-11-13
+
+### Added
+
+- Undo and redo now cover everything you change, not only text: pinning, highlight colours, profile settings and colours, default values, variables, folders, renaming, deleting a file, moving a file to another profile, the theme and the editor preferences. ⌘Z takes back the latest change wherever the focus is, editor included, in the order you made them.
+
 ## [1.63.3] - 2026-11-13
 
 ### Fixed

@@ -1,7 +1,7 @@
 import { forceLinting } from '@codemirror/lint'
 import { Annotation, EditorState, Transaction } from '@codemirror/state'
 
-import { fileIdField } from './extensions'
+import { fileIdField } from './file-id'
 import {
   docLanguage,
   languageCompartment,

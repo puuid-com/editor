@@ -72,6 +72,8 @@ export const profilesCollection = localCollection('profiles', profileSchema, {
     format: withDefaults(row.format as Partial<FormatSettings> | undefined),
   }),
   initial: () => [defaultProfile()],
+  // Samples follow what people do; undoing them is no one's intent.
+  history: { ignore: ['samples'] },
 })
 
 /** A creation time that never sorts a new profile before an older one. */

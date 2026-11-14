@@ -8,10 +8,12 @@ import type { XmlFile } from '#/lib/store/files'
 
 // The shared DB owns files. This read-only projection lets the imported ZPL
 // tools select just the source/settings they need without another saved library.
-const preferences = persistedStore('zpl-preferences', () => localStorage, {
-  explain: true,
-  syncZoom: false,
-})
+const preferences = persistedStore(
+  'zpl-preferences',
+  () => localStorage,
+  { explain: true, syncZoom: false },
+  { undoable: true },
+)
 
 /** A file the ZPL tools work on: a label, not deleted. */
 function isLabel(file: XmlFile) {

@@ -1,4 +1,4 @@
-import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands'
+import { redoDepth, undoDepth } from '@codemirror/commands'
 
 import {
   activeLanguage,
@@ -10,6 +10,7 @@ import {
   revealRange,
 } from './editor-store'
 import { tagNameNear } from './syntax'
+import { redoIn, undoIn } from './undo'
 import { copyText } from '#/components/app/clipboard'
 import { notify } from '#/components/app/notice-store'
 import {
@@ -21,6 +22,7 @@ import type { VarsPreview } from '#/components/app/ui-store'
 import { sameName } from '#/lib/names'
 import { encodeShare, ShareError } from '#/lib/share'
 import { filesCollection } from '#/lib/store/files'
+import { historyDepths } from '#/lib/store/history'
 import { enabledDefaults } from '#/lib/store/defaults'
 import { profileHighlights } from '#/lib/store/highlights'
 import {
@@ -53,23 +55,28 @@ import type { EditorView } from '@codemirror/view'
 
 // Commands return `true` so CodeMirror keymaps treat the key as handled.
 
-/** Undoes the active file's last change, such as a tree edit or a format. */
+/**
+ * Undoes the latest change: the active file's text, such as a tree edit or a
+ * format, or anything else, such as a pin, a colour or a profile setting.
+ */
 export function undoActive() {
-  const view = getView()
-  if (view) undo(view)
+  undoIn(getView())
 }
 
 export function redoActive() {
-  const view = getView()
-  if (view) redo(view)
+  redoIn(getView())
 }
 
-/** How many steps the active file can undo and redo. */
+/** How many steps undo and redo can take from here. */
 export function historyDepth() {
   const view = getView()
+  const app = historyDepths(editorStore.state.fileId)
   return view
-    ? { undo: undoDepth(view.state), redo: redoDepth(view.state) }
-    : { undo: 0, redo: 0 }
+    ? {
+        undo: Math.max(app.undo, undoDepth(view.state)),
+        redo: Math.max(app.redo, redoDepth(view.state)),
+      }
+    : app
 }
 
 export function formatActive() {

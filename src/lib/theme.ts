@@ -1,3 +1,5 @@
+import { recordStep } from './store/history'
+
 const storageKey = 'theme'
 
 // Runs before first paint so the page never flashes the wrong theme.
@@ -21,8 +23,13 @@ export const themeScript = `(() => {
   media.addEventListener('change', apply)
 })()`
 
-/** Flips between light and dark and remembers the choice. */
+/** Flips between light and dark and remembers the choice. Undoable. */
 export function toggleTheme() {
+  flipTheme()
+  recordStep({ undo: flipTheme, redo: flipTheme })
+}
+
+function flipTheme() {
   const dark = document.documentElement.classList.toggle('dark')
   try {
     localStorage.setItem(storageKey, dark ? 'dark' : 'light')

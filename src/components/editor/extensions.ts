@@ -5,12 +5,7 @@ import {
   closeBracketsKeymap,
   completionKeymap,
 } from '@codemirror/autocomplete'
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  indentWithTab,
-} from '@codemirror/commands'
+import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import {
   bracketMatching,
   foldKeymap,
@@ -53,6 +48,7 @@ import {
   varValuesFacet,
 } from './dynamic-vars'
 import { docLanguage } from './language'
+import { fileIdField } from './file-id'
 import { parseEditor } from './parse'
 import { shortenLongValues } from './long-values'
 import { soapDisplay } from './soap-namespaces'
@@ -62,6 +58,7 @@ import { pasteOverStarter, pastedWhole } from './paste'
 import { searchNoAutofill } from './search'
 import { namesParent, treeChanged } from './syntax'
 import { tagHighlights } from './tag-highlights'
+import { editorHistory, historyKeys } from './undo'
 import { wordWrap } from './word-wrap'
 import { editorTheme } from './theme'
 import { isPlain } from '#/lib/document'
@@ -77,12 +74,6 @@ import type {
 } from '@codemirror/view'
 import type { DefaultMatch, DefaultRule } from '#/lib/xml/defaults'
 import type { XmlDocument } from '#/lib/xml/model'
-
-/** The cached file this editor state belongs to. */
-export const fileIdField = StateField.define<string>({
-  create: () => '',
-  update: (value) => value,
-})
 
 // Variables without a value in the profile look different, so it's clear
 // which ones ⇧⌥V would leave as written.
@@ -268,7 +259,7 @@ export function editorExtensions(
   return [
     editorGutters(),
     highlightSpecialChars(),
-    history(),
+    editorHistory(),
     drawSelection(),
     dropCursor(),
     indentOnInput(),
@@ -350,7 +341,7 @@ export function editorExtensions(
       ...closeBracketsKeymap,
       ...defaultKeymap,
       ...searchKeymap,
-      ...historyKeymap,
+      ...historyKeys,
       ...foldKeymap,
       ...completionKeymap,
       // Tab accepts an open completion before falling back to indenting.

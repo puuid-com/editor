@@ -21,6 +21,7 @@ export const editorPrefs = persistedStore(
     /** The sidebar sits right of the sheet instead of left. */
     sidebarRight: true,
   },
+  { undoable: true },
 )
 
 /** Turns soft wrapping of long lines on or off in every editor. */

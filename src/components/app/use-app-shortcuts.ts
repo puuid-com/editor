@@ -38,9 +38,9 @@ export function useAppShortcuts({
   useHotkey(shortcuts.togglePanel.hotkey, onTogglePanel)
   // VS Code's key; works in the editor too, where ⌥Z would type a character.
   useHotkey(shortcuts.wordWrap.hotkey, toggleWordWrap, { ignoreInputs: false })
-  // Undo the active file from anywhere but text fields and the editor, which
-  // keep their own history, so an edit made on a tree row or pinned field
-  // can be taken back where it was made.
+  // Undo from anywhere but text fields, which keep their own history, and the
+  // editor, which binds the same keys. Every change is on one timeline: an
+  // edit on a tree row, a pin, a colour, a profile setting.
   const history = (action: () => void) => (e: KeyboardEvent) => {
     if (e.defaultPrevented) return
     const target = e.target
@@ -53,7 +53,6 @@ export function useAppShortcuts({
     action()
   }
   const historyOptions = {
-    enabled: !!activeId,
     ignoreInputs: false,
     preventDefault: false,
   }
@@ -61,7 +60,7 @@ export function useAppShortcuts({
   useHotkey(shortcuts.redo.hotkey, history(redoActive), historyOptions)
   useHotkey(shortcuts.redoAlt.hotkey, history(redoActive), {
     ...historyOptions,
-    enabled: !!activeId && !isMac,
+    enabled: !isMac,
   })
   // Profiles belong to files, so these only act with a file open.
   useHotkey(shortcuts.nextProfile.hotkey, switchToNextProfile, {

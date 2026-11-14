@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-db'
 import { Store } from '@tanstack/store'
 
+import { setHistorySettle, watchCollection, watchStore } from './history'
 import { singleton } from './singleton'
 import type { z } from 'zod'
 
@@ -69,6 +70,8 @@ export async function settleWrites() {
   await writes
 }
 
+setHistorySettle(settleWrites)
+
 /**
  * Runs `write` after every earlier one, and reports a refused write before
  * passing the error on, so the change rolls back.
@@ -96,6 +99,8 @@ interface LocalCollectionOptions<T> {
   upgrade?: (row: Row) => Row | null
   /** Rows an empty workspace starts with. */
   initial?: () => Array<T>
+  /** What of people's changes to the rows undo can take back. */
+  history?: Parameters<typeof watchCollection>[1]
 }
 
 function createLocalCollection<
@@ -159,7 +164,10 @@ export function localCollection<
   options: LocalCollectionOptions<z.output<TSchema>> = {},
 ) {
   return singleton(name, () => {
-    const collection = createLocalCollection(name, schema)
+    const collection = watchCollection(
+      createLocalCollection(name, schema),
+      options.history,
+    )
     registered.push({ name, schema, collection, options })
     return collection
   })
@@ -236,16 +244,19 @@ async function upgrade({ name, schema, collection, options }: Registered) {
 /**
  * A store saved to `storage` under `xml-editor:<name>` on every change, and
  * restored from it on load. Stored fields override `initial`, so settings
- * added later get their default.
+ * added later get their default. With `undoable`, its changes join the undo
+ * history.
  */
 export function persistedStore<T extends object>(
   name: string,
   storage: () => Storage,
   initial: T,
+  { undoable = false }: { undoable?: boolean } = {},
 ) {
   return singleton(name, () => {
     const key = STORAGE_PREFIX + name
     const store = new Store<T>(load(storage, key, initial))
+    if (undoable) watchStore(store)
     store.subscribe(() => {
       try {
         storage().setItem(key, JSON.stringify(store.state))
