@@ -9,6 +9,7 @@ import type { DefaultRule } from '#/lib/xml/defaults'
 export function useDefaults(fileId?: string) {
   const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
+    queryKey: ['defaults', profileId],
     query: (q) =>
       q
         .from({ rule: defaultsCollection })

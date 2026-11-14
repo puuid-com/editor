@@ -14,6 +14,7 @@ import { localName, sameName } from '#/lib/names'
 import { appendNames } from '#/lib/sort-order'
 import { isZplTag } from '#/lib/zpl/tags'
 import { m } from '#/paraglide/messages'
+import type { XmlFile } from './files'
 import type { FormatSettings } from './format-settings'
 import type { Fingerprint } from '#/lib/fingerprint'
 
@@ -238,6 +239,23 @@ export function learnSample(profileId: string, name: string, content: string) {
   }
 }
 
+// Each file's fingerprint, kept until its name or text changes: every file
+// opened or pasted over compares against all the others, and parsing each of
+// them again every time would grow with the whole workspace.
+const prints = new Map<
+  string,
+  { name: string; content: string; print: Fingerprint }
+>()
+
+function filePrint(file: XmlFile) {
+  const cached = prints.get(file.id)
+  if (cached?.name === file.name && cached.content === file.content)
+    return cached.print
+  const print = fingerprint(file.name, file.content)
+  prints.set(file.id, { name: file.name, content: file.content, print })
+  return print
+}
+
 /**
  * Picks profiles for incoming files by their structure: each profile is
  * compared through its learned samples and the files it holds now. Built
@@ -249,9 +267,11 @@ export function profileGuesser(exceptFileId?: string) {
     profilesList().map((p) => [p.id, [...p.samples]]),
   )
   if (examples.size < 2) return () => null
+  for (const id of prints.keys())
+    if (!filesCollection.has(id)) prints.delete(id)
   for (const file of filesCollection.values()) {
     if (file.id === exceptFileId) continue
-    examples.get(file.profileId)?.push(fingerprint(file.name, file.content))
+    examples.get(file.profileId)?.push(filePrint(file))
   }
   const match = profileMatcher(
     [...examples].map(([id, samples]) => ({ id, samples })),

@@ -79,6 +79,7 @@ function* differingTargets(
   nodes: Array<XmlNode>,
   rules: ReadonlyArray<DefaultRule>,
 ): Generator<DefaultTarget> {
+  if (rules.length === 0) return
   const index = defaultIndex(rules)
   for (const el of allElements(nodes)) {
     for (const attr of el.attrs) {
@@ -153,8 +154,10 @@ export function defaultMatches(
   nodes: Array<XmlNode>,
   rules: ReadonlyArray<DefaultRule>,
 ): Array<DefaultMatch> {
-  const index = defaultIndex(rules)
   const matches: Array<DefaultMatch> = []
+  // The editor asks after every parse, mostly with no rules at all.
+  if (rules.length === 0) return matches
+  const index = defaultIndex(rules)
   for (const el of allElements(nodes)) {
     for (const attr of el.attrs) {
       const value = attrDefault(index, attr)

@@ -1,6 +1,54 @@
 import { describe, expect, it } from 'vitest'
 
-import { occurrenceLabels } from './locate'
+import { elementAt, elementByPath, occurrenceLabels } from './locate'
+import { parseXml } from './parse'
+import { parseJson } from '#/lib/json/parse'
+
+describe('elementAt', () => {
+  const text = '<r><a>1</a>x<b/><c><d>2</d></c></r>'
+  const { nodes } = parseXml(text)
+  const at = (pos: number) => elementAt(nodes, pos)?.name ?? null
+
+  it('finds the deepest element holding the cursor', () => {
+    expect(at(text.indexOf('2'))).toBe('d')
+    expect(at(text.indexOf('<c>'))).toBe('c')
+    expect(at(0)).toBe('r')
+  })
+
+  it('gives a cursor right after a close tag to that element', () => {
+    // After `</a>`, where text starts, and after `<b/>`, where `<c>` starts.
+    expect(at(text.indexOf('x'))).toBe('a')
+    expect(at(text.indexOf('<c>'))).toBe('c')
+    expect(at(text.length)).toBe('r')
+  })
+
+  it('searches long sibling lists', () => {
+    const items = Array.from({ length: 500 }, (_, i) => `<i>${i}</i>`)
+    const long = `<r>${items.join('\n')}</r>`
+    const doc = parseXml(long)
+    const pos = long.indexOf('<i>321</i>') + 4
+    expect(elementAt(doc.nodes, pos)?.path).toBe('/r[1]/i[322]')
+  })
+
+  it('finds JSON members', () => {
+    const json = '{"a": 1, "b": {"c": [true, false]}}'
+    const doc = parseJson(json)
+    expect(elementAt(doc.nodes, json.indexOf('false'))?.path).toBe(
+      '/b[1]/c[1]/1[1]',
+    )
+  })
+})
+
+describe('elementByPath', () => {
+  it('finds elements and JSON keys holding a slash', () => {
+    const xml = parseXml('<r><a/><a><b/></a></r>')
+    expect(elementByPath(xml.nodes, '/r[1]/a[2]/b[1]')?.name).toBe('b')
+    expect(elementByPath(xml.nodes, '/r[1]/a[3]')).toBeNull()
+    expect(elementByPath(xml.nodes, '')).toBeNull()
+    const json = parseJson('{"a/b": {"c": 1}}')
+    expect(elementByPath(json.nodes, '/a%2Fb[1]/c[1]')?.name).toBe('c')
+  })
+})
 
 describe('occurrenceLabels', () => {
   it('shows only the step that differs', () => {

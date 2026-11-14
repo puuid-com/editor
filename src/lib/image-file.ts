@@ -39,8 +39,10 @@ export async function readFileContent(file: File): Promise<string> {
 export function contentBlob(content: string, mime = 'text/plain') {
   if (!isImageData(content)) return new Blob([content], { type: mime })
   const comma = content.indexOf(',')
-  const bytes = Uint8Array.from(atob(content.slice(comma + 1)), (c) =>
-    c.charCodeAt(0),
-  )
+  const binary = atob(content.slice(comma + 1))
+  // A plain loop: `Uint8Array.from` with a mapper calls it per byte through
+  // the string's iterator, many times slower on a large image.
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   return new Blob([bytes], { type: content.slice(5, content.indexOf(';')) })
 }

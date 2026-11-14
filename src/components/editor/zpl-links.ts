@@ -88,8 +88,10 @@ export function zplLinkTargets(
 ) {
   const links: Array<ZplLink> = []
   if (tags.length === 0) return links
+  // Values are read only for marked tags: this runs on every edit, and
+  // reading every element's text would cost a copy of the document.
   const add = (name: string, value: string | null, at: number, side = 1) => {
-    if (value === null || !isZplTag(tags, name)) return
+    if (value === null) return
     const url = zplViewerUrl(value)
     if (url) links.push({ name, url, at, side })
   }
@@ -97,27 +99,25 @@ export function zplLinkTargets(
     enter(ref) {
       if (ref.name === 'Element') {
         const open = ref.node.getChild('OpenTag')
-        const name = open?.getChild('TagName')
-        if (open && name) {
-          add(
-            state.sliceDoc(name.from, name.to),
-            elementText(state, ref.node),
-            open.to,
-          )
-        }
+        const tag = open?.getChild('TagName')
+        if (!open || !tag) return undefined
+        const name = state.sliceDoc(tag.from, tag.to)
+        if (isZplTag(tags, name))
+          add(name, elementText(state, ref.node), open.to)
         return undefined
       }
       if (ref.name === 'Property') {
         const key = ref.node.getChild('PropertyName')
         const value = key?.nextSibling?.nextSibling
-        if (key && value?.name === 'String') {
+        if (!key || value?.name !== 'String') return undefined
+        const name = decodeString(state.sliceDoc(key.from, key.to))
+        if (isZplTag(tags, name))
           add(
-            decodeString(state.sliceDoc(key.from, key.to)),
+            name,
             decodeString(state.sliceDoc(value.from, value.to)),
             value.from,
             -1,
           )
-        }
       }
       return undefined
     },
@@ -138,10 +138,14 @@ function build(state: EditorState): DecorationSet {
 const zplLinkField = StateField.define<DecorationSet>({
   create: build,
   update(value, tr) {
-    const stale =
-      tr.docChanged ||
-      syntaxTree(tr.startState) !== syntaxTree(tr.state) ||
+    const tagsChanged =
       tr.startState.facet(tagsFacet) !== tr.state.facet(tagsFacet)
+    // No marked tags, no links: nothing to look for on each edit.
+    if (!tagsChanged && tr.state.facet(tagsFacet).length === 0) return value
+    const stale =
+      tagsChanged ||
+      tr.docChanged ||
+      syntaxTree(tr.startState) !== syntaxTree(tr.state)
     return stale ? build(tr.state) : value
   },
   provide: (field) => EditorView.decorations.from(field),

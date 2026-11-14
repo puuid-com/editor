@@ -10,6 +10,7 @@ import { highlightCss, highlightsCollection } from '#/lib/store/highlights'
 export function useHighlights(fileId?: string) {
   const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
+    queryKey: ['highlights', profileId],
     query: (q) =>
       q
         .from({ rule: highlightsCollection })

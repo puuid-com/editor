@@ -5,7 +5,13 @@ import { Decoration, EditorView, WidgetType } from '@codemirror/view'
 import { copyText } from '#/components/app/clipboard'
 import { decodeString } from '#/lib/json/parse'
 import { m } from '#/paraglide/messages'
-import type { EditorState, Extension, Range } from '@codemirror/state'
+import type {
+  ChangeSet,
+  EditorState,
+  Extension,
+  Range,
+  Text,
+} from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
 
 // Values longer than the limit show only their two ends, with a chip in
@@ -36,34 +42,80 @@ interface LongValue {
   /** The value without surrounding whitespace, or the JSON string's quotes. */
   from: number
   to: number
-  /** The text a copy puts on the clipboard. */
-  text: string
+  /** A JSON string, whose copy is decoded. */
+  json: boolean
+  /** How big the copied text is, as the chip shows it. */
+  size: string
 }
 
-/** Values in the document longer than `limit` characters. */
-export function longValues(state: EditorState, limit: number) {
+/**
+ * The text a copy puts on the clipboard, read when it is asked for: values
+ * can be megabytes, and are found again on every edit.
+ */
+export function valueText(state: EditorState, value: LongValue) {
+  return value.json
+    ? decodeString(state.sliceDoc(value.from - 1, value.to + 1))
+    : state.sliceDoc(value.from, value.to)
+}
+
+/** `from`–`to` without the whitespace at either end, read in small windows. */
+function trimmed(doc: Text, from: number, to: number) {
+  const WINDOW = 64
+  let start = from
+  for (;;) {
+    if (start >= to) return { from: to, to }
+    const chunk = doc.sliceString(start, Math.min(to, start + WINDOW))
+    const at = chunk.search(/\S/)
+    if (at >= 0) {
+      start += at
+      break
+    }
+    start += chunk.length
+  }
+  // Something other than whitespace is at `start`, so this stops there.
+  let end = to
+  for (;;) {
+    const chunk = doc.sliceString(Math.max(start, end - WINDOW), end)
+    const trailing = chunk.length - chunk.trimEnd().length
+    end -= trailing
+    if (trailing < chunk.length) return { from: start, to: end }
+  }
+}
+
+/** Values found before an edit, by where they start after it. */
+type KnownValues = ReadonlyMap<number, LongValue>
+
+/**
+ * Values in the document longer than `limit` characters. `known` values
+ * whose text is unchanged keep their size, so only edited ones are read.
+ */
+export function longValues(
+  state: EditorState,
+  limit: number,
+  known: KnownValues = new Map(),
+) {
   const values: Array<LongValue> = []
   if (limit <= 0) return values
+  const value = (from: number, to: number, json: boolean): LongValue => {
+    const old = known.get(from)
+    if (old && old.to === to && old.json === json) return old
+    const found = { from, to, json, size: '' }
+    found.size = formatSize(utf8Length(valueText(state, found)))
+    return found
+  }
   syntaxTree(state).iterate({
     enter(node) {
+      // Nothing inside a node this short can be longer than the limit.
+      if (node.to - node.from <= limit) return false
       if (node.name === 'Text') {
-        if (node.to - node.from <= limit) return false
-        const raw = state.sliceDoc(node.from, node.to)
-        const start = raw.length - raw.trimStart().length
-        const text = raw.trim()
-        if (text.length <= limit) return false
-        const from = node.from + start
-        values.push({ from, to: from + text.length, text })
+        const { from, to } = trimmed(state.doc, node.from, node.to)
+        if (to - from > limit) values.push(value(from, to, false))
         return false
       }
       if (node.name === 'String') {
         // JSON keys are PropertyName, so a String here is always a value.
-        if (node.to - node.from - 2 <= limit) return false
-        values.push({
-          from: node.from + 1,
-          to: node.to - 1,
-          text: decodeString(state.sliceDoc(node.from, node.to)),
-        })
+        if (node.to - node.from - 2 > limit)
+          values.push(value(node.from + 1, node.to - 1, true))
         return false
       }
       return undefined
@@ -72,8 +124,36 @@ export function longValues(state: EditorState, limit: number) {
   return values
 }
 
-function formatSize(text: string) {
-  const bytes = new TextEncoder().encode(text).length
+/** Values an edit left untouched, moved to where they are after it. */
+function unchangedValues(
+  values: ReadonlyArray<LongValue>,
+  changes: ChangeSet | null,
+): KnownValues {
+  const known = new Map<number, LongValue>()
+  for (const value of values) {
+    if (!changes) {
+      known.set(value.from, value)
+    } else if (!changes.touchesRange(value.from, value.to)) {
+      const from = changes.mapPos(value.from)
+      known.set(from, { ...value, from, to: changes.mapPos(value.to) })
+    }
+  }
+  return known
+}
+
+/** Bytes `text` takes in UTF-8, without encoding it. */
+function utf8Length(text: string) {
+  let bytes = 0
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i)
+    // Each half of a surrogate pair counts 2 of its 4 bytes.
+    bytes +=
+      code < 0x80 ? 1 : code < 0x800 || (code & 0xf800) === 0xd800 ? 2 : 3
+  }
+  return bytes
+}
+
+function formatSize(bytes: number) {
   if (bytes < 1024) return m.long_value_bytes({ count: bytes })
   const kb = bytes / 1024
   if (kb < 1024) return m.long_value_kb({ size: kb.toFixed(1) })
@@ -86,8 +166,9 @@ const COPY_ICON =
 const COLLAPSE_ICON =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6"/></svg>'
 
-function copyValue(text: string) {
-  void copyText(text, formatSize(text))
+function copyValue(view: EditorView, value: LongValue) {
+  const text = valueText(view.state, value)
+  void copyText(text, formatSize(utf8Length(text)))
 }
 
 function button(className: string, title: string, onClick: () => void) {
@@ -105,22 +186,24 @@ function button(className: string, title: string, onClick: () => void) {
   return el
 }
 
+/**
+ * Whether two chips stand for the same value. The text is read when copied,
+ * so a chip kept after an edit inside its value still copies the new text.
+ */
+function sameValue(a: LongValue, b: LongValue) {
+  return (
+    a.from === b.from && a.to === b.to && a.json === b.json && a.size === b.size
+  )
+}
+
 /** The `… size [copy] …` chip that stands in for the middle of a value. */
 class ShortenedWidget extends WidgetType {
-  constructor(
-    readonly value: LongValue,
-    readonly size: string,
-  ) {
+  constructor(readonly value: LongValue) {
     super()
   }
 
   eq(other: ShortenedWidget) {
-    return (
-      other.value.from === this.value.from &&
-      other.value.to === this.value.to &&
-      other.value.text === this.value.text &&
-      other.size === this.size
-    )
+    return sameValue(other.value, this.value)
   }
 
   toDOM(view: EditorView) {
@@ -131,9 +214,9 @@ class ShortenedWidget extends WidgetType {
         effects: toggleValue.of({ from: this.value.from, open: true }),
       }),
     )
-    expand.textContent = `… ${this.size} …`
+    expand.textContent = `… ${this.value.size} …`
     const copy = button('cm-long-value-copy', m.long_value_copy(), () =>
-      copyValue(this.value.text),
+      copyValue(view, this.value),
     )
     copy.innerHTML = COPY_ICON
     chip.appendChild(expand)
@@ -153,11 +236,7 @@ class ExpandedWidget extends WidgetType {
   }
 
   eq(other: ExpandedWidget) {
-    return (
-      other.value.from === this.value.from &&
-      other.value.to === this.value.to &&
-      other.value.text === this.value.text
-    )
+    return sameValue(other.value, this.value)
   }
 
   toDOM(view: EditorView) {
@@ -170,7 +249,7 @@ class ExpandedWidget extends WidgetType {
     )
     collapse.innerHTML = COLLAPSE_ICON
     const copy = button('cm-long-value-copy', m.long_value_copy(), () =>
-      copyValue(this.value.text),
+      copyValue(view, this.value),
     )
     copy.innerHTML = COPY_ICON
     chip.appendChild(collapse)
@@ -197,11 +276,10 @@ function hidden(value: LongValue) {
   }
 }
 
-function build(
-  state: EditorState,
+function decorate(
+  values: ReadonlyArray<LongValue>,
   open: ReadonlySet<number>,
-): Omit<LongValueState, 'open'> {
-  const values = longValues(state, state.facet(limitFacet))
+): DecorationSet {
   const ranges: Array<Range<Decoration>> = values.map((value) => {
     if (open.has(value.from)) {
       return Decoration.widget({
@@ -210,11 +288,12 @@ function build(
       }).range(value.to)
     }
     const { from, to } = hidden(value)
-    return Decoration.replace({
-      widget: new ShortenedWidget(value, formatSize(value.text)),
-    }).range(from, to)
+    return Decoration.replace({ widget: new ShortenedWidget(value) }).range(
+      from,
+      to,
+    )
   })
-  return { values, decorations: Decoration.set(ranges, true) }
+  return Decoration.set(ranges, true)
 }
 
 /** Values the selection lands inside, e.g. after a search jump, open up. */
@@ -242,7 +321,8 @@ function openAtSelection(
 const longValueField = StateField.define<LongValueState>({
   create(state) {
     const open = new Set<number>()
-    return { open, ...build(state, open) }
+    const values = longValues(state, state.facet(limitFacet))
+    return { open, values, decorations: decorate(values, open) }
   },
   update(value, tr) {
     let open = value.open
@@ -256,21 +336,25 @@ const longValueField = StateField.define<LongValueState>({
       else next.delete(effect.value.from)
       open = next
     }
+    // Values are found again only when the text or its parse changed; most
+    // keep their size from before, so each edit reads just what it touched.
     const stale =
-      open !== value.open ||
       tr.docChanged ||
       syntaxTree(tr.startState) !== syntaxTree(tr.state) ||
       tr.startState.facet(limitFacet) !== tr.state.facet(limitFacet)
-    let built = stale ? build(tr.state, open) : value
+    const values = stale
+      ? longValues(
+          tr.state,
+          tr.state.facet(limitFacet),
+          unchangedValues(value.values, tr.docChanged ? tr.changes : null),
+        )
+      : value.values
     if (tr.selection) {
       const next = new Set(open)
-      if (openAtSelection(tr.state, built.values, next)) {
-        open = next
-        built = build(tr.state, open)
-      }
+      if (openAtSelection(tr.state, values, next)) open = next
     }
-    if (built === value) return value
-    return { open, values: built.values, decorations: built.decorations }
+    if (!stale && open === value.open) return value
+    return { open, values, decorations: decorate(values, open) }
   },
   provide: (field) => [
     EditorView.decorations.from(field, (value) => value.decorations),

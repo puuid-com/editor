@@ -161,6 +161,37 @@ const STRAY: Record<
 }
 
 const LEFTOVER = /<<|>>|\{\{|\}\}|\$\{/g
+// Its own instance: `wellFormed` moves `lastIndex` while `LEFTOVER` iterates.
+const ANY_LEFTOVER = new RegExp(LEFTOVER.source, 'g')
+
+/** Whether `text` has a bracket pair between `from` and `to`. */
+function hasLeftover(text: string, from: number, to: number) {
+  if (to - from < 2) return false
+  ANY_LEFTOVER.lastIndex = from
+  const match = ANY_LEFTOVER.exec(text)
+  return !!match && match.index + match[0].length <= to
+}
+
+/**
+ * The common case, checked without copying the text: every variable is well
+ * formed, none touches a stray bracket and no bracket pair is left over.
+ * False means "maybe not", for the full check to decide.
+ */
+function wellFormed(text: string, vars: Array<RegExpExecArray>) {
+  let last = 0
+  for (const match of vars) {
+    const from = match.index
+    const to = from + match[0].length
+    const [before, after] =
+      STRAY[match[1] ? 'angle' : match[2] ? 'curly' : 'dollar']
+    if (from > 0 && before.has(text[from - 1])) return false
+    if (to < text.length && after.has(text[to])) return false
+    if (hasLeftover(text, last, from)) return false
+    last = to
+  }
+  return !hasLeftover(text, last, text.length)
+}
+
 const CLOSER: Record<string, string | undefined> = {
   '<<': '>>',
   '{{': '}}',
@@ -177,6 +208,8 @@ export function findVarProblems(
   offset = 0,
 ): Array<{ from: number; to: number; message: string }> {
   if (!/[<>{}$]/.test(text)) return []
+  const vars = [...text.matchAll(varRegExp())]
+  if (wellFormed(text, vars)) return []
   const problems: Array<{ from: number; to: number; message: string }> = []
   const report = (from: number, to: number) =>
     problems.push({
@@ -186,7 +219,6 @@ export function findVarProblems(
     })
   // Mutate code units in place: rebuilding the whole string for each variable
   // makes validation quadratic on documents with many placeholders.
-  const vars = [...text.matchAll(varRegExp())]
   const rest = text.split('')
   for (const match of vars) {
     const from = match.index

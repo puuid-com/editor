@@ -4653,6 +4653,26 @@ function UnwrappedXml() {
   )
 }
 
+/** Formatting valid XML keeps the escaped quotes in its values. */
+function KeptEscapedQuotes() {
+  return (
+    <BeforeAfter
+      before={
+        <Code
+          lines={['<a>', '  <json>{"say": ""hi""}</json>', '</a>']}
+          marks={{ 1: 'remove' }}
+        />
+      }
+      after={
+        <Code
+          lines={['<a>', '  <json>{"say": "\\"hi\\""}</json>', '</a>']}
+          marks={{ 1: 'add' }}
+        />
+      }
+    />
+  )
+}
+
 /** Disk refreshes keep edits typed while the file is being read. */
 function SafeDiskRefresh() {
   const pane = (kept: boolean) => (
@@ -5129,6 +5149,7 @@ function ColoredFileIcons() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.63.3': figure(KeptEscapedQuotes),
   '1.63.2': figure(SafeDiskRefresh),
   '1.63.0': figure(UnwrappedXml),
   '1.62.0': figure(SoapNamespaces),

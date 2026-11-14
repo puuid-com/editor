@@ -19,10 +19,21 @@ import type { DocLanguage } from '#/lib/document'
 // highlighting for the rest of the line. These languages feed the parser a
 // masked view of the document instead (same length, so positions match).
 
-const CHUNK = 4096
+/** How much masked text is read at once. */
+const BLOCK = 16_384
+
+/** A stretch of masked text, starting at `from`. */
+interface Block {
+  from: number
+  text: string
+}
 
 class MaskedInput implements Input {
   readonly lineChunks = false
+  // The parser asks for text at almost every token, and goes back and forth
+  // between where it reads and a place it read earlier. Two blocks serve both
+  // as cheap slices, instead of reading and masking text on each request.
+  private blocks: Array<Block> = []
 
   constructor(
     private inner: Input,
@@ -34,10 +45,40 @@ class MaskedInput implements Input {
   }
 
   chunk(from: number) {
-    return this.read(from, Math.min(this.length, from + CHUNK))
+    if (from >= this.length) return ''
+    const block = this.blockAt(from, from + 1) ?? this.load(from)
+    return block.text.slice(from - block.from)
   }
 
   read(from: number, to: number) {
+    const block = this.blockAt(from, to)
+    return block
+      ? block.text.slice(from - block.from, to - block.from)
+      : this.masked(from, to)
+  }
+
+  /** The block holding all of `from`–`to`, marked as the latest used. */
+  private blockAt(from: number, to: number) {
+    const [latest, other] = this.blocks
+    const holds = (block: Block | undefined) =>
+      !!block && from >= block.from && to <= block.from + block.text.length
+    if (holds(latest)) return latest
+    if (!holds(other)) return undefined
+    this.blocks = [other, latest]
+    return other
+  }
+
+  private load(from: number) {
+    const block = {
+      from,
+      text: this.masked(from, Math.min(this.length, from + BLOCK)),
+    }
+    this.blocks.unshift(block)
+    this.blocks.length = Math.min(this.blocks.length, 2)
+    return block
+  }
+
+  private masked(from: number, to: number) {
     // Read a little extra on both sides so a variable cut by the window edge
     // is still recognised, then trim back.
     const start = Math.max(0, from - VAR_MAX_LENGTH)

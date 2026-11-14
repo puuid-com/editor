@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.63.3] - 2026-11-13
+
+### Fixed
+
+- Formatting valid XML no longer turns `\"` into `"` inside values, such as JSON held in an element. Only XML that doesn't parse as written, like XML copied from a log, is unwrapped.
+- Typing in large files is faster: shortened long values, ZPL links and the SOAP display settings no longer rescan the whole file on each key, and panes no longer redraw on every keystroke.
+- Large XML files are re-read up to four times faster after you stop typing, by reusing the editor's own parse, which itself reads XML about twice as fast.
+- Moving the cursor, searching the structure tree, pasting, and opening files into a workspace with several profiles do less work on large documents.
+- The editor no longer loads the ZPL label tools on every visit, only when the link carries a label.
+
 ## [1.63.2] - 2026-11-13
 
 ### Fixed

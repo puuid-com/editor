@@ -209,11 +209,13 @@ export function FileExplorer({
     tabs.set(file.location.path, file.id)
     tabsByPath.set(file.location.rootId, tabs)
   }
-  const { data: folders } = useLiveQuery((q) =>
-    q
-      .from({ folder: foldersCollection })
-      .orderBy(({ folder }) => folder.name, 'asc'),
-  )
+  const { data: folders } = useLiveQuery({
+    queryKey: ['folders'],
+    query: (q) =>
+      q
+        .from({ folder: foldersCollection })
+        .orderBy(({ folder }) => folder.name, 'asc'),
+  })
   // The tree by parent, built once rather than searched again per folder. A
   // file whose folder is gone shows at the top.
   const folderIds = new Set(folders.map((folder) => folder.id))

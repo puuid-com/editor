@@ -1,7 +1,26 @@
 import { childElements, isElement } from './model'
 import type { XmlElement, XmlNode } from './model'
 
-/** Deepest element whose range contains `pos`. */
+/** Index of the last of `nodes`, in document order, starting at or before `pos`. */
+function lastStartingBy(nodes: Array<XmlNode>, pos: number) {
+  let lo = 0
+  let hi = nodes.length - 1
+  let found = -1
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    if (nodes[mid].from <= pos) {
+      found = mid
+      lo = mid + 1
+    } else hi = mid - 1
+  }
+  return found
+}
+
+/**
+ * Deepest element whose range contains `pos`. Siblings are in document order
+ * and don't overlap, so each level is a binary search: the cursor moves on
+ * every key, and a level can hold thousands of records.
+ */
 export function elementAt(
   nodes: Array<XmlNode>,
   pos: number,
@@ -9,15 +28,17 @@ export function elementAt(
   let found: XmlElement | null = null
   let level = nodes
   for (;;) {
+    const index = lastStartingBy(level, pos)
+    const node = index >= 0 ? level[index] : undefined
+    const previous = index > 0 ? level[index - 1] : undefined
     // A cursor right after `</b>` belongs to `b` unless a sibling starts there.
     const hit =
-      level.find(
-        (node): node is XmlElement =>
-          isElement(node) && node.from <= pos && pos < node.to,
-      ) ??
-      level.find(
-        (node): node is XmlElement => isElement(node) && node.to === pos,
-      )
+      node && isElement(node) && pos < node.to
+        ? node
+        : [node, previous].find(
+            (near): near is XmlElement =>
+              !!near && isElement(near) && near.to === pos,
+          )
     if (!hit) return found
     found = hit
     level = hit.children
@@ -30,14 +51,17 @@ export function elementByPath(
   path: string,
 ): XmlElement | null {
   let level = nodes
+  // Segments never hold a `/` (JSON keys escape it), so each level looks
+  // for the path up to its next one.
+  let end = 0
   for (;;) {
+    const next = path.indexOf('/', end + 1)
+    end = next < 0 ? path.length : next
+    const step = path.slice(0, end)
     const hit = level.find(
-      (node): node is XmlElement =>
-        isElement(node) &&
-        (node.path === path || path.startsWith(node.path + '/')),
+      (node): node is XmlElement => isElement(node) && node.path === step,
     )
-    if (!hit) return null
-    if (hit.path === path) return hit
+    if (!hit || end === path.length) return hit ?? null
     level = hit.children
   }
 }

@@ -12,26 +12,67 @@ const preferences = persistedStore('zpl-preferences', () => localStorage, {
   explain: true,
   syncZoom: false,
 })
+
+/** A file the ZPL tools work on: a label, not deleted. */
+function isLabel(file: XmlFile) {
+  return (
+    file.deletedAt === null && languageOf(file.name, file.content) === 'zpl'
+  )
+}
+
+// Only labels are kept, so typing in any other file leaves the store, and
+// every preview reading it, alone. Ids, as the rows are new on each edit.
+const labelIds = new Set(
+  [...filesCollection.values()].filter(isLabel).map((file) => file.id),
+)
+const labels = () =>
+  [...filesCollection.values()].filter((file) => labelIds.has(file.id))
+
 export const zplStore = new Store({
-  files: [...filesCollection.values()],
+  files: labels(),
   ...preferences.state,
 })
-filesCollection.subscribeChanges(() => {
-  zplStore.setState((s) => ({ ...s, files: [...filesCollection.values()] }))
+filesCollection.subscribeChanges((changes) => {
+  let changed = false
+  for (const change of changes) {
+    const id = String(change.key)
+    if (change.type !== 'delete' && isLabel(change.value)) {
+      labelIds.add(id)
+      changed = true
+    } else if (labelIds.delete(id)) changed = true
+  }
+  if (changed) zplStore.setState((s) => ({ ...s, files: labels() }))
 })
 preferences.subscribe(() =>
   zplStore.setState((s) => ({ ...s, ...preferences.state })),
 )
 
-export function selectFile(state: { files: Array<XmlFile> }, id: string) {
+type SelectedFile = {
+  source: string
+  fileName: string
+  settings: LabelSettings
+}
+
+// One result per row, so a selector returning it only changes, and wakes
+// its component, when that file does.
+const selected = new WeakMap<XmlFile, SelectedFile>()
+
+export function selectFile(
+  state: { files: Array<XmlFile> },
+  id: string,
+): SelectedFile | undefined {
   const file = state.files.find((f) => f.id === id && f.deletedAt === null)
-  return file
-    ? {
-        source: file.content,
-        fileName: file.name.replace(/\.zpl$/i, ''),
-        settings: file.zplSettings ?? DEFAULT_SETTINGS,
-      }
-    : undefined
+  if (!file) return undefined
+  let result = selected.get(file)
+  if (!result) {
+    result = {
+      source: file.content,
+      fileName: file.name.replace(/\.zpl$/i, ''),
+      settings: file.zplSettings ?? DEFAULT_SETTINGS,
+    }
+    selected.set(file, result)
+  }
+  return result
 }
 export function setSettings(id: string, settings: Partial<LabelSettings>) {
   const file = filesCollection.get(id)
@@ -68,7 +109,6 @@ export function setCompareTarget(id: string, target: string | null) {
 
 /** The other open ZPL files a file can compare with or sync zoom with. */
 export function zplCandidates(state: { files: Array<XmlFile> }, id: string) {
-  return state.files.filter(
-    (f) => f.id !== id && isOpen(f) && languageOf(f.name, f.content) === 'zpl',
-  )
+  // The store holds labels only, so their type is known already.
+  return state.files.filter((f) => f.id !== id && isOpen(f))
 }

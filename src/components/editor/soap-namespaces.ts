@@ -202,6 +202,16 @@ const soapField = StateField.define<SoapState>({
     return { open, ...build(state, open) }
   },
   update(value, tr) {
+    const display = tr.state.facet(displayFacet)
+    // Both settings off: nothing to find on each edit.
+    if (
+      !display.hideNamespaces &&
+      !display.shortenUrls &&
+      tr.startState.facet(displayFacet) === display &&
+      value.open.size === 0 &&
+      value.decorations.size === 0
+    )
+      return value
     let open = value.open
     if (tr.docChanged && open.size > 0) {
       open = new Set([...open].map((pos) => tr.changes.mapPos(pos)))

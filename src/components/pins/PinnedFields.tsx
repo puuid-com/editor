@@ -99,6 +99,8 @@ export function PinnedFields() {
   // Each pin's fields, found once per parse through an index of the leaves
   // by name. Moving the cursor only changes which field is the current one.
   const matchesByPin = useMemo(() => {
+    // Most profiles pin nothing: no index of the document to build then.
+    if (pins.length === 0) return new Map<string, Array<PinMatch>>()
     const elements = allElements(doc.nodes)
     // JSON array entries, whose index the labels put on their key.
     const items = new Set(

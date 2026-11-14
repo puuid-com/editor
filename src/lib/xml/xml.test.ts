@@ -186,6 +186,23 @@ describe('formatXml', () => {
       ok: true,
       text: '<a x="1">\n  <b>"hi"</b>\n</a>\n',
     })
+    expect(formatXml('"<a><b>\\"hi\\"</b></a>"')).toEqual({
+      ok: true,
+      text: '<a>\n  <b>"hi"</b>\n</a>\n',
+    })
+  })
+
+  it('keeps escaped quotes in XML that parses as written', () => {
+    const input = '<a><json>{"say": "\\"hi\\""}</json></a>'
+    expect(formatXml(input)).toEqual({
+      ok: true,
+      text: '<a>\n  <json>{"say": "\\"hi\\""}</json>\n</a>\n',
+    })
+  })
+
+  it('reports the errors of the XML as written when unwrapping fails too', () => {
+    const result = formatXml('<a><b></a>')
+    expect(result.ok).toBe(false)
   })
 
   it('is idempotent', () => {

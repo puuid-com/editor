@@ -41,8 +41,8 @@ export interface FormatOptions {
  * Pretty-prints XML. Elements holding only other elements are indented one per
  * line; anything with text (including mixed content) is kept as written so
  * whitespace that matters is never touched. Refuses documents with errors.
- * XML pasted from a log or a string literal is unwrapped first (see
- * `unwrapXml`).
+ * XML pasted from a log or a string literal, which doesn't parse as it is,
+ * is unwrapped first (see `unwrapXml`).
  */
 export function formatXml(
   text: string,
@@ -57,9 +57,16 @@ export function formatXml(
     first = [],
   }: FormatOptions = {},
 ): FormatResult {
-  text = unwrapXml(text)
   let doc = parseXml(text)
-  if (doc.errors.length > 0) return { ok: false, errors: doc.errors }
+  // Only XML that doesn't parse as written is unwrapped: in a valid file,
+  // a `\"` is text, like JSON held in an element, and must stay as it is.
+  if (doc.errors.length > 0) {
+    const unwrapped = unwrapXml(text)
+    const retry = unwrapped === text ? doc : parseXml(unwrapped)
+    if (retry.errors.length > 0) return { ok: false, errors: doc.errors }
+    text = unwrapped
+    doc = retry
+  }
   if (stripPrefixes) {
     text = withoutTagPrefixes(text, doc.nodes)
     doc = parseXml(text)

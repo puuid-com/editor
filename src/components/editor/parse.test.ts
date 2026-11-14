@@ -2,8 +2,9 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { docLanguage } from './language'
+import { docLanguage, languageExtension } from './language'
 import { parseEditor } from './parse'
+import { parseDocument } from '#/lib/document'
 
 const views: Array<EditorView> = []
 
@@ -43,6 +44,46 @@ describe('editor parse cache', () => {
     expect(changed).not.toBe(doc)
     expect(changed.root?.children[0]).toMatchObject({ value: 'other' })
     expect(parseEditor(view)).toBe(changed)
+  })
+
+  it("builds XML from the editor's syntax tree as a fresh parse would", () => {
+    const text = [
+      '<?xml version="1.0"?>',
+      '<order id="<<id>>" note="a &amp; b">',
+      '  <line qty="{{qty}}">${price}</line>',
+      '  <bad>&nbsp;</bad>',
+      '  <unclosed>',
+      '</order>',
+    ].join('\n')
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: text,
+        extensions: languageExtension('xml'),
+      }),
+    })
+    views.push(view)
+    expect(parseEditor(view)).toEqual(parseDocument(text, 'xml'))
+    view.dispatch({ changes: { from: 0, insert: '<!-- edited -->\n' } })
+    const edited = view.state.doc.toString()
+    expect(parseEditor(view)).toEqual(parseDocument(edited, 'xml'))
+  })
+
+  it('masks variables that cross where the editor reads in blocks', () => {
+    const items: Array<string> = []
+    // Variables at every offset around the first 16K block's end.
+    for (let i = 0; items.join('').length < 40_000; i++)
+      items.push(`<v a="<<name${i}>>">x<<value${i}>>y</v>`)
+    const text = `<r>${items.join('')}</r>`
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: text,
+        extensions: languageExtension('xml'),
+      }),
+    })
+    views.push(view)
+    const doc = parseEditor(view)
+    expect(doc.errors).toEqual([])
+    expect(doc).toEqual(parseDocument(text, 'xml'))
   })
 
   it('refreshes when the language changes without changing the text', () => {

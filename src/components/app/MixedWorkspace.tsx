@@ -1,5 +1,4 @@
 import { ImagePreview } from '#/components/image/ImagePreview'
-import { imageMime, isImageData } from '#/lib/image-file'
 import { Fragment, Suspense, lazy, useEffect, useMemo, useRef } from 'react'
 import { useSelector } from '@tanstack/react-store'
 import { CodeEditor } from '#/components/editor/CodeEditor'
@@ -9,9 +8,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '#/components/ui/resizable'
-import { useFileContent } from '#/hooks/use-files'
+import { useFileContent, useFileKind } from '#/hooks/use-files'
 import type { WorkspaceFile } from '#/hooks/use-files'
-import { languageOf } from '#/lib/document'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { SettingsPage } from './SettingsPage'
 import { setSettingsActive, settingsPane, settingsTab } from './settings-tab'
@@ -107,6 +105,19 @@ export function MixedWorkspace({
   )
 }
 
+/** An image file, read whole only here: the pane above needs just its kind. */
+function ImagePane({ fileId, active }: { fileId: string; active: boolean }) {
+  const file = useFileContent(fileId)
+  if (!file) return null
+  return (
+    <ImagePreview
+      key={file.content}
+      file={{ ...file, id: fileId }}
+      active={active}
+    />
+  )
+}
+
 function FilePane({
   files,
   pane,
@@ -133,9 +144,9 @@ function FilePane({
   last: boolean
 }) {
   const fileId = pane.activeId
-  const file = useFileContent(fileId)
-  const language = languageOf(file?.name ?? '', file?.content ?? '')
-  const image = !!file && (!!imageMime(file.name) || isImageData(file.content))
+  const file = useFileKind(fileId)
+  const language = file?.language ?? 'xml'
+  const image = !!file?.image
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const live = useSelector(editorPrefs, (s) => s.markdownLive)
   const markdown = language === 'md'
@@ -147,7 +158,7 @@ function FilePane({
     language !== 'sql' &&
     language !== 'txt' &&
     !(markdown && live)
-  const showPanel = active && panelOpen && hasPanel && !!file?.content
+  const showPanel = active && panelOpen && hasPanel && !!file?.hasContent
   // Opening another file here, from the sidebar or a new tab, shows it.
   const shownId = useRef(fileId)
   useEffect(() => {
@@ -202,11 +213,7 @@ function FilePane({
       {/* The file stays mounted under the settings page, to keep its place. */}
       <div className={cn('min-h-0 flex-1', settingsActive && 'hidden')}>
         {image ? (
-          <ImagePreview
-            key={file.content}
-            file={{ ...file, id: fileId }}
-            active={active}
-          />
+          <ImagePane fileId={fileId} active={active} />
         ) : (
           <>
             {/* A flat file's records are wide tables, so they always sit

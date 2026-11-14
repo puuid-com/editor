@@ -9,12 +9,15 @@ import { sessionStore } from '#/lib/store/session'
 
 /** Every profile, oldest first. */
 export function useProfiles() {
-  const { data } = useLiveQuery((q) =>
-    q
-      .from({ profile: profilesCollection })
-      .orderBy(({ profile }) => profile.createdAt, 'asc')
-      .orderBy(({ profile }) => profile.id, 'asc'),
-  )
+  const { data } = useLiveQuery({
+    // Read by most of the editor's components, on most of their renders.
+    queryKey: ['profiles'],
+    query: (q) =>
+      q
+        .from({ profile: profilesCollection })
+        .orderBy(({ profile }) => profile.createdAt, 'asc')
+        .orderBy(({ profile }) => profile.id, 'asc'),
+  })
   return data
 }
 

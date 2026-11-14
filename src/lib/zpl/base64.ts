@@ -1,5 +1,6 @@
 const DATA_URI_PREFIX = /^data:[^,]*;base64,/i
 const BASE64_ALPHABET = /^[A-Za-z0-9+/_-]+={0,2}$/
+const NOT_BASE64 = /[^A-Za-z0-9+/_=\s-]/
 const ZPL_COMMAND = /[\^~][A-Za-z][A-Za-z0-9@]/g
 const MIN_LENGTH = 8
 const MAX_DEPTH = 3
@@ -31,7 +32,11 @@ export function encodeBase64(text: string): string {
 }
 
 function decodeOnce(text: string): string | null {
-  const compact = text.trim().replace(DATA_URI_PREFIX, '').replace(/\s+/g, '')
+  const body = text.trim().replace(DATA_URI_PREFIX, '')
+  // Every paste and opened file comes here, and most aren't base64: stop at
+  // the first character that can't be, before copying the text.
+  if (NOT_BASE64.test(body)) return null
+  const compact = body.replace(/\s+/g, '')
   if (compact.length < MIN_LENGTH || !BASE64_ALPHABET.test(compact)) return null
 
   const standard = compact
@@ -48,7 +53,8 @@ function decodeOnce(text: string): string | null {
     return null
   }
 
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   try {
     return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
   } catch {

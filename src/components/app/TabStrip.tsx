@@ -35,6 +35,10 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
 import type { DocLanguage } from '#/lib/document'
+import type { FilePaneGroup } from '#/lib/store/pane-layout'
+
+/** One empty list, so the selector's result doesn't change on every read. */
+const NO_PANES: Array<FilePaneGroup> = []
 
 // Tabs fit their name, within bounds, however many are open. Each is a flat
 // pill on the pane's header; the active one is filled, fainter in a pane that
@@ -264,7 +268,7 @@ function TabContextMenu({
   index: number
   paneId: string
 }) {
-  const panes = useSelector(sessionStore, (s) => s.panes ?? [])
+  const panes = useSelector(sessionStore, (s) => s.panes ?? NO_PANES)
   const file = files[index]
   const others = files.filter((f) => f.id !== file.id).map((f) => f.id)
   const right = files.slice(index + 1).map((f) => f.id)

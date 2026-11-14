@@ -7,6 +7,7 @@ import { pinsCollection } from '#/lib/store/pins'
 export function usePins() {
   const profileId = useActiveProfileId()
   const { data } = useLiveQuery({
+    queryKey: ['pins', profileId],
     query: (q) =>
       q
         .from({ pin: pinsCollection })

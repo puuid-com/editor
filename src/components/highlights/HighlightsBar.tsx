@@ -53,7 +53,9 @@ import type { Highlight } from '#/lib/store/highlights'
  */
 export function HighlightsBar() {
   const rules = useHighlights()
-  const counts = useTagCounts()
+  const [open, setOpen] = useState(false)
+  // With no rules, only the open legend's suggestions need the counts.
+  const counts = useTagCounts(open || rules.length > 0)
   const countOf = (rule: Highlight) => counts.get(localName(rule.tag)) ?? 0
   const present = rules.filter((r) => countOf(r) > 0)
   const absent = rules.filter((r) => countOf(r) === 0)
@@ -62,7 +64,7 @@ export function HighlightsBar() {
 
   return (
     <div className="contents">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"

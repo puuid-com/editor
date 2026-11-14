@@ -49,8 +49,13 @@ function editorLanguage(language: DocLanguage) {
   return [languageExtension(language), structureGutters(language)]
 }
 
-function syncLanguage(view: EditorView, name: string) {
-  const language = languageOf(name, view.state.doc.toString())
+/**
+ * Switches the editor to the language `content` reads as. `content` is the
+ * text the view shows, which callers already hold: serializing the view's
+ * document on each keystroke costs a copy of the whole file.
+ */
+function syncLanguage(view: EditorView, name: string, content: string) {
+  const language = languageOf(name, content)
   if (view.state.facet(docLanguage) === language) return false
   view.dispatch({
     effects: languageCompartment.reconfigure(editorLanguage(language)),
@@ -96,6 +101,9 @@ export function createEditorSession(
         }
         const file = change.value
         const active = view.state.field(fileIdField, false) === file.id
+        // What the view shows once this change is in: the row's text, unless
+        // a later edit here hasn't reached the collection yet.
+        let shown = file.content
         if (file.writer !== writerId) {
           const own = isOwnWriter(file.writer)
           const previous = change.previousValue
@@ -116,10 +124,12 @@ export function createEditorSession(
               states.set(file.id, state.update(spec).state)
             }
           }
+        } else if (active && view.state.doc.length !== file.content.length) {
+          shown = view.state.doc.toString()
         }
         // Renames and edits can both change the language, such as pasting
         // a flat file into an XML one.
-        if (active && syncLanguage(view, file.name))
+        if (active && syncLanguage(view, file.name, shown))
           callbacks.onLanguageChange(file.id)
       }
     },
@@ -147,7 +157,7 @@ export function createEditorSession(
         view.setState(createState(fileId, file, extensions))
       }
       // A file may have been renamed while its editor state was cached.
-      if (file) syncLanguage(view, file.name)
+      if (file) syncLanguage(view, file.name, content)
       return true
     },
     dispose() {

@@ -307,11 +307,13 @@ export function editorExtensions(
         const fileId = view.state.field(fileIdField)
         const doc = parseEditor(view)
         callbacks.onParse(fileId, doc)
-        view.dispatch({
-          effects: setDefaultMarks.of(
-            defaultMatches(doc.nodes, view.state.facet(defaultRulesFacet)),
-          ),
-        })
+        const marks = defaultMatches(
+          doc.nodes,
+          view.state.facet(defaultRulesFacet),
+        )
+        // Without rules there is nothing to mark, nor a transaction to make.
+        if (marks.length > 0 || view.state.field(defaultMarks).size > 0)
+          view.dispatch({ effects: setDefaultMarks.of(marks) })
         return doc.errors.map((error) => ({
           from: error.from,
           to: Math.min(error.to, view.state.doc.length),

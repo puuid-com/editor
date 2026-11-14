@@ -28,6 +28,10 @@ import {
 import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 import type { TabFile } from './files'
+import type { FilePaneGroup } from '#/lib/store/pane-layout'
+
+/** One empty list, so the selector's result doesn't change on every read. */
+const NO_PANES: Array<FilePaneGroup> = []
 
 /**
  * One row per pane: its tabs and secondary file controls. The split action
@@ -73,7 +77,7 @@ export function AppHeader({
   menuItems?: React.ReactNode
 }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
-  const panes = useSelector(sessionStore, (s) => s.panes ?? [])
+  const panes = useSelector(sessionStore, (s) => s.panes ?? NO_PANES)
   const visible = new Set(panes.map((p) => p.activeId))
   const focus = () => setActive(fileId)
 

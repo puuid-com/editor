@@ -8,6 +8,7 @@ import { variablesCollection } from '#/lib/store/variables'
 export function useVariables(fileId?: string) {
   const profileId = useActiveProfileId(fileId)
   const { data } = useLiveQuery({
+    queryKey: ['variables', profileId],
     query: (q) =>
       q
         .from({ variable: variablesCollection })
