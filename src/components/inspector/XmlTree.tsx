@@ -179,10 +179,7 @@ export function XmlTree() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b px-3 md:h-10">
-        <h2 className="shrink-0 text-xs font-medium text-muted-foreground">
-          {m.panel_structure()}
-        </h2>
+      <div className="flex h-12 shrink-0 items-center border-b px-1 md:h-9">
         <InputGroup className="h-11 border-0 bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-inset md:h-8 dark:bg-transparent">
           <InputGroupInput
             ref={inputRef}

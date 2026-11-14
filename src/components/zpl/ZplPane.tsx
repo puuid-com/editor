@@ -4,12 +4,9 @@ import { zplHelpCompartment } from './editor-support'
 import { setDiagnostics } from '@codemirror/lint'
 import { CodeEditor } from '#/components/editor/CodeEditor'
 import { getFileView } from '#/components/editor/editor-store'
-import {
-  ResizablePanel,
-  ResizableHandle,
-  ResizablePanelGroup,
-} from '#/components/ui/resizable'
+import { PanelSplit } from '#/components/app/PanelSplit'
 import { sessionStore } from '#/lib/store/session'
+import type { PaneEdge } from '#/lib/store/pane-layout'
 import { dpiFor } from '#/lib/zpl/settings'
 import { LabelPreview } from './label-preview'
 import { compareStore, zplStore, selectFile, zplCandidates } from './store'
@@ -26,10 +23,11 @@ void loadZplExplanations().catch(() => undefined)
 
 export function ZplPane({
   fileId,
-  sideBySide = false,
+  edge,
 }: {
   fileId: string
-  sideBySide?: boolean
+  /** The edge of the code the label preview sits on. */
+  edge: PaneEdge
 }) {
   const { render, isRendering, error, retry } = useLabelRender(fileId)
   const file = useSelector(zplStore, (s) => selectFile(s, fileId))
@@ -73,51 +71,22 @@ export function ZplPane({
     )
   }, [active, fileId, render, dpi, explain, file?.source])
 
-  const code = (
-    <ResizablePanel
-      id="zpl-code"
-      defaultSize={sideBySide ? '50%' : '45%'}
-      minSize="20%"
+  return (
+    <PanelSplit
+      edge={edge}
+      kind="label"
+      panel={
+        <LabelPreview
+          panelId={fileId}
+          render={render}
+          isRendering={isRendering}
+          error={error}
+          onRetry={retry}
+          compareTarget={compareTarget}
+        />
+      }
     >
       <CodeEditor fileId={fileId} />
-    </ResizablePanel>
-  )
-  // Stacked, the label sits on top and the code below it.
-  const preview = (
-    <ResizablePanel id="zpl-preview" minSize="20%">
-      <LabelPreview
-        panelId={fileId}
-        render={render}
-        isRendering={isRendering}
-        error={error}
-        onRetry={retry}
-        compareTarget={compareTarget}
-      />
-    </ResizablePanel>
-  )
-
-  return (
-    <div className="flex h-full min-w-0 flex-col">
-      <div className="min-h-0 flex-1">
-        <ResizablePanelGroup
-          key={sideBySide ? 'horizontal' : 'vertical'}
-          orientation={sideBySide ? 'horizontal' : 'vertical'}
-        >
-          {sideBySide ? (
-            <>
-              {code}
-              <ResizableHandle />
-              {preview}
-            </>
-          ) : (
-            <>
-              {preview}
-              <ResizableHandle />
-              {code}
-            </>
-          )}
-        </ResizablePanelGroup>
-      </div>
-    </div>
+    </PanelSplit>
   )
 }

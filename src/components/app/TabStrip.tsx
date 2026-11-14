@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { MAX_PANES, joinPanes, moveTab, openBeside } from './panes'
+import { TAB_DRAG, endPaneDrag, startPaneDrag } from './pane-drag'
 import { newFile } from './files'
 import { TabClose, TabCloseButton } from './TabClose'
 import { TabList } from './TabList'
@@ -44,9 +45,6 @@ const NO_PANES: Array<FilePaneGroup> = []
 // pill on the pane's header; the active one is filled, fainter in a pane that
 // doesn't have the focus. When they don't fit, the strip scrolls, fades at
 // the edge that has more, and the full list sits behind a menu at its end.
-
-/** What a dragged tab carries: its file's id. */
-const TAB_DRAG = 'text/x-xml-tab'
 
 function carriesTab(event: React.DragEvent) {
   return event.dataTransfer.types.includes(TAB_DRAG)
@@ -163,10 +161,9 @@ export function TabStrip({
                   <div
                     draggable
                     data-tab-id={file.id}
-                    onDragStart={(e) => {
-                      e.dataTransfer.effectAllowed = 'move'
-                      e.dataTransfer.setData(TAB_DRAG, file.id)
-                    }}
+                    onDragStart={(e) =>
+                      startPaneDrag(e, { kind: 'tab', id: file.id })
+                    }
                     onDragOver={(e) => {
                       if (!carriesTab(e)) return
                       e.preventDefault()
@@ -183,6 +180,7 @@ export function TabStrip({
                     }}
                     onDragEnd={() => {
                       setOverId(null)
+                      endPaneDrag()
                     }}
                     data-active={file.id === picked || undefined}
                     className={cn(
@@ -272,6 +270,10 @@ function TabContextMenu({
   const file = files[index]
   const others = files.filter((f) => f.id !== file.id).map((f) => f.id)
   const right = files.slice(index + 1).map((f) => f.id)
+  // A pane's only tab has nothing to split from.
+  const canSplit =
+    panes.length < MAX_PANES &&
+    (panes.find((p) => p.fileIds.includes(file.id))?.fileIds.length ?? 0) > 1
 
   return (
     <ContextMenuContent className="w-56">
@@ -279,14 +281,16 @@ function TabContextMenu({
         {m.file_rename()}
       </ContextMenuItem>
       <ContextMenuItem
-        disabled={
-          panes.length >= MAX_PANES ||
-          (panes.find((p) => p.fileIds.includes(file.id))?.fileIds.length ??
-            0) < 2
-        }
+        disabled={!canSplit}
         onSelect={() => openBeside(file.id)}
       >
         {m.pane_open()}
+      </ContextMenuItem>
+      <ContextMenuItem
+        disabled={!canSplit}
+        onSelect={() => openBeside(file.id, 'bottom')}
+      >
+        {m.pane_open_below()}
       </ContextMenuItem>
       {panes.map(
         (pane, paneIndex) =>

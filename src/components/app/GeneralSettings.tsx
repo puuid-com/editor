@@ -4,8 +4,10 @@ import { useSelector } from '@tanstack/react-store'
 import { SettingSwitch } from './FormatControls'
 import { ShortcutKeys } from './ShortcutKeys'
 import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
+import { panelSideLabel } from './PanelFrame'
 import {
   editorPrefs,
+  setPanelSide,
   setSidebarRight,
   setWordWrapPref,
 } from '#/components/editor/word-wrap'
@@ -20,11 +22,13 @@ import { Separator } from '#/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { codeFonts, codeSizes, fontFace } from '#/lib/code-font'
 import type { CodeFontId, CodeSize } from '#/lib/code-font'
+import { PANEL_SIDES } from '#/lib/panel-side'
+import type { PanelSide } from '#/lib/panel-side'
 import { shortcuts } from '#/lib/shortcuts'
 import { isDark, subscribeTheme, toggleTheme } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
 
-/** Settings for every file and profile: theme, font, text size, wrap, sidebar side. */
+/** Settings for every file and profile: theme, wrap, sidebar side, side panel position, font, text size. */
 export function GeneralSettings() {
   const dark = useSyncExternalStore(subscribeTheme, isDark, () => false)
   const prefs = useSelector(editorPrefs, (s) => s)
@@ -59,6 +63,24 @@ export function GeneralSettings() {
       </div>
       <Separator />
       <div className="flex items-center justify-between gap-4 px-3 py-2.5">
+        <span className="text-muted-foreground">{m.panel_position()}</span>
+        <Select
+          value={prefs.panelSide}
+          onValueChange={(side) => setPanelSide(side as PanelSide)}
+        >
+          <SelectTrigger size="sm" className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PANEL_SIDES.map((side) => (
+              <SelectItem key={side} value={side}>
+                {panelSideLabel(side)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center justify-between gap-4 px-3 pt-0.5 pb-2.5">
         <span className="text-muted-foreground">{m.code_font()}</span>
         <Select
           value={prefs.codeFont}

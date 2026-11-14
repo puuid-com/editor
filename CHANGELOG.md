@@ -8,6 +8,20 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.65.0] - 2026-11-14
+
+### Added
+
+- Panes can sit in rows and columns, not only side by side. Drag a tab, or a pane by the grip at the start of its tabs, to an edge of any pane to put it there, or onto a pane to join its tabs. "Open below" in a tab's menu splits it under its pane, and "Move pane" in the ⋯ menu trades places with the pane on that side.
+- Every pane has its own close button, and "Maximize pane" in the ⋯ menu shows one pane alone until you bring the others back.
+- The side panel (structure, records, Markdown preview, ZPL label) can sit right, left, above or under the code. Pick the place from the panel's bar, the ⋯ menu or Settings. The bar also has a button to close the panel.
+
+### Changed
+
+- The handle between two panes or beside a panel lights up under the pointer. Pane sizes come back after a reload, and each side panel keeps the size you dragged it to.
+- Left on automatic, the side panel goes beside the code in any pane wide enough for it, however many panes are open.
+- A file keeps its scroll position when you switch tabs or move its pane.
+
 ## [1.64.0] - 2026-11-13
 
 ### Added

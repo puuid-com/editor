@@ -30,7 +30,9 @@ import {
   IconFolderPlus,
   IconFolderRoot,
   IconFolderUp,
+  IconGripVertical,
   IconInfoCircle,
+  IconLayoutBottombar,
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebar,
@@ -51,6 +53,7 @@ import {
   IconUserCircle,
   IconVariable,
   IconWand,
+  IconX,
 } from '@tabler/icons-react'
 import { Fragment } from 'react'
 import type { CSSProperties, ComponentType, ReactNode } from 'react'
@@ -5148,7 +5151,72 @@ function ColoredFileIcons() {
   return <BeforeAfter before={list(false)} after={list(true)} />
 }
 
+/**
+ * Since 1.65.0 panes sit in rows and columns, each with a grip to drag it by
+ * and its own close button, and the side panel has a bar to move or close it.
+ */
+function MovablePanes() {
+  const tabs = (name: string, color: string, grip: boolean, close: boolean) => (
+    <PillTabs
+      end={
+        <>
+          <IconDots />
+          {close && <IconX />}
+        </>
+      }
+    >
+      {grip && (
+        <IconGripVertical className="-mx-1 size-3 shrink-0 text-muted-foreground" />
+      )}
+      <PillTab name={name} color={color} active />
+    </PillTabs>
+  )
+  const before = (
+    <div className="grid grid-cols-2 divide-x">
+      <div className="min-w-0">
+        {tabs('in.xml', BLUE, false, false)}
+        <Code lines={['<order>', '  <id>7</id>', '</order>']} />
+      </div>
+      <div className="min-w-0">
+        {tabs('out.xml', PURPLE, false, true)}
+        <Code lines={['<label>', '  <id>7</id>', '</label>']} />
+      </div>
+    </div>
+  )
+  const after = (
+    <div className="grid grid-cols-2 divide-x">
+      <div className="min-w-0">
+        {tabs('in.xml', BLUE, true, true)}
+        <Code lines={['<order>', '  <id>7</id>', '</order>']} />
+        <div className="flex h-7 items-center gap-1.5 border-y px-2 text-[11px] text-muted-foreground [&_svg]:size-3.5">
+          <span className="flex-1 font-medium">{m.panel_structure()}</span>
+          <IconLayoutBottombar />
+          <IconX />
+        </div>
+        <div className="px-2 py-1.5 font-mono text-[11px] leading-5">
+          <div>
+            <Syn k="tag">id</Syn> 7
+          </div>
+        </div>
+      </div>
+      <div className="grid min-w-0 grid-rows-2 divide-y">
+        <div className="min-w-0">
+          {tabs('out.xml', PURPLE, true, true)}
+          <Code lines={['<label>', '  <id>7</id>']} />
+        </div>
+        <div className="relative min-w-0">
+          {tabs('log.md', GREEN, true, true)}
+          <Code lines={['# Notes']} format={(line) => line} />
+          <div className="absolute inset-x-1 top-9 bottom-1 rounded-md border border-ring bg-ring/15" />
+        </div>
+      </div>
+    </div>
+  )
+  return <BeforeAfter before={before} after={after} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.65.0': figure(MovablePanes),
   '1.63.3': figure(KeptEscapedQuotes),
   '1.63.2': figure(SafeDiskRefresh),
   '1.63.0': figure(UnwrappedXml),

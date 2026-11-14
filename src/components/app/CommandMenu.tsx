@@ -22,6 +22,8 @@ import {
   IconHighlight,
   IconLink,
   IconMoon,
+  IconArrowsMaximize,
+  IconArrowsMinimize,
   IconColumnsOff,
   IconTextWrap,
   IconLayoutSidebar,
@@ -104,7 +106,7 @@ import type { WorkspaceFile } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
 import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive } from '#/lib/store/session'
-import { joinPanes } from './panes'
+import { joinPanes, setZoomed } from './panes'
 import { toggleTheme } from '#/lib/theme'
 import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
 import {
@@ -654,6 +656,7 @@ function Workspace({
   onOpenFromDisk: () => void
 }) {
   const split = useSelector(sessionStore, (s) => (s.panes?.length ?? 0) > 1)
+  const zoomed = useSelector(sessionStore, (s) => !!s.zoomed)
   const canOpenFolders = useCanOpenFolders()
   const codeFont = useSelector(editorPrefs, (s) => s.codeFont)
   const codeSize = useSelector(editorPrefs, (s) => s.codeSize)
@@ -667,6 +670,12 @@ function Workspace({
           <CommandItem onSelect={() => run(joinPanes)}>
             <IconColumnsOff />
             {m.pane_join()}
+          </CommandItem>
+        )}
+        {split && (
+          <CommandItem onSelect={() => run(() => setZoomed(!zoomed))}>
+            {zoomed ? <IconArrowsMinimize /> : <IconArrowsMaximize />}
+            {zoomed ? m.pane_restore() : m.pane_maximize()}
           </CommandItem>
         )}
         <CommandItem onSelect={() => run(newFile)}>

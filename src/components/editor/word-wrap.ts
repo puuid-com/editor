@@ -4,6 +4,9 @@ import { EditorView } from '@codemirror/view'
 import { DEFAULT_CODE_SIZE } from '#/lib/code-font'
 import { defaultCentered } from '#/lib/md-center'
 import { persistedStore } from '#/lib/store/persist'
+import type { PanelSide } from '#/lib/panel-side'
+
+const AUTO_SIDE = 'auto' as PanelSide
 
 // Editor preferences shared by every file and kept across reloads.
 export const editorPrefs = persistedStore(
@@ -20,6 +23,8 @@ export const editorPrefs = persistedStore(
     centered: defaultCentered,
     /** The sidebar sits right of the sheet instead of left. */
     sidebarRight: true,
+    /** Where the structure, preview and label panels sit beside the code. */
+    panelSide: AUTO_SIDE,
   },
   { undoable: true },
 )
@@ -37,6 +42,11 @@ export function setWordWrapPref(on: boolean) {
 /** Puts the sidebar right of the sheet, or left. */
 export function setSidebarRight(right: boolean) {
   editorPrefs.setState((s) => ({ ...s, sidebarRight: right }))
+}
+
+/** Docks the side panel on an edge of the code, or by the room there is. */
+export function setPanelSide(panelSide: PanelSide) {
+  editorPrefs.setState((s) => ({ ...s, panelSide }))
 }
 
 /** Moves the sidebar to the other side of the sheet. */

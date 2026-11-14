@@ -1,6 +1,6 @@
 import { persistedStore } from './persist'
 import { singleton } from './singleton'
-import type { FilePaneGroup } from './pane-layout'
+import type { FilePaneGroup, PaneLayout } from './pane-layout'
 
 // Identifies this page load. Not persisted: a duplicated browser tab copies
 // sessionStorage, and two tabs must never share an id. Workers forbid random
@@ -31,6 +31,10 @@ interface SessionState {
   /** Collapsed tree paths, by file id. */
   collapsed: Record<string, Array<string>>
   panes?: Array<FilePaneGroup>
+  /** How the panes are arranged; one row when absent. */
+  layout?: PaneLayout
+  /** Only the focused pane shows, taking the whole sheet. */
+  zoomed?: boolean
   panelOpen: boolean
 }
 

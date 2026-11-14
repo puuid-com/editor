@@ -12,7 +12,7 @@ import { languageOf } from '#/lib/document'
 import { filesCollection } from '#/lib/store/files'
 import { isOwnWriter, writerId } from '#/lib/store/session'
 import { diffChange } from '#/lib/xml/edit'
-import type { Extension, TransactionSpec } from '@codemirror/state'
+import type { Extension, StateEffect, TransactionSpec } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 import type { DocLanguage } from '#/lib/document'
 import type { XmlFile } from '#/lib/store/files'
@@ -39,9 +39,14 @@ function ownChange(changes: TextChange): TransactionSpec {
 // Keep undo history and selection across file switches and editor remounts.
 const states = new Map<string, EditorState>()
 
+// Where each file was scrolled to, so it reads on from there after another
+// tab took its editor, or after its pane moved and the editor started over.
+const scrolls = new Map<string, StateEffect<unknown>>()
+
 /** Forgets a file's editor state after deleting or archiving it. */
 export function dropEditorState(fileId: string) {
   states.delete(fileId)
+  scrolls.delete(fileId)
 }
 
 /** The language and the gutters that only make sense for it. */
@@ -144,8 +149,10 @@ export function createEditorSession(
       fileExtensions = extensions
       const previous = view.state.field(fileIdField, false)
       if (previous === fileId) return false
-      if (previous && filesCollection.has(previous))
+      if (previous && filesCollection.has(previous)) {
         states.set(previous, view.state)
+        scrolls.set(previous, view.scrollSnapshot())
+      }
 
       const file = filesCollection.get(fileId)
       const content = file?.content ?? ''
@@ -153,6 +160,8 @@ export function createEditorSession(
       if (cached) {
         const diff = diffChange(cached.doc.toString(), content)
         view.setState(diff ? cached.update(remoteChange(diff)).state : cached)
+        const scroll = scrolls.get(fileId)
+        if (scroll) view.dispatch({ effects: scroll })
       } else {
         view.setState(createState(fileId, file, extensions))
       }
@@ -163,7 +172,10 @@ export function createEditorSession(
     dispose() {
       subscription.unsubscribe()
       const id = view.state.field(fileIdField, false)
-      if (id && filesCollection.has(id)) states.set(id, view.state)
+      if (id && filesCollection.has(id)) {
+        states.set(id, view.state)
+        scrolls.set(id, view.scrollSnapshot())
+      }
     },
   }
 }
