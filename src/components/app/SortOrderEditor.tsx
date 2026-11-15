@@ -123,10 +123,7 @@ export function SortOrderEditor({ order }: { order: Array<string> }) {
               <span className="w-5 shrink-0 text-right text-muted-foreground tabular-nums">
                 {index + 1}
               </span>
-              <span
-                className="min-w-0 flex-1 truncate font-mono text-xs"
-                title={name}
-              >
+              <span className="min-w-0 flex-1 truncate" title={name}>
                 {name}
               </span>
               <div className="hidden pointer-coarse:flex">
@@ -231,7 +228,7 @@ function AddNameForm({
             aria-label={m.sort_order_name()}
             placeholder={m.sort_order_name()}
             autoComplete="off"
-            className="h-7 flex-1 font-mono"
+            className="h-7 flex-1"
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
           />

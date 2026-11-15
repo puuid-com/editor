@@ -4783,6 +4783,56 @@ function SettingsInOnePlace() {
  * Since 1.60.0 settings open as a tab beside the files, with the sections
  * down the side, instead of a popover at the bottom right.
  */
+/**
+ * Since 1.66.0 the settings tab reads as a page of its own: a grey page with a
+ * title, sections on cards, and fields in the interface's font.
+ */
+function SettingsPageLook() {
+  const page = (after: boolean) => (
+    <div
+      className={cn(
+        'flex h-full flex-col gap-1.5 p-2.5 text-[10px]',
+        after && 'bg-muted dark:bg-transparent',
+      )}
+    >
+      {after && (
+        <div className="text-sm font-semibold tracking-tight">
+          {m.editor_settings()}
+        </div>
+      )}
+      <div className="font-semibold">{m.variables_tab()}</div>
+      <div
+        className={cn(
+          'flex flex-col gap-1 rounded-md border p-1.5',
+          after && 'bg-card shadow-xs',
+        )}
+      >
+        {[
+          ['userId', '42'],
+          ['token', 'abc-123'],
+        ].map(([name, value]) => (
+          <div key={name} className="flex items-center gap-1.5">
+            <span className={cn('w-10 truncate', !after && 'font-mono')}>
+              {name}
+            </span>
+            <span
+              className={cn(
+                'flex-1 truncate rounded border px-1 py-0.5',
+                !after && 'font-mono',
+              )}
+            >
+              {value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+  return (
+    <BeforeAfter className="h-36" before={page(false)} after={page(true)} />
+  )
+}
+
 function SettingsAsTab() {
   const row = (label: string, on: boolean) => (
     <div className="flex items-center justify-between px-2 py-1">
@@ -5216,6 +5266,7 @@ function MovablePanes() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '1.66.0': figure(SettingsPageLook),
   '1.65.0': figure(MovablePanes),
   '1.63.3': figure(KeptEscapedQuotes),
   '1.63.2': figure(SafeDiskRefresh),

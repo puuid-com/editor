@@ -53,15 +53,12 @@ function RuleRow({ rule }: { rule: DefaultValue }) {
         onCheckedChange={() => toggleDefault(rule.id)}
         aria-label={m.defaults_enable({ key: rule.key })}
       />
-      <span
-        className="w-28 shrink-0 truncate font-mono text-xs"
-        title={rule.key}
-      >
+      <span className="w-28 shrink-0 truncate" title={rule.key}>
         {rule.key}
       </span>
       <Input
         aria-label={m.defaults_value_for({ key: rule.key })}
-        className="h-7 flex-1 font-mono"
+        className="h-7 flex-1"
         value={rule.value}
         onChange={(e) => updateDefaultValue(rule.id, e.target.value)}
       />
@@ -109,7 +106,7 @@ function AddDefaultForm({ existing }: { existing: Array<string> }) {
             list="default-key-suggestions"
             aria-label={m.defaults_key()}
             placeholder={m.defaults_key()}
-            className="h-7 w-28 shrink-0 font-mono"
+            className="h-7 w-28 shrink-0"
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
           />
@@ -125,7 +122,7 @@ function AddDefaultForm({ existing }: { existing: Array<string> }) {
           <Input
             aria-label={m.defaults_value()}
             placeholder={m.defaults_value()}
-            className="h-7 flex-1 font-mono"
+            className="h-7 flex-1"
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
           />

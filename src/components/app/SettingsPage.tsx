@@ -79,12 +79,17 @@ export function SettingsPage() {
   const profile = useActiveProfile()
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto bg-muted dark:bg-transparent">
+      <div className="mx-auto w-full max-w-3xl px-4 pt-6 md:px-8 md:pt-10">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {m.editor_settings()}
+        </h1>
+      </div>
       <Tabs
         value={section}
         onValueChange={(value) => setSettingsSection(value as SettingsSection)}
         orientation={wide ? 'vertical' : 'horizontal'}
-        className="mx-auto w-full max-w-3xl gap-6 px-4 py-6 md:flex-row md:gap-10 md:px-8 md:py-10"
+        className="mx-auto w-full max-w-3xl gap-6 px-4 pt-5 pb-6 md:flex-row md:gap-10 md:px-8 md:pt-8 md:pb-10"
       >
         <TabsList
           aria-label={m.editor_settings()}
@@ -94,7 +99,7 @@ export function SettingsPage() {
             <TabsTrigger
               key={id}
               value={id}
-              className="h-8 flex-none justify-start gap-2 px-2.5 font-normal data-active:bg-muted data-active:font-medium dark:data-active:border-transparent dark:data-active:bg-muted"
+              className="h-8 flex-none justify-start gap-2 px-2.5 font-normal text-muted-foreground hover:text-foreground data-active:bg-foreground/[0.06] data-active:font-medium data-active:text-foreground data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-foreground/10"
             >
               <Icon />
               {label()}
@@ -104,7 +109,7 @@ export function SettingsPage() {
         {SECTIONS.map(({ id, label, profiled, content }) => (
           <TabsContent key={id} value={id} className="flex min-w-0 flex-col">
             <div className="mb-3 flex min-h-6 items-center justify-between gap-4">
-              <h2 className="text-sm font-semibold">{label()}</h2>
+              <h2 className="text-base font-semibold">{label()}</h2>
               {profiled && profile && (
                 <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
                   {m.profile_settings_scope()}
@@ -112,7 +117,9 @@ export function SettingsPage() {
                 </span>
               )}
             </div>
-            <div className="overflow-hidden rounded-lg border">{content()}</div>
+            <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-xs">
+              {content()}
+            </div>
           </TabsContent>
         ))}
       </Tabs>

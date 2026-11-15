@@ -98,7 +98,7 @@ function StructuredSwitches() {
         {m.format_shorten_values()}
       </SettingSwitch>
       {settings.shortenValues && (
-        <div className="flex items-center justify-between gap-2 px-3 pt-1 pb-2 text-muted-foreground">
+        <div className="flex items-center justify-between gap-2 px-3 pt-1 pb-2">
           <span>{m.format_shorten_at()}</span>
           <ToggleGroup
             type="single"
@@ -133,7 +133,7 @@ function SortOptions() {
     <>
       <Separator />
       <div className="flex flex-col gap-2 px-3 py-2.5">
-        <span className="text-muted-foreground">{m.format_sort()}</span>
+        <span>{m.format_sort()}</span>
         <ToggleGroup
           type="single"
           variant="outline"

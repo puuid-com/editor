@@ -63,7 +63,7 @@ export function GeneralSettings() {
       </div>
       <Separator />
       <div className="flex items-center justify-between gap-4 px-3 py-2.5">
-        <span className="text-muted-foreground">{m.panel_position()}</span>
+        <span>{m.panel_position()}</span>
         <Select
           value={prefs.panelSide}
           onValueChange={(side) => setPanelSide(side as PanelSide)}
@@ -81,7 +81,7 @@ export function GeneralSettings() {
         </Select>
       </div>
       <div className="flex items-center justify-between gap-4 px-3 pt-0.5 pb-2.5">
-        <span className="text-muted-foreground">{m.code_font()}</span>
+        <span>{m.code_font()}</span>
         <Select
           value={prefs.codeFont}
           onValueChange={(id) => void setCodeFont(id as CodeFontId)}
@@ -103,7 +103,7 @@ export function GeneralSettings() {
         </Select>
       </div>
       <div className="flex flex-col gap-2 px-3 pt-0.5 pb-2.5">
-        <span className="text-muted-foreground">{m.code_size()}</span>
+        <span>{m.code_size()}</span>
         <ToggleGroup
           type="single"
           variant="outline"

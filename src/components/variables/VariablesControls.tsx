@@ -47,12 +47,12 @@ function VariableRow({ variable }: { variable: Variable }) {
   const { name } = variable
   return (
     <li className="flex items-center gap-2 px-3 py-1">
-      <span className="w-28 shrink-0 truncate font-mono text-xs" title={name}>
+      <span className="w-28 shrink-0 truncate" title={name}>
         {name}
       </span>
       <Input
         aria-label={m.variables_value_for({ name })}
-        className="h-7 flex-1 font-mono"
+        className="h-7 flex-1"
         value={variable.value}
         onChange={(e) => updateVariableValue(variable.id, e.target.value)}
       />
@@ -111,7 +111,7 @@ function AddVariableForm({ existing }: { existing: Array<string> }) {
             list="variable-name-suggestions"
             aria-label={m.variables_name()}
             placeholder={m.variables_name()}
-            className="h-7 w-28 shrink-0 font-mono"
+            className="h-7 w-28 shrink-0"
             value={field.state.value}
             aria-invalid={
               field.state.value.trim() !== '' &&
@@ -131,7 +131,7 @@ function AddVariableForm({ existing }: { existing: Array<string> }) {
           <Input
             aria-label={m.variables_value()}
             placeholder={m.variables_value()}
-            className="h-7 flex-1 font-mono"
+            className="h-7 flex-1"
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
           />

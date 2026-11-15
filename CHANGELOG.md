@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.0] - 2026-11-15
+
+### Changed
+
+- The settings tab now looks like a page of its own instead of another file: it has a grey background, a Settings title and its sections on cards, so it no longer blends in with your code.
+- Fields in Settings (variables, default values, custom sort order) use the interface's font instead of the code font, and every setting's label reads at the same strength.
+
 ## [1.65.1] - 2026-11-15
 
 ### Fixed
