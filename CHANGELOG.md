@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.1] - 2026-11-15
+
+### Fixed
+
+- The editor's code, styles and fonts now stay in the browser between visits instead of being checked again on every one, so it opens much faster when you come back.
+
 ## [1.66.0] - 2026-11-15
 
 ### Changed
