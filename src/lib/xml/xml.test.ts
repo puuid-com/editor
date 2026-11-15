@@ -377,6 +377,32 @@ describe('locate', () => {
     expect(names(new Set())).toEqual(['a', 'b', 'c', 'd'])
     expect(names(new Set(['/a[1]/b[1]']))).toEqual(['a', 'b', 'd'])
   })
+
+  it('says which rows hold elements, collapsed or not', () => {
+    const doc = parseXml('<a><b><c>1</c></b><d>text<!-- note --></d><e/></a>')
+    const rows = (collapsed: Set<string>) =>
+      flattenVisible(doc.nodes, collapsed).map((r) => [
+        r.el.name,
+        r.depth,
+        r.hasChildren,
+        r.collapsed,
+      ])
+    expect(rows(new Set())).toEqual([
+      ['a', 0, true, false],
+      ['b', 1, true, false],
+      ['c', 2, false, false],
+      ['d', 1, false, false],
+      ['e', 1, false, false],
+    ])
+    // Collapsing a leaf hides nothing, and a collapsed parent still has
+    // its children to expand.
+    expect(rows(new Set(['/a[1]/b[1]', '/a[1]/d[1]']))).toEqual([
+      ['a', 0, true, false],
+      ['b', 1, true, true],
+      ['d', 1, false, true],
+      ['e', 1, false, false],
+    ])
+  })
 })
 
 describe('problem messages', () => {

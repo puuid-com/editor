@@ -128,7 +128,11 @@ function buildParentTags(view: EditorView): DecorationSet {
       from,
       to,
       enter(node) {
-        if (namesParent(node.node))
+        // Only a name can mark a parent: the rest need no node made for them.
+        if (
+          (node.name === 'TagName' || node.name === 'PropertyName') &&
+          namesParent(node.node)
+        )
           marks.push(parentMark.range(node.from, node.to))
       },
     })

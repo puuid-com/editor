@@ -1,6 +1,7 @@
 import { syntaxTree } from '@codemirror/language'
 import { Compartment, Facet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, EditorView, WidgetType } from '@codemirror/view'
+import { NodeProp, Tree, TreeBuffer } from '@lezer/common'
 
 import { copyText } from '#/components/app/clipboard'
 import { decodeString } from '#/lib/json/parse'
@@ -85,6 +86,126 @@ function trimmed(doc: Text, from: number, to: number) {
 /** Values found before an edit, by where they start after it. */
 type KnownValues = ReadonlyMap<number, LongValue>
 
+/** Where a value is, counted from the start of the node it was found in. */
+interface Found {
+  from: number
+  to: number
+  json: boolean
+}
+
+type SyntaxPart = Tree | TreeBuffer
+
+const NONE: ReadonlyArray<Found> = []
+
+// The long values under each part of a syntax tree, for one limit. An edit
+// leaves most parts of the tree as they were and the parser hands the same
+// ones back, so reading a tree again costs the path to the edit rather than
+// the whole document: this runs on every keystroke.
+const foundByLimit = new Map<
+  number,
+  WeakMap<SyntaxPart, ReadonlyArray<Found>>
+>()
+
+/** Limits whose finds are kept: one per profile in use, and a few to spare. */
+const KEPT_LIMITS = 8
+
+function foundFor(limit: number) {
+  let found = foundByLimit.get(limit)
+  if (!found) {
+    if (foundByLimit.size >= KEPT_LIMITS) {
+      foundByLimit.delete(foundByLimit.keys().next().value!)
+    }
+    found = new WeakMap()
+    foundByLimit.set(limit, found)
+  }
+  return found
+}
+
+/** Reads a tree for values longer than `limit`, adding them to `out`. */
+class Finder {
+  private found: WeakMap<SyntaxPart, ReadonlyArray<Found>>
+
+  constructor(
+    private doc: Text,
+    private limit: number,
+    private out: Array<Found>,
+  ) {
+    this.found = foundFor(limit)
+  }
+
+  /** The values under `part`, which starts at `start` in the document. */
+  read(part: SyntaxPart, start: number) {
+    // Nothing inside a part this short can be longer than the limit.
+    if (part.length <= this.limit) return
+    const { out } = this
+    const known = this.found.get(part)
+    if (known) {
+      for (const { from, to, json } of known)
+        out.push({ from: from + start, to: to + start, json })
+      return
+    }
+    const first = out.length
+    if (part instanceof TreeBuffer) this.buffer(part, start)
+    else this.tree(part, start)
+    this.found.set(
+      part,
+      out.length === first
+        ? NONE
+        : out.slice(first).map(({ from, to, json }) => ({
+            from: from - start,
+            to: to - start,
+            json,
+          })),
+    )
+  }
+
+  private tree(tree: Tree, start: number) {
+    if (this.value(tree.type.name, start, start + tree.length)) return
+    const { children, positions } = tree
+    for (let i = 0; i < children.length; i++) {
+      let child = children[i]
+      // Another language's tree standing in for a node is read in its place.
+      const mounted = child instanceof Tree && child.prop(NodeProp.mounted)
+      if (mounted && !mounted.overlay) child = mounted.tree
+      this.read(child, start + positions[i])
+    }
+  }
+
+  /**
+   * Small nodes are packed in rows of type, start, end and where the next
+   * node that isn't inside this one begins.
+   */
+  private buffer({ buffer, set }: TreeBuffer, start: number) {
+    for (let i = 0; i < buffer.length;) {
+      const from = start + buffer[i + 1]
+      const to = start + buffer[i + 2]
+      if (
+        to - from <= this.limit ||
+        this.value(set.types[buffer[i]].name, from, to)
+      )
+        i = buffer[i + 3]
+      else i += 4
+    }
+  }
+
+  /** Adds the node if it is a value, and tells whether it was one. */
+  private value(name: string, from: number, to: number) {
+    if (name === 'Text') {
+      const text = trimmed(this.doc, from, to)
+      if (text.to - text.from > this.limit)
+        this.out.push({ from: text.from, to: text.to, json: false })
+      return true
+    }
+    if (name === 'String') {
+      // JSON keys are PropertyName, so a String here is always a value.
+      if (to - from - 2 > this.limit)
+        this.out.push({ from: from + 1, to: to - 1, json: true })
+      return true
+    }
+    return false
+  }
+}
+
 /**
  * Values in the document longer than `limit` characters. `known` values
  * whose text is unchanged keep their size, so only edited ones are read.
@@ -94,34 +215,16 @@ export function longValues(
   limit: number,
   known: KnownValues = new Map(),
 ) {
-  const values: Array<LongValue> = []
-  if (limit <= 0) return values
-  const value = (from: number, to: number, json: boolean): LongValue => {
+  if (limit <= 0) return []
+  const found: Array<Found> = []
+  new Finder(state.doc, limit, found).read(syntaxTree(state), 0)
+  return found.map(({ from, to, json }): LongValue => {
     const old = known.get(from)
     if (old && old.to === to && old.json === json) return old
-    const found = { from, to, json, size: '' }
-    found.size = formatSize(utf8Length(valueText(state, found)))
-    return found
-  }
-  syntaxTree(state).iterate({
-    enter(node) {
-      // Nothing inside a node this short can be longer than the limit.
-      if (node.to - node.from <= limit) return false
-      if (node.name === 'Text') {
-        const { from, to } = trimmed(state.doc, node.from, node.to)
-        if (to - from > limit) values.push(value(from, to, false))
-        return false
-      }
-      if (node.name === 'String') {
-        // JSON keys are PropertyName, so a String here is always a value.
-        if (node.to - node.from - 2 > limit)
-          values.push(value(node.from + 1, node.to - 1, true))
-        return false
-      }
-      return undefined
-    },
+    const value = { from, to, json, size: '' }
+    value.size = formatSize(utf8Length(valueText(state, value)))
+    return value
   })
-  return values
 }
 
 /** Values an edit left untouched, moved to where they are after it. */

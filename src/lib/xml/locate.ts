@@ -1,4 +1,4 @@
-import { childElements, isElement } from './model'
+import { isElement } from './model'
 import type { XmlElement, XmlNode } from './model'
 
 /** Index of the last of `nodes`, in document order, starting at or before `pos`. */
@@ -85,16 +85,22 @@ export function flattenVisible(
   collapsed: ReadonlySet<string>,
 ): Array<TreeRow> {
   const rows: Array<TreeRow> = []
+  // Reads the children in place: a list of each element's child elements
+  // would be made for every element of the file, on every parse.
   const visit = (el: XmlElement, depth: number) => {
-    const kids = childElements(el)
-    const isCollapsed = collapsed.has(el.path)
-    rows.push({
+    const row = {
       el,
       depth,
-      hasChildren: kids.length > 0,
-      collapsed: isCollapsed,
-    })
-    if (!isCollapsed) for (const kid of kids) visit(kid, depth + 1)
+      hasChildren: false,
+      collapsed: collapsed.has(el.path),
+    }
+    rows.push(row)
+    for (const child of el.children) {
+      if (!isElement(child)) continue
+      row.hasChildren = true
+      if (row.collapsed) break
+      visit(child, depth + 1)
+    }
   }
   for (const node of nodes) if (isElement(node)) visit(node, 0)
   return rows

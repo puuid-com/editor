@@ -69,7 +69,19 @@ export function namesParent(node: SyntaxNode): boolean {
   if (node.name !== 'TagName') return false
   const tag = node.parent
   if (tag?.name !== 'OpenTag' && tag?.name !== 'CloseTag') return false
-  return tag.parent?.getChild('Element') != null
+  return !!tag.parent && hasChild(tag.parent, 'Element')
+}
+
+/**
+ * Whether `node` has a child named `name`. Stops at the first one, where
+ * `getChild` reads every child: thousands for the root of a large file, and
+ * again for each of its tags on screen.
+ */
+function hasChild(node: SyntaxNode, name: string) {
+  for (let child = node.firstChild; child; child = child.nextSibling) {
+    if (child.name === name) return true
+  }
+  return false
 }
 
 /** The tag name or JSON key right at `pos`, on either side of it. */

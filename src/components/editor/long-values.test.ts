@@ -1,3 +1,4 @@
+import { ensureSyntaxTree, syntaxTree } from '@codemirror/language'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { describe, expect, it, vi } from 'vitest'
@@ -5,8 +6,57 @@ import { describe, expect, it, vi } from 'vitest'
 import { languageExtension } from './language'
 import { longValues, shortenLongValues, valueText } from './long-values'
 
-function stateOf(doc: string, language: 'xml' | 'json' = 'xml') {
+function stateOf(doc: string, language: 'xml' | 'json' | 'sql' = 'xml') {
   return EditorState.create({ doc, extensions: languageExtension(language) })
+}
+
+/** `state` with its whole document parsed, as the editor has it once idle. */
+function parsed(state: EditorState) {
+  ensureSyntaxTree(state, state.doc.length, 10_000)
+  return state.update({}).state
+}
+
+/**
+ * Long values found by walking every node of the tree, as they were looked
+ * for before finds were kept between edits.
+ */
+function everyNode(state: EditorState, limit: number) {
+  const values: Array<{ from: number; to: number; json: boolean }> = []
+  syntaxTree(state).iterate({
+    enter(node) {
+      if (node.to - node.from <= limit) return false
+      if (node.name === 'Text') {
+        const text = state.sliceDoc(node.from, node.to)
+        const from = node.from + (text.length - text.trimStart().length)
+        const to = node.to - (text.length - text.trimEnd().length)
+        if (to - from > limit) values.push({ from, to, json: false })
+        return false
+      }
+      if (node.name === 'String') {
+        if (node.to - node.from - 2 > limit)
+          values.push({ from: node.from + 1, to: node.to - 1, json: true })
+        return false
+      }
+      return undefined
+    },
+  })
+  return values
+}
+
+function found(state: EditorState, limit: number) {
+  return longValues(state, limit).map(({ from, to, json }) => ({
+    from,
+    to,
+    json,
+  }))
+}
+
+/** A repeatable stand-in for Math.random. */
+function random(seed: number) {
+  return () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
 }
 
 function withClipboard(run: (writeText: ReturnType<typeof vi.fn>) => void) {
@@ -131,4 +181,51 @@ describe('longValues', () => {
   it('finds nothing when the limit is 0', () => {
     expect(longValues(stateOf(`<a>${'z'.repeat(500)}</a>`), 0)).toEqual([])
   })
+
+  it.each([
+    [
+      'xml',
+      (i: number, long: boolean) =>
+        `  <order id="${i}" note="${'n'.repeat(long ? 90 : 3)}">\n    <name>  ${'x'.repeat(long ? 60 + (i % 900) : 8)}  </name><!-- ${'c'.repeat(long ? 70 : 2)} -->\n    <data><![CDATA[${'d'.repeat(long ? 80 : 4)}]]></data>\n  </order>\n`,
+      (rows: string) => `<orders>\n${rows}</orders>\n`,
+    ],
+    [
+      'json',
+      (i: number, long: boolean) =>
+        `  {"id": ${i}, "${'k'.repeat(long ? 70 : 3)}": "${'v'.repeat(long ? 60 + (i % 900) : 8)}\\n", "tags": ["a", "${'t'.repeat(long ? 45 : 2)}"]},\n`,
+      (rows: string) => `[\n${rows}  {}\n]\n`,
+    ],
+    [
+      'sql',
+      (i: number, long: boolean) =>
+        `insert into t values (${i}, '${'s'.repeat(long ? 60 + (i % 900) : 8)}');\n`,
+      (rows: string) => rows,
+    ],
+  ] as const)(
+    'finds the same %s values as a walk of every node, edit after edit',
+    (language, row, wrap) => {
+      const next = random(7)
+      const rows = Array.from({ length: 1500 }, (_, i) => row(i, next() < 0.05))
+      let state = parsed(stateOf(wrap(rows.join('')), language))
+      expect(found(state, 40)).toEqual(everyNode(state, 40))
+      expect(found(state, 40).length).toBeGreaterThan(20)
+      // Another limit keeps finds of its own.
+      expect(found(state, 100)).toEqual(everyNode(state, 100))
+
+      for (let edit = 0; edit < 40; edit++) {
+        const at = Math.floor(next() * state.doc.length)
+        const kind = next()
+        const changes =
+          kind < 0.4
+            ? { from: at, insert: 'y'.repeat(1 + Math.floor(next() * 80)) }
+            : kind < 0.7
+              ? { from: at, to: Math.min(state.doc.length, at + 60) }
+              : // Markup that changes how what follows it reads.
+                { from: at, insert: ['<', '"', "'", '<!--', ']]>'][edit % 5] }
+        state = parsed(state.update({ changes }).state)
+        expect(found(state, 40)).toEqual(everyNode(state, 40))
+        expect(found(state, 100)).toEqual(everyNode(state, 100))
+      }
+    },
+  )
 })

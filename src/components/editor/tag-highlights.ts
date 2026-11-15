@@ -46,6 +46,8 @@ function buildTagHighlights(view: EditorView): TagHighlights {
       from,
       to,
       enter(node) {
+        // Only names are highlighted: the rest need no node made for them.
+        if (node.name !== 'TagName' && node.name !== 'PropertyName') return
         const tag = namedTag(node.node, doc)
         const color = tag && rules.get(localName(tag.name))
         if (!tag || !color) return

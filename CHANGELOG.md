@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.2] - 2026-11-15
+
+### Fixed
+
+- Typing in large XML and JSON files takes less work: a keystroke no longer reads the whole document again to shorten long values and tell parent tags apart. In a 4 MB file, each key press costs about a third less.
+
 ## [1.66.1] - 2026-11-15
 
 ### Fixed
