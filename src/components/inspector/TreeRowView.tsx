@@ -6,7 +6,7 @@ import {
   IconExternalLink,
   IconPin,
 } from '@tabler/icons-react'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 
 import { CopyPathMenuItems } from './CopyPathMenuItems'
 import { DefaultChip, LeafText } from './LeafText'
@@ -23,11 +23,9 @@ import {
   ZplMenuItems,
 } from '#/components/highlights/TagMenuItems'
 import {
-  ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-  ContextMenuTrigger,
 } from '#/components/ui/context-menu'
 import { setValue } from '#/lib/document'
 import { cn } from '#/lib/utils'
@@ -49,7 +47,7 @@ const INDENT = 14
 /** Attributes shown inline; the rest are counted. */
 const MAX_ATTRS = 3
 
-export function TreeRowView({
+function Row({
   row,
   index,
   active,
@@ -85,67 +83,69 @@ export function TreeRowView({
   const empty = hasChildren ? null : emptyContainer(el)
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div
-          role="treeitem"
-          data-index={index}
-          tabIndex={active ? 0 : -1}
-          aria-level={depth + 1}
-          aria-selected={selected}
-          aria-expanded={hasChildren ? !collapsed : undefined}
-          aria-keyshortcuts={textLeaf ? 'F2' : undefined}
-          onFocus={() => onFocusRow(el.path)}
-          onClick={() => revealElement(el)}
-          className={cn(
-            'group absolute left-0 flex w-full cursor-default items-center gap-1 pr-2 font-mono text-xs outline-none select-none hover:bg-muted/60 focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-inset',
-            selected && 'bg-muted',
-          )}
-          style={{
-            top,
-            height: rowHeight,
-            paddingLeft: 6 + depth * INDENT,
+    <div
+      role="treeitem"
+      data-index={index}
+      tabIndex={active ? 0 : -1}
+      aria-level={depth + 1}
+      aria-selected={selected}
+      aria-expanded={hasChildren ? !collapsed : undefined}
+      aria-keyshortcuts={textLeaf ? 'F2' : undefined}
+      onFocus={() => onFocusRow(el.path)}
+      onClick={() => revealElement(el)}
+      className={cn(
+        'group absolute left-0 flex w-full cursor-default items-center gap-1 pr-2 font-mono text-xs outline-none select-none hover:bg-muted/60 focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-inset',
+        selected && 'bg-muted',
+      )}
+      style={{
+        top,
+        height: rowHeight,
+        paddingLeft: 6 + depth * INDENT,
+      }}
+    >
+      {hasChildren ? (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={collapsed ? m.tree_expand() : m.tree_collapse()}
+          className="grid size-8 shrink-0 place-items-center text-muted-foreground hover:text-foreground md:size-4"
+          onClick={(e) => {
+            e.stopPropagation()
+            onCollapse([el.path], !collapsed)
           }}
         >
-          {hasChildren ? (
-            <button
-              type="button"
-              tabIndex={-1}
-              aria-label={collapsed ? m.tree_expand() : m.tree_collapse()}
-              className="grid size-8 shrink-0 place-items-center text-muted-foreground hover:text-foreground md:size-4"
-              onClick={(e) => {
-                e.stopPropagation()
-                onCollapse([el.path], !collapsed)
-              }}
-            >
-              {collapsed ? (
-                <IconChevronRight className="size-3" />
-              ) : (
-                <IconChevronDown className="size-3" />
-              )}
-            </button>
+          {collapsed ? (
+            <IconChevronRight className="size-3" />
           ) : (
-            <span className="size-8 shrink-0 md:size-4" />
+            <IconChevronDown className="size-3" />
           )}
-          <TagLabel el={el} color={color} defaults={defaults} />
-          {textLeaf && (
-            <LeafValue
-              path={el.path}
-              onEditingChange={onEditingChange}
-              value={leafValue(el)}
-              defaultKey={isDefaultLeaf(defaults, el) ? el.name : undefined}
-              differs={leafDiffers(defaults, el)}
-            />
-          )}
-          {isLeaf(el) && el.selfClosing && <span className="flex-1" />}
-          {empty && <span className="ml-1 text-syntax-punct">{empty}</span>}
-          <RowMarks el={el} zpl={zpl} pinned={pinned} />
-        </div>
-      </ContextMenuTrigger>
-      <TreeRowMenu el={el} onCollapse={onCollapse} hasChildren={hasChildren} />
-    </ContextMenu>
+        </button>
+      ) : (
+        <span className="size-8 shrink-0 md:size-4" />
+      )}
+      <TagLabel el={el} color={color} defaults={defaults} />
+      {textLeaf && (
+        <LeafValue
+          path={el.path}
+          onEditingChange={onEditingChange}
+          value={leafValue(el)}
+          defaultKey={isDefaultLeaf(defaults, el) ? el.name : undefined}
+          differs={leafDiffers(defaults, el)}
+        />
+      )}
+      {isLeaf(el) && el.selfClosing && <span className="flex-1" />}
+      {empty && <span className="ml-1 text-syntax-punct">{empty}</span>}
+      <RowMarks el={el} zpl={zpl} pinned={pinned} />
+    </div>
   )
 }
+
+/**
+ * One row of the structure tree. Memoized: the tree renders on every move of
+ * the cursor, and only the rows it leaves and lands on change. Its context
+ * menu is the tree's (`TreeRowMenu`), opened for the row under the pointer.
+ */
+export const TreeRowView = memo(Row)
 
 /** Trailing marks of a row: the ZPL viewer link, then the pin. */
 function RowMarks({
@@ -264,7 +264,8 @@ function TagLabel({
   )
 }
 
-function TreeRowMenu({
+/** What a right-click on a row offers; the tree has one menu for all of them. */
+export function TreeRowMenu({
   el,
   onCollapse,
   hasChildren,

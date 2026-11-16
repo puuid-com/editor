@@ -2,6 +2,7 @@ import { forceLinting } from '@codemirror/lint'
 import { Annotation, EditorState, Transaction } from '@codemirror/state'
 
 import { fileIdField } from './file-id'
+import { dropParse } from './parse'
 import {
   docLanguage,
   languageCompartment,
@@ -47,6 +48,7 @@ const scrolls = new Map<string, StateEffect<unknown>>()
 export function dropEditorState(fileId: string) {
   states.delete(fileId)
   scrolls.delete(fileId)
+  dropParse(fileId)
 }
 
 /** The language and the gutters that only make sense for it. */

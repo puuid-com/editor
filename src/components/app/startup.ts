@@ -2,7 +2,7 @@ import { loadLanguages } from '#/components/editor/language'
 import { languageOf } from '#/lib/document'
 import { filesCollection, isOpen, openFileIds } from '#/lib/store/files'
 import { sessionStore } from '#/lib/store/session'
-import { activeFileName, workspaceReady } from '#/lib/store/workspace'
+import { workspaceReady } from '#/lib/store/workspace'
 
 /** The types of the files the editor opens on: the focused one and each pane's. */
 function shownLanguages() {
@@ -28,5 +28,4 @@ export async function editorReady() {
   await workspaceReady()
   // A type that can't be fetched reads as plain text; the editor still opens.
   await loadLanguages(shownLanguages()).catch(() => undefined)
-  return { fileName: activeFileName() }
 }

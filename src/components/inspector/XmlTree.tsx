@@ -1,20 +1,28 @@
 import { IconAlertTriangle, IconSearch, IconX } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { flushSync } from 'react-dom'
 
 import { treeKeyAction } from './tree-keys'
 import { SearchHighlightProvider } from './SearchHighlight'
 import { searchNeedle, searchTree } from './tree-search'
 import { StructureBreadcrumb } from './StructureBreadcrumb'
-import { TreeRowView } from './TreeRowView'
+import { TreeRowMenu, TreeRowView } from './TreeRowView'
 import { useScrollSync } from './use-scroll-sync'
 import {
   editorStore,
   revealElement,
   revealRange,
 } from '#/components/editor/editor-store'
+import { ContextMenu, ContextMenuTrigger } from '#/components/ui/context-menu'
 import {
   InputGroup,
   InputGroupAddon,
@@ -59,6 +67,8 @@ export function XmlTree() {
   const [query, setQuery] = useState('')
   const [editingPath, setEditingPath] = useState<string | null>(null)
   const [searchCollapsed, setSearchCollapsed] = useState<Set<string>>(new Set())
+  // The row the context menu is open for, or was last.
+  const [menuPath, setMenuPath] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const wide = useMediaQuery('(min-width: 768px)')
   const rowHeight = wide ? 26 : 44
@@ -120,6 +130,28 @@ export function XmlTree() {
   )
   useEffect(() => virtualizer.scrollToOffset(0), [query, virtualizer])
 
+  // Kept the same between renders, like everything else a row is given: the
+  // compiler leaves this component alone, and a new function would have
+  // every row render again.
+  const changeCollapsed = useCallback(
+    (paths: Array<string>, collapse: boolean) => {
+      if (!fileId) return
+      if (!searching) {
+        setCollapsed(fileId, paths, collapse)
+        return
+      }
+      setSearchCollapsed((previous) => {
+        const next = new Set(previous)
+        for (const path of paths) {
+          if (collapse) next.add(path)
+          else next.delete(path)
+        }
+        return next
+      })
+    },
+    [fileId, searching],
+  )
+
   if (!fileId) return null
 
   const changeQuery = (value: string) => {
@@ -128,20 +160,15 @@ export function XmlTree() {
     setFocusedPath(null)
   }
 
-  const changeCollapsed = (paths: Array<string>, collapse: boolean) => {
-    if (!searching) {
-      setCollapsed(fileId, paths, collapse)
-      return
-    }
-    setSearchCollapsed((previous) => {
-      const next = new Set(previous)
-      for (const path of paths) {
-        if (collapse) next.add(path)
-        else next.delete(path)
-      }
-      return next
-    })
+  /** The row an event happened on, for the menu all rows share. */
+  const rowAt = (event: React.SyntheticEvent) => {
+    const item = (event.target as Element).closest<HTMLElement>(
+      '[role="treeitem"]',
+    )
+    return item ? rows.at(Number(item.dataset.index)) : undefined
   }
+  const menuRow =
+    menuPath === null ? undefined : rows.find((r) => r.el.path === menuPath)
 
   const focusRow = (index: number) => {
     // Render first so the row is mounted and tabbable, then move focus to it.
@@ -262,38 +289,63 @@ export function XmlTree() {
           }}
         >
           <SearchHighlightProvider needle={searchNeedle(query)}>
-            <div
-              className="relative w-full"
-              style={{ height: virtualizer.getTotalSize() }}
-            >
-              {virtualizer.getVirtualItems().map((item) => {
-                const row = rows[item.index]
-                const named = hasName(row.el)
-                const name = named ? localName(row.el.name) : ''
-                return (
-                  <TreeRowView
-                    key={row.el.path}
-                    row={row}
-                    index={item.index}
-                    active={item.index === activeIndex}
-                    onFocusRow={setFocusedPath}
-                    onEditingChange={setEditingPath}
-                    rowHeight={rowHeight}
-                    onCollapse={changeCollapsed}
-                    top={item.start}
-                    defaults={defaults}
-                    selected={row.el.path === selectedPath}
-                    color={named ? highlights.get(name) : undefined}
-                    pinned={named && pinned.has(name)}
-                    zpl={
-                      named &&
-                      isTextLeaf(row.el) &&
-                      isZplTag(zplTags, row.el.name)
-                    }
-                  />
-                )
-              })}
-            </div>
+            {/* One menu for every row, opened for the one under the pointer:
+                a menu in each row is most of what a row is made of. */}
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <div
+                  className="relative w-full"
+                  style={{ height: virtualizer.getTotalSize() }}
+                  onContextMenu={(event) => {
+                    const row = rowAt(event)
+                    if (row) setMenuPath(row.el.path)
+                    // Between rows, neither this menu nor the browser's.
+                    else event.preventDefault()
+                  }}
+                  onPointerDown={(event) => {
+                    // A long press opens the menu without a contextmenu event.
+                    if (event.pointerType === 'mouse') return
+                    const row = rowAt(event)
+                    if (row) setMenuPath(row.el.path)
+                  }}
+                >
+                  {virtualizer.getVirtualItems().map((item) => {
+                    const row = rows[item.index]
+                    const named = hasName(row.el)
+                    const name = named ? localName(row.el.name) : ''
+                    return (
+                      <TreeRowView
+                        key={row.el.path}
+                        row={row}
+                        index={item.index}
+                        active={item.index === activeIndex}
+                        onFocusRow={setFocusedPath}
+                        onEditingChange={setEditingPath}
+                        rowHeight={rowHeight}
+                        onCollapse={changeCollapsed}
+                        top={item.start}
+                        defaults={defaults}
+                        selected={row.el.path === selectedPath}
+                        color={named ? highlights.get(name) : undefined}
+                        pinned={named && pinned.has(name)}
+                        zpl={
+                          named &&
+                          isTextLeaf(row.el) &&
+                          isZplTag(zplTags, row.el.name)
+                        }
+                      />
+                    )
+                  })}
+                </div>
+              </ContextMenuTrigger>
+              {menuRow && (
+                <TreeRowMenu
+                  el={menuRow.el}
+                  onCollapse={changeCollapsed}
+                  hasChildren={menuRow.hasChildren}
+                />
+              )}
+            </ContextMenu>
           </SearchHighlightProvider>
         </div>
       )}

@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.5] - 2026-11-16
+
+### Changed
+
+- Switching tabs takes about a third of the work it did, and moving the cursor through a document a little over half. Naming the file in the browser tab no longer reloads the editor behind the scenes, a file's structure is kept while you look at another one, and the structure tree redraws only the rows that change.
+
 ## [1.66.4] - 2026-11-16
 
 ### Fixed

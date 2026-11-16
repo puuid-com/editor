@@ -1,5 +1,6 @@
 import { ensureSyntaxTree } from '@codemirror/language'
 
+import { fileIdField } from './file-id'
 import { docLanguage } from './language'
 import { parseDocument } from '#/lib/document'
 import { parseXml } from '#/lib/xml/parse'
@@ -15,18 +16,49 @@ import type { XmlDocument } from '#/lib/xml/model'
  */
 const TREE_BUDGET_MS = 10_000
 
+interface Parse {
+  text: Text
+  language: DocLanguage
+  doc: XmlDocument
+}
+
 // Retain only the latest parse per view, rather than one per undo state.
-const parsed = new WeakMap<
-  EditorView,
-  { text: Text; language: DocLanguage; doc: XmlDocument }
->()
+const parsed = new WeakMap<EditorView, Parse>()
+
+/** Files whose latest parse is kept after another file takes their editor. */
+const KEPT_FILES = 4
+
+// The latest parse of the last few files shown, so going back to a tab
+// doesn't read all of its text again. An editor kept for a tab holds on to
+// the same text, which is how a kept parse is known to still be good.
+const byFile = new Map<string, Parse>()
+
+/** Forgets the parse kept for a file that was deleted or archived. */
+export function dropParse(fileId: string) {
+  byFile.delete(fileId)
+}
+
+function keep(fileId: string, parse: Parse) {
+  // Deleted first, so the file moves to the end: the last one shown.
+  byFile.delete(fileId)
+  byFile.set(fileId, parse)
+  if (byFile.size > KEPT_FILES) byFile.delete(byFile.keys().next().value!)
+}
 
 /** Share a parse between focus, commands and linting until the text changes. */
 export function parseEditor(view: EditorView) {
   const text = view.state.doc
   const language = view.state.facet(docLanguage)
+  const fresh = (parse: Parse | undefined) =>
+    parse?.text === text && parse.language === language
   const cached = parsed.get(view)
-  if (cached?.text === text && cached.language === language) return cached.doc
+  if (cached && fresh(cached)) return cached.doc
+  const fileId = view.state.field(fileIdField, false)
+  const kept = fileId ? byFile.get(fileId) : undefined
+  if (kept && fresh(kept)) {
+    parsed.set(view, kept)
+    return kept.doc
+  }
   const doc =
     language === 'xml'
       ? parseXml(
@@ -36,6 +68,8 @@ export function parseEditor(view: EditorView) {
             undefined,
         )
       : parseDocument(text.toString(), language)
-  parsed.set(view, { text, language, doc })
+  const parse = { text, language, doc }
+  parsed.set(view, parse)
+  if (fileId) keep(fileId, parse)
   return doc
 }

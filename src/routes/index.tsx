@@ -3,7 +3,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { EditorApp } from '#/components/app/EditorApp'
 import { editorReady } from '#/components/app/startup'
 import { m } from '#/paraglide/messages'
-import { site } from '#/site'
 import { seo } from '#/lib/seo'
 
 export const Route = createFileRoute('/')({
@@ -15,16 +14,8 @@ export const Route = createFileRoute('/')({
   // editor's database.
   codeSplitGroupings: [['loader', 'component']],
   loader: () => editorReady(),
-  head: ({ loaderData }) => {
-    const metadata = seo({ title: m.seo_title(), path: '/' })
-    const name = loaderData?.fileName
-    return {
-      ...metadata,
-      // Only the browser title contains local filenames; social tags stay public.
-      meta: metadata.meta.map((meta) =>
-        'title' in meta && name ? { title: `${name} | ${site.name}` } : meta,
-      ),
-    }
-  },
+  // The open file's name joins the title in the browser only; see
+  // `useEditorTitle`.
+  head: () => seo({ title: m.seo_title(), path: '/' }),
   component: EditorApp,
 })
