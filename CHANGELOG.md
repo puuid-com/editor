@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.4] - 2026-11-16
+
+### Fixed
+
+- Opening several files at once, picked together or dropped on the window, no longer freezes the editor. It opens them all and shows the last one.
+
 ## [1.66.3] - 2026-11-15
 
 ### Changed

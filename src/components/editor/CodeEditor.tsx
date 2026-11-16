@@ -216,16 +216,24 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     replayDraftEdits(fileId, view)
   }, [fileId])
 
-  const activate = () => {
+  /** Makes this editor the one that commands and the panels act on. */
+  const attach = () => {
     const view = viewRef.current
     if (!view || !view.state.field(fileIdField, false)) return
-    setActive(fileId)
     setView(view)
     publishCursorFrom(view.state)
     publishParse(fileId, parseEditor(view))
   }
+  /** A click or focus in this editor picks its file. */
+  const activate = () => {
+    setActive(fileId)
+    attach()
+  }
   useEffect(() => {
-    if (active) activate()
+    // Asks the session, not this render: by the time an effect runs another
+    // file may have been picked, as when several are opened at once, and
+    // picking this one again would set the two taking turns for good.
+    if (sessionStore.state.activeId === fileId) attach()
   }, [active, fileId])
 
   return (

@@ -95,12 +95,17 @@ export function MixedWorkspace({
   )
   useEffect(() => {
     const { panes: saved, layout: arranged } = sessionStore.state
+    // The session moved on after this render, as when the last of several
+    // imported files is picked right after it: these panes were worked out
+    // from what it held before, and saving them would undo that. The render
+    // it set off works from what it holds now.
+    if (saved !== storedPanes || arranged !== storedLayout) return
     if (
       JSON.stringify(panes) !== JSON.stringify(saved) ||
       JSON.stringify(layout) !== JSON.stringify(arranged)
     )
       savePanes(panes, undefined, layout)
-  }, [panes, layout])
+  }, [panes, layout, storedPanes, storedLayout])
   // A drag that ends anywhere, such as outside the window, is over.
   useEffect(() => {
     document.addEventListener('dragend', endPaneDrag)

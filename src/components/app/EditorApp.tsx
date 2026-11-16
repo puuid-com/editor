@@ -58,7 +58,13 @@ export function EditorApp() {
   const activeName = files.find((file) => file.id === activeId)?.name
   useEditorTitle(activeName)
   useEffect(() => {
-    if (activeId !== storedActive) setActive(activeId)
+    // Unless another file was picked since this render: its own render
+    // decides then.
+    if (
+      activeId !== storedActive &&
+      sessionStore.state.activeId === storedActive
+    )
+      setActive(activeId)
   }, [activeId, storedActive])
 
   useEffect(() => onSaveFailed(reportSaveFailed), [])
