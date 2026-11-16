@@ -1,5 +1,4 @@
 import { useSelector } from '@tanstack/react-store'
-import { Suspense } from 'react'
 
 import { uiStore } from './ui-store'
 import { lazyPart } from '#/lib/lazy'
@@ -17,9 +16,5 @@ export function PasteBar({ fileId }: { fileId: string }) {
     s.pasteChoice?.fileId === fileId ? s.pasteChoice : null,
   )
   if (!choice) return null
-  return (
-    <Suspense>
-      <PasteOffer fileId={fileId} choice={choice} />
-    </Suspense>
-  )
+  return <PasteOffer fileId={fileId} choice={choice} />
 }

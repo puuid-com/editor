@@ -13,6 +13,8 @@
   "error_title": "Something went wrong",
   "error_body": "An unexpected error occurred. Try again, or go back to the home page.",
   "try_again": "Try again",
+  "part_load_failed": "Part of the editor could not be loaded. Check your connection, then reload.",
+  "reload_page": "Reload",
   "go_home": "Go to the home page",
   "footer_rights": "© {year} {name}",
   "app_version": "v{version}",

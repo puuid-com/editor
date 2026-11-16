@@ -1,9 +1,9 @@
-import { Suspense, useState } from 'react'
+import { useState } from 'react'
 
 /**
  * Mounts what it holds the first time it is `shown`, and leaves it mounted
  * from then on, so a dialog closes with its animation and keeps its state.
- * For parts that load when first shown: nothing shows while they do.
+ * For parts that load when first shown: see `lazyPart`.
  */
 export function Once({
   shown,
@@ -14,5 +14,5 @@ export function Once({
 }) {
   const [mounted, setMounted] = useState(shown)
   if (shown && !mounted) setMounted(true)
-  return mounted ? <Suspense>{children}</Suspense> : null
+  return mounted ? children : null
 }

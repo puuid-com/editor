@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.6] - 2026-11-16
+
+### Fixed
+
+- If a dialog, the command menu or the settings page can't be fetched, as when the connection drops right after the editor opens, the editor keeps working. A notice says so and offers to reload, saving what you just typed first.
+
 ## [1.66.5] - 2026-11-16
 
 ### Changed

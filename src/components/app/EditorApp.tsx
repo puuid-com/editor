@@ -1,9 +1,10 @@
 import { IconFileUpload } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { FileExplorer } from './FileExplorer'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
+import { reportLoadFailed } from './load-failed'
 import { Dialogs } from './Dialogs'
 import { startDiskSync } from './disk-workspace'
 import {
@@ -28,7 +29,7 @@ import {
 import { useEditorTitle } from '#/hooks/use-editor-title'
 import { openFiles, useWorkspaceFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
-import { lazyPart, startPreloading } from '#/lib/lazy'
+import { lazyPart, onLoadFailed, startPreloading } from '#/lib/lazy'
 import { onSaveFailed } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
@@ -68,6 +69,7 @@ export function EditorApp() {
   }, [activeId, storedActive])
 
   useEffect(() => onSaveFailed(reportSaveFailed), [])
+  useEffect(() => onLoadFailed(reportLoadFailed), [])
   // What was left out of the first load is fetched now that it has rendered.
   useEffect(() => startPreloading(), [])
   // Tabs of folders opened from disk save there as they're edited.
@@ -173,9 +175,7 @@ export function EditorApp() {
               wide={wide}
             />
           ) : settings.open ? (
-            <Suspense>
-              <SettingsSheet />
-            </Suspense>
+            <SettingsSheet />
           ) : (
             <DraftPane />
           )}

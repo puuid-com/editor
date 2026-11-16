@@ -30,11 +30,19 @@ Both compressed `#zpl=…` and `#base64=…` / `?base64=…` links work, with op
 
 ## State and persistence
 
-TanStack DB collections keep files, profiles, and rules in IndexedDB and synchronize changes across browser tabs. The route waits for `workspaceReady()` before mounting the editor. Older localStorage workspaces are migrated on startup.
+TanStack DB collections keep files, profiles, and rules in IndexedDB and synchronize changes across browser tabs. The route waits for `editorReady()` (the stored workspace, then the support for the file types on screen) before mounting the editor. Older localStorage workspaces are migrated on startup.
 
 TanStack Store holds UI and session state. CodeMirror owns the live document, selection, and undo history. `editor-session.ts` coordinates file switching, cached editor states, and collection updates; `editor-store.ts` exposes parsed documents and cursor state to the rest of the interface.
 
 Content edits update optimistically and persist after a 400 ms typing pause. Collection mutators expose TanStack transactions when a caller needs to await `isPersisted.promise`; profile creation, cloning, and deletion return promises. Forms retain their drafts on failed writes and confirm saves only after persistence succeeds. Multi-collection operations are not a single atomic IndexedDB transaction; backup restore attempts to roll back completed writes on failure.
+
+## Loading
+
+The editor's first load holds what its first screen shows. Dialogs, the command menu, the settings page and the contents of a few popovers are one chunk (`src/components/app/on-demand.ts`), fetched once the editor is idle or when first asked for (`lazyPart` in `src/lib/lazy.tsx`). Markdown and SQL support load the same way (`lazySupport` in `src/components/editor/language.ts`); the route waits for the support of the files on screen, so they read as they should from the first frame. If one of these can't be fetched, the editor keeps working and a notice offers to reload.
+
+`public/_headers` lets browsers keep everything under `/assets` for a year: Vite names those files after their contents. The chunk groups in `vite.config.ts` keep pages from asking for one file per shared icon or message.
+
+The runtime that stands in for React (TanStack Redact) copies every fiber under a component before rendering it again, so a render near the top of the tree costs the whole editor. Keep subscriptions to stores low in the tree, read the store's current state in effects that write to it, and keep repeated rows light: one menu for a list rather than one per row.
 
 ## Project layout
 

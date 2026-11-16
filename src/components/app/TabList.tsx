@@ -1,5 +1,4 @@
 import { IconChevronDown } from '@tabler/icons-react'
-import { Suspense } from 'react'
 
 import { ToolbarButton } from './ToolbarButton'
 import { setTabListOpen } from './ui-store'
@@ -42,9 +41,7 @@ export function TabList({
         </ToolbarButton>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 gap-0 p-0">
-        <Suspense>
-          <TabListItems files={files} activeId={activeId} />
-        </Suspense>
+        <TabListItems files={files} activeId={activeId} />
       </PopoverContent>
     </Popover>
   )

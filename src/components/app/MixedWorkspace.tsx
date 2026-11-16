@@ -294,9 +294,7 @@ function FilePane({
       <div className="relative flex min-h-0 flex-1 flex-col">
         {settingsActive && (
           <div className="min-h-0 flex-1">
-            <Suspense>
-              <SettingsPage />
-            </Suspense>
+            <SettingsPage />
           </div>
         )}
         {/* The file stays mounted under the settings page, to keep its place. */}

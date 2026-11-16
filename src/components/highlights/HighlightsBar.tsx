@@ -1,5 +1,5 @@
 import { IconChevronUp } from '@tabler/icons-react'
-import { Suspense, useState } from 'react'
+import { useState } from 'react'
 
 import { hlStyle } from './hl-style'
 import { Button } from '#/components/ui/button'
@@ -81,9 +81,7 @@ export function HighlightsBar() {
               {m.highlights_description()}
             </PopoverDescription>
           </PopoverHeader>
-          <Suspense>
-            <HighlightsLegend rules={rules} counts={counts} />
-          </Suspense>
+          <HighlightsLegend rules={rules} counts={counts} />
         </PopoverContent>
       </Popover>
       {rules.length === 0 && (

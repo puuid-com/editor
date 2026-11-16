@@ -137,28 +137,43 @@ const jsonSupport = new LanguageSupport(
  */
 function lazySupport(fetch: () => Promise<Extension>) {
   let support: Extension | undefined
-  const load = once(() => fetch().then((loaded) => (support = loaded)))
+  /** Editors showing the type as plain text for now. */
+  const waiting = new Set<() => void>()
+  const load = once(() =>
+    fetch().then((loaded) => {
+      support = loaded
+      for (const apply of waiting) apply()
+      waiting.clear()
+    }),
+  )
+  // Also what tries again, once the connection is back, after a load failed.
   preloadWhenIdle(load)
   const slot = new Compartment()
   /** Puts the support in an editor that started without it. */
   const loader = ViewPlugin.fromClass(
     class {
       destroyed = false
+      apply: () => void
 
       constructor(view: EditorView) {
-        void load().then(
-          (loaded) => {
-            // Gone with a file switch, or already in a state made since.
-            if (this.destroyed || slot.get(view.state) === loaded) return
-            view.dispatch({ effects: slot.reconfigure(loaded) })
-          },
-          // The file still edits, as plain text.
-          () => undefined,
-        )
+        this.apply = () => {
+          // Gone with a file switch, or already in a state made since.
+          if (this.destroyed || !support || slot.get(view.state) === support)
+            return
+          view.dispatch({ effects: slot.reconfigure(support) })
+        }
+        // Not right away: the editor is still being set up.
+        if (support) queueMicrotask(this.apply)
+        else {
+          waiting.add(this.apply)
+          // If it can't be fetched, the file still edits, as plain text.
+          void load().catch(() => undefined)
+        }
       }
 
       destroy() {
         this.destroyed = true
+        waiting.delete(this.apply)
       }
     },
   )

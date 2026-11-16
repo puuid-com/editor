@@ -1,5 +1,4 @@
 import { useSelector } from '@tanstack/react-store'
-import { Suspense } from 'react'
 
 import { PanelFrame } from './PanelFrame'
 import { editorStore } from '#/components/editor/editor-store'
@@ -27,13 +26,7 @@ export function SidePanel({ edge }: { edge: PaneEdge }) {
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
         {!flat && <PinnedFields />}
         <div className="min-h-0 flex-1">
-          {flat ? (
-            <Suspense>
-              <FlatRecords key={fileId} />
-            </Suspense>
-          ) : (
-            <XmlTree key={fileId} />
-          )}
+          {flat ? <FlatRecords key={fileId} /> : <XmlTree key={fileId} />}
         </div>
       </div>
     </PanelFrame>
