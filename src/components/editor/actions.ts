@@ -41,7 +41,6 @@ import {
   typedName,
 } from '#/lib/document'
 import { contentBlob } from '#/lib/image-file'
-import { formatMarkdown } from '#/lib/markdown-format'
 import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
@@ -136,6 +135,8 @@ async function formatMarkdownActive(view: EditorView) {
   const { fileId } = editorStore.state
   const doc = view.state.doc
   const text = doc.toString()
+  // With Prettier and its grammars, which only this asks for.
+  const { formatMarkdown } = await import('#/lib/markdown-format')
   const { text: formatted, skipped } = await formatMarkdown(text)
   // Typed over or switched away while the formatters loaded.
   if (

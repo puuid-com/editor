@@ -1,4 +1,4 @@
-import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import { Suspense, lazy } from 'react'
 import { IconFileTypePdf } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'

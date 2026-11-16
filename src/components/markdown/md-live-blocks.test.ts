@@ -4,7 +4,7 @@ import { EditorView } from '@codemirror/view'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { markdownSupport } from './md-language'
-import { setMarkdownLive } from './md-live'
+import { setMarkdownLive } from '#/components/editor/word-wrap'
 
 const views: Array<EditorView> = []
 

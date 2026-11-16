@@ -20,7 +20,7 @@ import { PanelSideItems } from './PanelFrame'
 import { ToolbarButton } from './ToolbarButton'
 import { newFile, newZplFile } from './files'
 import { askRename, setShareOpen } from './ui-store'
-import { CommandMenuButton } from './CommandMenu'
+import { CommandMenuButton } from './CommandMenuButton'
 import { TabStrip } from './TabStrip'
 import { Button } from '#/components/ui/button'
 import {

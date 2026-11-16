@@ -1,5 +1,5 @@
 import { useDragFeedback } from '#/hooks/use-drag-feedback'
-import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import { isMarkdownName } from '#/lib/obsidian'
 import {
   IconBrowser,
@@ -22,7 +22,6 @@ import { DiskWorkspace } from './DiskWorkspace'
 import {
   HiddenTypesMenu,
   HideTypeItem,
-  NameDialog,
   RowAction,
   RowCount,
   RowMenu,
@@ -34,13 +33,13 @@ import {
   scrollToRow,
   useHiddenTypes,
 } from './explorer-parts'
-import type { NameRequest } from './explorer-parts'
+import type { NameRequest } from './NameDialog'
+import { Once } from './Once'
 import { deleteFolders, importFiles, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
 import { askDelete, closeTab, setPaletteOpen } from './ui-store'
-import { ArchiveButton } from './ArchiveDialog'
-import { SettingsButton } from './SettingsPage'
+import { ArchiveButton, SettingsButton } from './SidebarButtons'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
@@ -101,6 +100,7 @@ import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
+import { lazyPart } from '#/lib/lazy'
 import { isHiddenType } from '#/lib/file-types'
 import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
@@ -109,6 +109,10 @@ import { m } from '#/paraglide/messages'
 import { Link } from '@tanstack/react-router'
 
 /** What a dragged file or folder of the browser's workspace carries. */
+const NameDialog = lazyPart(() =>
+  import('./on-demand').then((mod) => mod.NameDialog),
+)
+
 const ENTRY_DRAG = 'application/x-workspace-entry'
 
 /** `items` by `key`, each group in the order its items came in. */
@@ -793,7 +797,12 @@ export function FileExplorer({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <NameDialog request={nameRequest} onClose={() => setNameRequest(null)} />
+      <Once shown={nameRequest !== null}>
+        <NameDialog
+          request={nameRequest}
+          onClose={() => setNameRequest(null)}
+        />
+      </Once>
     </Sidebar>
   )
 }

@@ -1,6 +1,5 @@
-import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import {
-  IconSearch,
   IconSettings,
   IconArchive,
   IconArrowBackUp,
@@ -44,7 +43,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
 import { FileIcon } from './FileIcon'
-import { ToolbarButton } from './ToolbarButton'
 import {
   newFile,
   newJsonFile,
@@ -111,10 +109,10 @@ import { toggleTheme } from '#/lib/theme'
 import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
 import {
   editorPrefs,
+  toggleMarkdownLive,
   toggleSidebarSide,
   toggleWordWrap,
 } from '#/components/editor/word-wrap'
-import { toggleMarkdownLive } from '#/components/markdown/md-live'
 import { codeFonts, codeSizes } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
 import { isPlain } from '#/lib/document'
@@ -165,20 +163,6 @@ export function CommandMenu({
         />
       </DialogContent>
     </Dialog>
-  )
-}
-
-/** Opens the command menu from a pane's header on phones, which have no sidebar rail. */
-export function CommandMenuButton() {
-  return (
-    <ToolbarButton
-      label={m.palette_open()}
-      size="icon-sm"
-      className="shrink-0 md:hidden"
-      onClick={() => setPaletteOpen(true)}
-    >
-      <IconSearch />
-    </ToolbarButton>
   )
 }
 

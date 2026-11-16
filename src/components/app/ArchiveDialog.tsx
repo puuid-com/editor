@@ -1,9 +1,8 @@
-import { IconArchive, IconFileCode, IconRestore } from '@tabler/icons-react'
+import { IconFileCode, IconRestore } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useState } from 'react'
 
 import { notify } from './notice-store'
-import { ToolbarButton } from './ToolbarButton'
 import { setArchiveOpen, uiStore } from './ui-store'
 import { Button } from '#/components/ui/button'
 import {
@@ -19,19 +18,6 @@ import { ARCHIVE_LIMIT, restoreFile } from '#/lib/store/files'
 import { setActive } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
 import { getLocale } from '#/paraglide/runtime'
-
-export function ArchiveButton() {
-  return (
-    <ToolbarButton
-      label={m.archive_title()}
-      size="icon-sm"
-      className="text-muted-foreground"
-      onClick={() => setArchiveOpen(true)}
-    >
-      <IconArchive />
-    </ToolbarButton>
-  )
-}
 
 export function ArchiveDialog() {
   const open = useSelector(uiStore, (s) => s.archiveOpen)

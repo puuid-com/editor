@@ -2,8 +2,7 @@ import { IconEyeEdit } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
 import { ToolbarButton } from './ToolbarButton'
-import { toggleMarkdownLive } from '#/components/markdown/md-live'
-import { editorPrefs } from '#/components/editor/word-wrap'
+import { editorPrefs, toggleMarkdownLive } from '#/components/editor/word-wrap'
 import { m } from '#/paraglide/messages'
 
 /** Renders Markdown in the editor itself, in place of the preview panel. */

@@ -29,7 +29,8 @@ import type { Parser } from '@lezer/common'
 
 import { renderCell } from './md-cell'
 import { redoIn, undoIn } from '#/components/editor/undo'
-import { isLive, setMarkdownLive } from './md-live'
+import { setMarkdownLive } from '#/components/editor/word-wrap'
+import { isLive } from './md-live'
 import { TableToolbar } from './TableControls'
 import type { TableToolbarInfo } from './TableControls'
 import {

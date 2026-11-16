@@ -19,6 +19,7 @@ import { decodeShare, isShareHash, ShareError } from '#/lib/share'
 import type { SharedFile, SharedProfile } from '#/lib/share'
 import { createFile, saveZplSettings } from '#/lib/store/files'
 import { setActive } from '#/lib/store/session'
+import { hasZplLink } from '#/lib/zpl/tags'
 import {
   importSharedProfile,
   matchSharedProfile,
@@ -39,17 +40,6 @@ function clearHash() {
 type ProfileChoice = 'import' | 'keep' | 'update' | 'ignore'
 
 const loadZplLocation = () => import('#/components/zpl/open-label')
-
-/**
- * Whether the URL carries a label (`zpl` or `base64`, in the fragment or the
- * query), so the ZPL tools load only when there is one to open.
- */
-function hasZplLink() {
-  const { hash, search } = window.location
-  return [new URLSearchParams(hash.slice(1)), new URLSearchParams(search)].some(
-    (params) => params.has('zpl') || params.has('base64'),
-  )
-}
 
 /** Asks before opening a file carried in a `#share=` link. */
 export function OpenSharedDialog() {

@@ -1,8 +1,8 @@
-import { Store } from '@tanstack/store'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useState } from 'react'
 import { IconFileTypePdf } from '@tabler/icons-react'
 
+import { closePdfExport, exportStore } from './export-store'
 import type { PdfSource } from './source'
 import type { preparePdf } from './print'
 import { Button } from '#/components/ui/button'
@@ -16,14 +16,7 @@ import {
 } from '#/components/ui/dialog'
 import { m } from '#/paraglide/messages'
 
-const exportStore = new Store<{ source: PdfSource; key: number } | null>(null)
-let nextKey = 0
-
 const loadPrint = () => import('./print')
-
-export function exportMarkdownPdf(source: PdfSource) {
-  exportStore.setState(() => ({ source, key: ++nextKey }))
-}
 
 export function PdfExportDialog() {
   const request = useSelector(exportStore, (state) => state)
@@ -31,7 +24,7 @@ export function PdfExportDialog() {
     <Dialog
       open={!!request}
       onOpenChange={(open) => {
-        if (!open) exportStore.setState(() => null)
+        if (!open) closePdfExport()
       }}
     >
       <DialogContent>
@@ -73,10 +66,7 @@ function ExportJob({ source }: { source: PdfSource }) {
             : m.md_pdf_preparing())}
       </p>
       <DialogFooter>
-        <Button
-          variant="outline"
-          onClick={() => exportStore.setState(() => null)}
-        >
+        <Button variant="outline" onClick={closePdfExport}>
           {m.tabs_close()}
         </Button>
         <Button

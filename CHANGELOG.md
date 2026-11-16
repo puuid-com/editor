@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.66.3] - 2026-11-15
+
+### Changed
+
+- The editor opens with about a fifth less code to download and run. Dialogs, the command menu, the settings page and the support for Markdown, SQL and fixed-width files now load when they are first needed, or in the background once the editor is ready, instead of before it shows.
+- Pages of the site ask for far fewer files: icons and messages come grouped rather than one request each.
+
 ## [1.66.2] - 2026-11-15
 
 ### Fixed

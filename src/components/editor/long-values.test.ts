@@ -1,9 +1,9 @@
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { languageExtension } from './language'
+import { languageExtension, loadLanguages } from './language'
 import { longValues, shortenLongValues, valueText } from './long-values'
 
 function stateOf(doc: string, language: 'xml' | 'json' | 'sql' = 'xml') {
@@ -75,6 +75,9 @@ function withClipboard(run: (writeText: ReturnType<typeof vi.fn>) => void) {
 }
 
 describe('longValues', () => {
+  // SQL's support isn't part of the editor's first load.
+  beforeAll(() => loadLanguages(['sql']))
+
   it.each([false, true])(
     'copies the current value after a same-length edit (expanded: %s)',
     (expanded) => {

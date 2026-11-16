@@ -1,5 +1,5 @@
 import { useDragFeedback } from '#/hooks/use-drag-feedback'
-import { exportMarkdownPdf } from '#/components/markdown/pdf/PdfExportDialog'
+import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import {
   IconChevronDown,
   IconChevronRight,
@@ -42,7 +42,7 @@ import {
   rowClass,
   scrollToRow,
 } from './explorer-parts'
-import type { NameRequest } from './explorer-parts'
+import type { NameRequest } from './NameDialog'
 import { FileIcon } from './FileIcon'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'

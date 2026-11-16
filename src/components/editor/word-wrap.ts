@@ -1,4 +1,4 @@
-import { Compartment } from '@codemirror/state'
+import { Compartment, StateEffect } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 
 import { DEFAULT_CODE_SIZE } from '#/lib/code-font'
@@ -53,6 +53,18 @@ export function setPanelSide(panelSide: PanelSide) {
 export function toggleSidebarSide() {
   editorPrefs.setState((s) => ({ ...s, sidebarRight: !s.sidebarRight }))
 }
+
+/** Toggles live preview in every editor, and the preview panel with it. */
+export function toggleMarkdownLive() {
+  editorPrefs.setState((s) => ({ ...s, markdownLive: !s.markdownLive }))
+}
+
+/**
+ * Switches live preview on or off in an editor. Kept here rather than with
+ * the preview: Markdown's support loads apart from the editor, which sends
+ * this to every file either way.
+ */
+export const setMarkdownLive = StateEffect.define<boolean>()
 
 const wrapCompartment = new Compartment()
 

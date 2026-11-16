@@ -21,7 +21,6 @@ import { useFileContent, useFileKind } from '#/hooks/use-files'
 import type { WorkspaceFile } from '#/hooks/use-files'
 import { ROOMY_WIDTH, panelEdge } from '#/lib/panel-side'
 import { sessionStore, setActive } from '#/lib/store/session'
-import { SettingsPage } from './SettingsPage'
 import { setSettingsActive, settingsPane, settingsTab } from './settings-tab'
 import { SidePanel } from './SidePanel'
 import {
@@ -35,6 +34,7 @@ import { endPaneDrag, paneDrag } from './pane-drag'
 import { PanelFrame } from './PanelFrame'
 import { PanelSplit } from './PanelSplit'
 import { AppHeader } from './AppHeader'
+import { lazyPart } from '#/lib/lazy'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import { PasteBar } from './PasteBar'
@@ -42,6 +42,9 @@ import { layoutKey, normalizeWorkspace } from '#/lib/store/pane-layout'
 import type { FilePaneGroup, PaneLayout } from '#/lib/store/pane-layout'
 import type { PaneZone } from './panes'
 
+const SettingsPage = lazyPart(() =>
+  import('./on-demand').then((mod) => mod.SettingsPage),
+)
 const ZplPane = lazy(() =>
   import('#/components/zpl/ZplPane').then((mod) => ({ default: mod.ZplPane })),
 )
@@ -286,7 +289,9 @@ function FilePane({
       <div className="relative flex min-h-0 flex-1 flex-col">
         {settingsActive && (
           <div className="min-h-0 flex-1">
-            <SettingsPage />
+            <Suspense>
+              <SettingsPage />
+            </Suspense>
           </div>
         )}
         {/* The file stays mounted under the settings page, to keep its place. */}

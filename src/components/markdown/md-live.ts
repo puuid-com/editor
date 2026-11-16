@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language'
-import { StateEffect, StateField } from '@codemirror/state'
+import { StateField } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
@@ -10,7 +10,7 @@ import type { EditorState, Extension, Range, Text } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 
 import { treeChanged } from '#/components/editor/syntax'
-import { editorPrefs } from '#/components/editor/word-wrap'
+import { editorPrefs, setMarkdownLive } from '#/components/editor/word-wrap'
 import { isImagePath, parseWikilink } from '#/lib/obsidian'
 import { m } from '#/paraglide/messages'
 
@@ -19,9 +19,6 @@ import { m } from '#/paraglide/messages'
 // bullet, checkbox or rule drawn in their place, until the selection touches
 // them: inline marks come back when it touches their span, line marks
 // (headings, quotes, lists, rules) when it is on their line.
-
-/** Switches live preview on or off in an editor. */
-export const setMarkdownLive = StateEffect.define<boolean>()
 
 const markdownLive = StateField.define<boolean>({
   create: () => editorPrefs.state.markdownLive,
@@ -58,11 +55,6 @@ export function drawnEmbed(doc: Text, from: number, to: number) {
     isImagePath(parseWikilink(text.slice(3, -2)).target) ||
     doc.lineAt(from).text.trim() === text
   )
-}
-
-/** Toggles live preview in every editor, and the preview panel with it. */
-export function toggleMarkdownLive() {
-  editorPrefs.setState((s) => ({ ...s, markdownLive: !s.markdownLive }))
 }
 
 /* ---------------- Widgets ---------------- */

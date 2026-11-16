@@ -6,7 +6,7 @@ import { EditorView } from '@codemirror/view'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { markdownSupport } from './md-language'
-import { setMarkdownLive } from './md-live'
+import { setMarkdownLive } from '#/components/editor/word-wrap'
 import { renderCell } from './md-cell'
 
 // Inline code looks the same in the preview, the editor and live preview's

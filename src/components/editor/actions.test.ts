@@ -64,6 +64,8 @@ describe('asynchronous editor commands', () => {
         }),
     )
     const formatting = formatActiveAsync()
+    // The formatter is fetched the first time it is asked for.
+    await vi.waitFor(() => expect(formatMarkdown).toHaveBeenCalled())
     // Cached states can share the same immutable text object.
     const other = createFile('other.md', text)
     activate(other.id, view)

@@ -1,17 +1,17 @@
 import { jsonLanguage } from '@codemirror/lang-json'
-import { sql } from '@codemirror/lang-sql'
 import { autoCloseTags, xmlLanguage } from '@codemirror/lang-xml'
 import { Language, LanguageSupport, foldGutter } from '@codemirror/language'
 import { lintGutter } from '@codemirror/lint'
 import { Compartment, Facet } from '@codemirror/state'
+import { ViewPlugin } from '@codemirror/view'
 import { Parser } from '@lezer/common'
 
-import { markdownSupport } from '#/components/markdown/md-language'
 import { zplHelpCompartment } from '#/components/zpl/editor-support'
 import { zpl, zplHelp } from '#/components/zpl/zpl-language'
-import { sqlHighlight } from './sql-highlight'
+import { once, preloadWhenIdle } from '#/lib/lazy'
 import { VAR_MAX_LENGTH, maskVars, maskVarsAsNumbers } from '#/lib/xml/vars'
 import type { Extension } from '@codemirror/state'
+import type { EditorView } from '@codemirror/view'
 import type { Input, PartialParse, TreeFragment } from '@lezer/common'
 import type { DocLanguage } from '#/lib/document'
 
@@ -128,19 +128,70 @@ const jsonSupport = new LanguageSupport(
   ),
 )
 
-// SQL is only formatted, so it keeps the stock grammar and no variables, with
-// colours for tables, aliases and columns on top.
-const sqlSupport = [sql(), sqlHighlight]
+/**
+ * Support for a file type that is left out of the editor's first load, since
+ * most workspaces never open one. It is fetched before the editor first
+ * shows a file of the type (`loadLanguages`), and for the rest once the
+ * editor is idle. A file that shows sooner than that reads as plain text
+ * until its support arrives.
+ */
+function lazySupport(fetch: () => Promise<Extension>) {
+  let support: Extension | undefined
+  const load = once(() => fetch().then((loaded) => (support = loaded)))
+  preloadWhenIdle(load)
+  const slot = new Compartment()
+  /** Puts the support in an editor that started without it. */
+  const loader = ViewPlugin.fromClass(
+    class {
+      destroyed = false
 
-const SUPPORT: Record<DocLanguage, Extension> = {
+      constructor(view: EditorView) {
+        void load().then(
+          (loaded) => {
+            // Gone with a file switch, or already in a state made since.
+            if (this.destroyed || slot.get(view.state) === loaded) return
+            view.dispatch({ effects: slot.reconfigure(loaded) })
+          },
+          // The file still edits, as plain text.
+          () => undefined,
+        )
+      }
+
+      destroy() {
+        this.destroyed = true
+      }
+    },
+  )
+  return { load, extension: (): Extension => [slot.of(support ?? []), loader] }
+}
+
+const LAZY: Partial<Record<DocLanguage, ReturnType<typeof lazySupport>>> = {
+  // SQL is only formatted, so it keeps the stock grammar and no variables,
+  // with colours for tables, aliases and columns on top.
+  sql: lazySupport(() =>
+    import('./sql-highlight').then((mod) => mod.sqlSupport),
+  ),
+  md: lazySupport(() =>
+    import('#/components/markdown/editor-support').then((mod) =>
+      mod.markdownEditor(),
+    ),
+  ),
+}
+
+const SUPPORT: Partial<Record<DocLanguage, Extension>> = {
   xml: xmlSupport,
   json: jsonSupport,
-  flat: [],
-  sql: sqlSupport,
   zpl: [zpl(), zplHelpCompartment.of(zplHelp({ dpi: 203, explain: true }))],
-  md: markdownSupport(),
-  txt: [],
-  image: [],
+}
+
+/**
+ * Resolves once the support of each of `languages` is there, so an editor
+ * made after it shows them as they read from its first frame.
+ */
+export async function loadLanguages(languages: Iterable<DocLanguage>) {
+  await Promise.all(
+    [...new Set(languages)].map((language) => LAZY[language]?.load()),
+  )
 }
 
 /** The language of the file in this editor state. */
@@ -168,6 +219,9 @@ export function structureGutters(language: DocLanguage | null): Extension {
   ]
 }
 
-export function languageExtension(language: DocLanguage) {
-  return [docLanguage.of(language), SUPPORT[language]]
+export function languageExtension(language: DocLanguage): Extension {
+  return [
+    docLanguage.of(language),
+    LAZY[language]?.extension() ?? SUPPORT[language] ?? [],
+  ]
 }

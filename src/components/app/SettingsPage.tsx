@@ -1,6 +1,5 @@
 import {
   IconAdjustmentsHorizontal,
-  IconSettings,
   IconUserCircle,
   IconVariable,
   IconWand,
@@ -8,12 +7,11 @@ import {
 } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
-import { CommandMenuButton } from './CommandMenu'
+import { CommandMenuButton } from './CommandMenuButton'
 import { FormatOptions } from './FormatControls'
 import { GeneralSettings } from './GeneralSettings'
-import { openSettings, setSettingsSection, settingsTab } from './settings-tab'
+import { setSettingsSection, settingsTab } from './settings-tab'
 import { TabStrip } from './TabStrip'
-import { ToolbarButton } from './ToolbarButton'
 import { DefaultsRules } from '#/components/defaults/DefaultsControls'
 import { ProfilesPanel } from '#/components/profiles/ProfilesPanel'
 import { ProfileTag } from '#/components/profiles/ProfileTag'
@@ -146,19 +144,5 @@ export function SettingsSheet() {
         <SettingsPage />
       </div>
     </section>
-  )
-}
-
-/** Opens the settings tab, from the sidebar's footer. */
-export function SettingsButton() {
-  return (
-    <ToolbarButton
-      label={m.editor_settings()}
-      size="icon-sm"
-      className="text-muted-foreground"
-      onClick={() => openSettings()}
-    >
-      <IconSettings />
-    </ToolbarButton>
   )
 }

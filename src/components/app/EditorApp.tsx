@@ -1,15 +1,11 @@
-import { PdfExportDialog } from '#/components/markdown/pdf/PdfExportDialog'
 import { IconFileUpload } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 
 import { FileExplorer } from './FileExplorer'
-import { ArchiveDialog } from './ArchiveDialog'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
-import { CommandMenu } from './CommandMenu'
+import { Dialogs } from './Dialogs'
 import { startDiskSync } from './disk-workspace'
-import { DefaultsConfirmDialog, VarsConfirmDialog } from './ChangesDialogs'
-import { DeleteDialog } from './DeleteDialog'
 import {
   ACCEPTED_TYPES,
   canOpenFromDisk,
@@ -17,24 +13,13 @@ import {
   importFiles,
   pickFromDisk,
 } from './files'
-import { RenameDialog } from './RenameDialog'
-import { RestoreDialog } from './RestoreDialog'
-import { SettingsSheet } from './SettingsPage'
 import { settingsPane, settingsTab } from './settings-tab'
-import { OpenSharedDialog } from './OpenSharedDialog'
-import { ShareLinkDialog } from './ShareDialog'
 import { StatusBar } from './StatusBar'
 import { useAppShortcuts } from './use-app-shortcuts'
-import { VariableValueDialog } from './VariableValueDialog'
 import { setCompareId, uiStore } from './ui-store'
 import { DraftControls, DraftPane } from './DraftPane'
 import { MixedWorkspace } from './MixedWorkspace'
 import { editorPrefs } from '#/components/editor/word-wrap'
-import { QuickHighlight } from '#/components/highlights/QuickHighlight'
-import {
-  DeleteProfileDialog,
-  ProfileDialog,
-} from '#/components/profiles/ProfileDialogs'
 import {
   SidebarInset,
   SidebarProvider,
@@ -43,10 +28,15 @@ import {
 import { useEditorTitle } from '#/hooks/use-editor-title'
 import { openFiles, useWorkspaceFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
+import { lazyPart, startPreloading } from '#/lib/lazy'
 import { onSaveFailed } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
+
+const SettingsSheet = lazyPart(() =>
+  import('./on-demand').then((mod) => mod.SettingsSheet),
+)
 
 export function EditorApp() {
   // The one read of the files: everything below takes them from here.
@@ -72,6 +62,8 @@ export function EditorApp() {
   }, [activeId, storedActive])
 
   useEffect(() => onSaveFailed(reportSaveFailed), [])
+  // What was left out of the first load is fetched now that it has rendered.
+  useEffect(() => startPreloading(), [])
   // Tabs of folders opened from disk save there as they're edited.
   useEffect(() => startDiskSync(), [])
 
@@ -175,7 +167,9 @@ export function EditorApp() {
               wide={wide}
             />
           ) : settings.open ? (
-            <SettingsSheet />
+            <Suspense>
+              <SettingsSheet />
+            </Suspense>
           ) : (
             <DraftPane />
           )}
@@ -186,24 +180,12 @@ export function EditorApp() {
         />
       </SidebarInset>
 
-      <PdfExportDialog />
-      <RenameDialog />
-      <ArchiveDialog />
-      <CommandMenu
+      <Dialogs
         files={files}
         activeId={activeId}
+        activeName={activeName}
         onOpenFromDisk={openFromDisk}
       />
-      <DeleteDialog openIds={files.map((f) => f.id)} />
-      <DefaultsConfirmDialog />
-      <VarsConfirmDialog />
-      <RestoreDialog />
-      <VariableValueDialog />
-      <ProfileDialog />
-      <DeleteProfileDialog />
-      <QuickHighlight />
-      <ShareLinkDialog name={activeName} />
-      <OpenSharedDialog />
 
       <div
         aria-hidden={!dragging}

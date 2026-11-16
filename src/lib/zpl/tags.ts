@@ -15,3 +15,14 @@ export function zplViewerUrl(base64: string) {
   if (!data) return null
   return '/#' + new URLSearchParams({ base64: data }).toString()
 }
+
+/**
+ * Whether the page's address carries a label (`zpl` or `base64`, in the
+ * fragment or the query), so the ZPL tools load only when there is one to open.
+ */
+export function hasZplLink() {
+  const { hash, search } = window.location
+  return [new URLSearchParams(hash.slice(1)), new URLSearchParams(search)].some(
+    (params) => params.has('zpl') || params.has('base64'),
+  )
+}

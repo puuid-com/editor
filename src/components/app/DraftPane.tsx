@@ -11,7 +11,7 @@ import { IconFolderOpen, IconFolderRoot } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef } from 'react'
 
-import { CommandMenuButton } from './CommandMenu'
+import { CommandMenuButton } from './CommandMenuButton'
 import { openFolder } from './disk-workspace'
 import { FILE_TYPES } from './file-type'
 import {

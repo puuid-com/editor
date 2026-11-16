@@ -1,3 +1,4 @@
+import { sql } from '@codemirror/lang-sql'
 import { syntaxTree } from '@codemirror/language'
 import { Prec } from '@codemirror/state'
 import { Decoration, EditorView, ViewPlugin } from '@codemirror/view'
@@ -77,7 +78,7 @@ function build(view: EditorView): DecorationSet {
 }
 
 /** Role colours for SQL, innermost so they win over the generic syntax style. */
-export const sqlHighlight = ViewPlugin.fromClass(
+const sqlHighlight = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
     constructor(view: EditorView) {
@@ -97,3 +98,6 @@ export const sqlHighlight = ViewPlugin.fromClass(
       ),
   },
 )
+
+/** The SQL grammar with the roles' colours over it. */
+export const sqlSupport = [sql(), sqlHighlight]
