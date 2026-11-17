@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.67.0] - 2026-11-17
+
+### Added
+
+- Find text across open files with ⇧⌘F (Ctrl+Shift+F on Windows and Linux) or “Find in open files” in the command menu. Matches are grouped by file with a line number and excerpt. Press Enter to select the match in its editor.
+
 ## [1.66.6] - 2026-11-16
 
 ### Fixed

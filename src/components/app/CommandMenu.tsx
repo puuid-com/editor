@@ -1,6 +1,7 @@
 import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import {
   IconSettings,
+  IconListSearch,
   IconArchive,
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -42,6 +43,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
+import { FindInFiles, openSearchMatch } from './FindInFiles'
+import type { FileMatch } from './file-search'
 import { FileIcon } from './FileIcon'
 import {
   newFile,
@@ -58,7 +61,7 @@ import {
   askRename,
   setArchiveOpen,
   setCompareId,
-  setPaletteOpen,
+  setPalette,
   setProfileDialog,
   setShareOpen,
   uiStore,
@@ -129,7 +132,9 @@ export function CommandMenu({
   activeId: string | null
   onOpenFromDisk: () => void
 }) {
-  const open = useSelector(uiStore, (s) => s.paletteOpen)
+  const palette = useSelector(uiStore, (s) => s.palette)
+  const open = palette !== null
+  const match = useRef<FileMatch | null>(null)
   const returnFocus = useRef<HTMLElement | null>(null)
 
   // Runs before Radix moves focus into the dialog, so ⌘K then Escape lands
@@ -142,25 +147,46 @@ export function CommandMenu({
   }, [open])
 
   return (
-    <Dialog open={open} onOpenChange={setPaletteOpen}>
+    <Dialog open={open} onOpenChange={(shown) => !shown && setPalette(null)}>
       <DialogContent
         showCloseButton={false}
         className="top-1/2 -translate-y-1/2 overflow-hidden rounded-xl p-0 sm:max-w-xl"
         onCloseAutoFocus={(e) => {
+          if (match.current) {
+            e.preventDefault()
+            openSearchMatch(match.current)
+            match.current = null
+            return
+          }
           if (!returnFocus.current?.isConnected) return
           e.preventDefault()
           returnFocus.current.focus()
         }}
       >
         <DialogHeader className="sr-only">
-          <DialogTitle>{m.palette_title()}</DialogTitle>
-          <DialogDescription>{m.palette_description()}</DialogDescription>
+          <DialogTitle>
+            {palette === 'find' ? m.find_in_files() : m.palette_title()}
+          </DialogTitle>
+          <DialogDescription>
+            {palette === 'find' ? m.find_hint() : m.palette_description()}
+          </DialogDescription>
         </DialogHeader>
-        <FileCommands
-          files={files}
-          activeId={activeId}
-          onOpenFromDisk={onOpenFromDisk}
-        />
+        {palette === 'find' ? (
+          <FindInFiles
+            onSelect={(hit) => {
+              match.current = hit
+              setPalette(null)
+            }}
+          />
+        ) : (
+          open && (
+            <FileCommands
+              files={files}
+              activeId={activeId}
+              onOpenFromDisk={onOpenFromDisk}
+            />
+          )
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -199,7 +225,7 @@ function FileCommands({
 
   const run = (fn: () => void) => {
     if (page === 'root') saveLastCommand(value)
-    setPaletteOpen(false)
+    setPalette(null)
     // Let the dialog hand focus back to the editor before fn moves it.
     requestAnimationFrame(fn)
   }
@@ -397,6 +423,13 @@ function OpenFiles({
           )}
         </CommandItem>
       ))}
+      <CommandItem onSelect={() => setPalette('find')}>
+        <IconListSearch />
+        {m.find_in_files()}
+        <CommandShortcut>
+          {shortcutLabel(shortcuts.findInFiles)}
+        </CommandShortcut>
+      </CommandItem>
     </CommandGroup>
   )
 }

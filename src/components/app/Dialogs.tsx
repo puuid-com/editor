@@ -76,7 +76,7 @@ export function Dialogs({
   activeName: string | undefined
   onOpenFromDisk: () => void
 }) {
-  const palette = useSelector(uiStore, (s) => s.paletteOpen)
+  const palette = useSelector(uiStore, (s) => s.palette)
   const rename = useSelector(uiStore, (s) => s.renameId !== null)
   const archive = useSelector(uiStore, (s) => s.archiveOpen)
   const deleting = useSelector(uiStore, (s) => s.deleteIds !== null)
@@ -103,7 +103,7 @@ export function Dialogs({
       <Once shown={archive}>
         <ArchiveDialog />
       </Once>
-      <Once shown={palette}>
+      <Once shown={!!palette}>
         <CommandMenu
           files={files}
           activeId={activeId}

@@ -38,7 +38,7 @@ import { Once } from './Once'
 import { deleteFolders, importFiles, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
-import { askDelete, closeTab, setPaletteOpen } from './ui-store'
+import { askDelete, closeTab, setPalette } from './ui-store'
 import { ArchiveButton, SettingsButton } from './SidebarButtons'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
@@ -602,7 +602,7 @@ export function FileExplorer({
               shortcut={shortcuts.palette}
               size="icon-sm"
               className="hidden text-muted-foreground group-data-[collapsible=icon]:inline-flex"
-              onClick={() => setPaletteOpen(true)}
+              onClick={() => setPalette('commands')}
             >
               <IconSearch />
             </ToolbarButton>
@@ -622,7 +622,7 @@ export function FileExplorer({
                   <InputGroupButton
                     aria-label={m.palette_open()}
                     title={m.palette_placeholder()}
-                    onClick={() => setPaletteOpen(true)}
+                    onClick={() => setPalette('commands')}
                   >
                     <Kbd>{shortcutLabel(shortcuts.palette)}</Kbd>
                   </InputGroupButton>

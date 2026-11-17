@@ -33,6 +33,7 @@ import {
   IconGripVertical,
   IconInfoCircle,
   IconLayoutBottombar,
+  IconLetterCase,
   IconJson,
   IconLayoutColumns,
   IconLayoutSidebar,
@@ -5265,7 +5266,43 @@ function MovablePanes() {
   return <BeforeAfter before={before} after={after} />
 }
 
+function FindInOpenFiles() {
+  return (
+    <Shot className="mx-auto w-full max-w-lg">
+      <div className="flex items-center justify-between px-3 pt-2 font-medium">
+        {m.find_in_files()}
+        <IconLetterCase className="size-4" />
+      </div>
+      <div className="flex items-center gap-2 border-b px-3 py-2 font-mono">
+        <IconSearch className="size-4 text-muted-foreground" />
+        4821
+      </div>
+      {[
+        ['order.xml', 2, '<order id="', '">'],
+        ['receipt.json', 7, '  "orderId": ', ','],
+      ].map(([name, line, before, after]) => (
+        <div key={name} className="px-3 py-2">
+          <div className="mb-1.5 font-medium text-muted-foreground">{name}</div>
+          <div className="flex items-center gap-3 font-mono">
+            <span className="text-muted-foreground">{line}</span>
+            <span className="whitespace-pre">
+              {before}
+              <mark className="search-hit">4821</mark>
+              {after}
+            </span>
+          </div>
+        </div>
+      ))}
+      <StatusBar>
+        <Kbd>↵</Kbd>
+        {m.notice_go_to()}
+      </StatusBar>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.67.0': figure(FindInOpenFiles),
   '1.66.0': figure(SettingsPageLook),
   '1.65.0': figure(MovablePanes),
   '1.63.3': figure(KeptEscapedQuotes),

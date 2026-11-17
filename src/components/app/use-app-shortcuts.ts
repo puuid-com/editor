@@ -1,7 +1,7 @@
 import { useHotkey, useHotkeys } from '@tanstack/react-hotkeys'
 
 import { newFile, newJsonFile } from './files'
-import { askRename, setPaletteOpen, setTabListOpen, uiStore } from './ui-store'
+import { askRename, setPalette, setTabListOpen, uiStore } from './ui-store'
 import { redoActive, undoActive } from '#/components/editor/actions'
 import { toggleWordWrap } from '#/components/editor/word-wrap'
 import {
@@ -13,7 +13,7 @@ import { profileShortcuts, shortcuts } from '#/lib/shortcuts'
 import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
 
 function togglePalette() {
-  setPaletteOpen(!uiStore.state.paletteOpen)
+  setPalette(uiStore.state.palette ? null : 'commands')
 }
 
 /** Page-wide shortcuts for the editor screen. */
@@ -32,6 +32,10 @@ export function useAppShortcuts({
   useHotkey(shortcuts.palette.hotkey, togglePalette)
   // VS Code's Quick Open; the command menu lists the open files first.
   useHotkey(shortcuts.quickOpen.hotkey, togglePalette)
+  useHotkey(shortcuts.findInFiles.hotkey, () => setPalette('find'), {
+    enabled: !!activeId,
+    ignoreInputs: false,
+  })
   useHotkey(shortcuts.openFile.hotkey, onOpenFromDisk)
   useHotkey(shortcuts.newFile.hotkey, newFile)
   useHotkey(shortcuts.newJsonFile.hotkey, newJsonFile)

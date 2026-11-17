@@ -5,6 +5,7 @@ import type { EditorView } from '@codemirror/view'
 import { docLanguage } from './language'
 import { parseEditor } from './parse'
 import { parseDocument } from '#/lib/document'
+import { sessionStore } from '#/lib/store/session'
 import { elementAt, elementByPath } from '#/lib/xml/locate'
 import type { TextChange } from '#/lib/xml/edit'
 import type { XmlDocument, XmlElement } from '#/lib/xml/model'
@@ -148,7 +149,11 @@ const views = new Map<string, EditorView>()
 // The file each view shows now. A pane's view moves from file to file, so
 // `views` can still point an earlier file at it.
 const shown = new WeakMap<EditorView, string>()
-let pendingFocus: { fileId: string; until: number } | null = null
+let pendingFocus: {
+  fileId: string
+  until: number
+  onReady?: (view: EditorView) => void
+} | null = null
 
 export function registerFileView(fileId: string, view: EditorView | null) {
   if (!view) {
@@ -164,8 +169,14 @@ export function registerFileView(fileId: string, view: EditorView | null) {
   views.set(fileId, view)
   shown.set(view, fileId)
   if (pendingFocus?.fileId === fileId) {
-    if (Date.now() < pendingFocus.until) view.focus()
+    const { onReady, until } = pendingFocus
     pendingFocus = null
+    // An explicit selection may be waiting on a file's language to load.
+    // Apply it only while that file is still the one the user wants.
+    if (onReady ? sessionStore.state.activeId === fileId : Date.now() < until) {
+      view.focus()
+      onReady?.(view)
+    }
   }
 }
 
@@ -174,12 +185,16 @@ export function registerFileView(fileId: string, view: EditorView | null) {
  * file in a pane of another type, it takes focus once it's there, if that is
  * within a moment.
  */
-export function focusFileView(fileId: string) {
+export function focusFileView(
+  fileId: string,
+  onReady?: (view: EditorView) => void,
+) {
   const view = getFileView(fileId)
   if (view?.dom.isConnected) {
     pendingFocus = null
     view.focus()
-  } else pendingFocus = { fileId, until: Date.now() + 1500 }
+    onReady?.(view)
+  } else pendingFocus = { fileId, onReady, until: Date.now() + 1500 }
 }
 
 /** The editor showing a file now, if one does. */

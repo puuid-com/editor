@@ -12,7 +12,7 @@ import type { ResolvedVar } from '#/lib/xml/dynamic-vars'
 
 // Transient dialog state for the editor screen.
 interface UiState {
-  paletteOpen: boolean
+  palette: 'commands' | 'find' | null
   renameId: string | null
   /** Browser files waiting for confirmation before they're deleted. */
   deleteIds: Array<string> | null
@@ -85,7 +85,7 @@ interface QuickHighlight {
 }
 
 export const uiStore = new Store<UiState>({
-  paletteOpen: false,
+  palette: null,
   renameId: null,
   deleteIds: null,
   tabListOpen: false,
@@ -109,7 +109,7 @@ function setter<TKey extends keyof UiState>(key: TKey) {
     uiStore.setState((s) => ({ ...s, [key]: value }))
 }
 
-export const setPaletteOpen = setter('paletteOpen')
+export const setPalette = setter('palette')
 export const askRename = setter('renameId')
 export const setTabListOpen = setter('tabListOpen')
 export const setArchiveOpen = setter('archiveOpen')

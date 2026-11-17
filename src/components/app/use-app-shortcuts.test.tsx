@@ -3,7 +3,7 @@ import { useSelector } from '@tanstack/react-store'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { newFile, newJsonFile } from './files'
-import { askRename, setPaletteOpen, setTabListOpen, uiStore } from './ui-store'
+import { askRename, setPalette, setTabListOpen, uiStore } from './ui-store'
 import { useAppShortcuts } from './use-app-shortcuts'
 import { redoActive, undoActive } from '#/components/editor/actions'
 import { sessionStore, setActive, setPanelOpen } from '#/lib/store/session'
@@ -25,7 +25,7 @@ function Harness({ children }: { children?: React.ReactNode }) {
 afterEach(() => {
   vi.clearAllMocks()
   askRename(null)
-  setPaletteOpen(false)
+  setPalette(null)
   setTabListOpen(false)
   setPanelOpen(true)
   setActive(null)
@@ -85,12 +85,27 @@ describe('useAppShortcuts', () => {
   it('toggles the command menu, side panel and file picker', () => {
     render(<Harness />)
     fireEvent.keyDown(document, { key: 'p', code: 'KeyP', ctrlKey: true })
-    expect(uiStore.state.paletteOpen).toBe(true)
+    expect(uiStore.state.palette).toBe('commands')
     fireEvent.keyDown(document, { key: 'b', code: 'KeyB', ctrlKey: true })
     expect(sessionStore.state.panelOpen).toBe(false)
     fireEvent.keyDown(document, { key: 'o', code: 'KeyO', ctrlKey: true })
     expect(onOpenFromDisk).toHaveBeenCalledOnce()
   })
+  it('opens content search from the editor with Mod+Shift+F', () => {
+    const { getByTestId } = render(
+      <Harness>
+        <div contentEditable data-testid="editor" />
+      </Harness>,
+    )
+    fireEvent.keyDown(getByTestId('editor'), {
+      key: 'F',
+      code: 'KeyF',
+      ctrlKey: true,
+      shiftKey: true,
+    })
+    expect(uiStore.state.palette).toBe('find')
+  })
+
   it('toggles the list of tabs with Mod+Shift+A', () => {
     render(<Harness />)
     const press = () =>

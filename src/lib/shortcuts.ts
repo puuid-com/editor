@@ -22,6 +22,7 @@ export const shortcuts = {
   applyDefaults: { key: 'Shift-Alt-d', keys: ['⇧', alt, 'D'] },
   resolveVars: { key: 'Shift-Alt-v', keys: ['⇧', alt, 'V'] },
   palette: { hotkey: 'Mod+K', keys: [mod, 'K'] },
+  findInFiles: { hotkey: 'Mod+Shift+F', keys: ['⇧', mod, 'F'] },
   quickOpen: { hotkey: 'Mod+P', keys: [mod, 'P'] },
   openFile: { hotkey: 'Mod+O', keys: [mod, 'O'] },
   newFile: { hotkey: 'Mod+Alt+N', keys: [alt, mod, 'N'] },
