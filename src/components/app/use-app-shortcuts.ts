@@ -33,7 +33,6 @@ export function useAppShortcuts({
   // VS Code's Quick Open; the command menu lists the open files first.
   useHotkey(shortcuts.quickOpen.hotkey, togglePalette)
   useHotkey(shortcuts.findInFiles.hotkey, () => setPalette('find'), {
-    enabled: !!activeId,
     ignoreInputs: false,
   })
   useHotkey(shortcuts.openFile.hotkey, onOpenFromDisk)

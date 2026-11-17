@@ -154,7 +154,7 @@ export function CommandMenu({
         onCloseAutoFocus={(e) => {
           if (match.current) {
             e.preventDefault()
-            openSearchMatch(match.current)
+            void openSearchMatch(match.current)
             match.current = null
             return
           }
@@ -377,9 +377,7 @@ function RootCommands({
 }) {
   return (
     <>
-      {files.length > 0 && (
-        <OpenFiles files={files} activeId={activeId} run={run} />
-      )}
+      <OpenFiles files={files} activeId={activeId} run={run} />
       {activeId && (
         <>
           <CurrentFile

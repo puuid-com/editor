@@ -8,6 +8,13 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.68.0] - 2026-11-17
+
+### Changed
+
+- Find in all files searches closed workspace files and editable text in connected folders. Open it with ⇧⌘F (Ctrl+Shift+F on Windows and Linux), even with every tab closed. Results include folder paths, and selecting a match opens its file at the matching text.
+- Search waits for a brief pause in typing before scanning. Edits in an open tab take precedence over its copy on disk.
+
 ## [1.67.0] - 2026-11-17
 
 ### Added

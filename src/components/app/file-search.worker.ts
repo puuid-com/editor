@@ -1,15 +1,19 @@
-import { findInFiles } from './file-search'
-import type { SearchFile } from './file-search'
+import { searchWorkspace } from './file-search'
+import type { SearchReply, SearchSources } from './file-search'
 
-type Request =
-  { files: Array<SearchFile> } | { query: string; matchCase: boolean }
+let sources: SearchSources = { files: [], disk: [] }
+let generation = 0
 
-let files: Array<SearchFile> = []
-self.onmessage = ({ data }: MessageEvent<Request>) => {
-  if ('files' in data) files = data.files
+self.onmessage = ({
+  data,
+}: MessageEvent<SearchSources | Pick<SearchReply, 'query' | 'matchCase'>>) => {
+  const current = ++generation
+  if ('files' in data) sources = data
   else
-    self.postMessage({
-      ...data,
-      results: findInFiles(files, data.query, data.matchCase),
-    })
+    void searchWorkspace(
+      sources,
+      data,
+      (reply) => self.postMessage(reply),
+      () => current !== generation,
+    )
 }

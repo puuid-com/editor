@@ -5266,11 +5266,11 @@ function MovablePanes() {
   return <BeforeAfter before={before} after={after} />
 }
 
-function FindInOpenFiles() {
+function SearchExample({ all = false }: { all?: boolean }) {
   return (
-    <Shot className="mx-auto w-full max-w-lg">
+    <>
       <div className="flex items-center justify-between px-3 pt-2 font-medium">
-        {m.find_in_files()}
+        {all ? m.find_in_files() : m.find_open_files()}
         <IconLetterCase className="size-4" />
       </div>
       <div className="flex items-center gap-2 border-b px-3 py-2 font-mono">
@@ -5280,6 +5280,7 @@ function FindInOpenFiles() {
       {[
         ['order.xml', 2, '<order id="', '">'],
         ['receipt.json', 7, '  "orderId": ', ','],
+        ...(all ? [['Invoices/2026/ledger.txt', 3, 'Order ', '']] : []),
       ].map(([name, line, before, after]) => (
         <div key={name} className="px-3 py-2">
           <div className="mb-1.5 font-medium text-muted-foreground">{name}</div>
@@ -5297,11 +5298,26 @@ function FindInOpenFiles() {
         <Kbd>↵</Kbd>
         {m.notice_go_to()}
       </StatusBar>
+    </>
+  )
+}
+
+function FindInOpenFiles() {
+  return (
+    <Shot className="mx-auto w-full max-w-lg">
+      <SearchExample />
     </Shot>
   )
 }
 
+function FindInAllFiles() {
+  return (
+    <BeforeAfter before={<SearchExample />} after={<SearchExample all />} />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.68.0': figure(FindInAllFiles),
   '1.67.0': figure(FindInOpenFiles),
   '1.66.0': figure(SettingsPageLook),
   '1.65.0': figure(MovablePanes),

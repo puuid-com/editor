@@ -132,20 +132,33 @@ const UNSEARCHED = new Set(['node_modules'])
  */
 export async function listFiles(
   root: FileSystemDirectoryHandle,
-  { limit = 5000, all = false } = {},
+  {
+    limit = 5000,
+    all = false,
+    signal,
+    onUnreadable,
+  }: {
+    limit?: number
+    all?: boolean
+    signal?: AbortSignal
+    onUnreadable?: () => void
+  } = {},
 ) {
   const keep = all ? (name: string) => !isHidden(name) : isListed
   const files: Array<DiskEntry> = []
   const queue = [{ handle: root, path: '' }]
   for (let index = 0; index < queue.length && files.length < limit; index++) {
     const directory = queue[index]
-    // Reuse handles returned by enumeration instead of resolving every ancestor.
-    // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    for (const entry of await readDirectory(
-      directory.handle,
-      directory.path,
-      keep,
-    )) {
+    signal?.throwIfAborted()
+    let entries: Array<DiskEntry>
+    try {
+      entries = await readDirectory(directory.handle, directory.path, keep)
+    } catch (error) {
+      if (!onUnreadable) throw error
+      onUnreadable()
+      continue
+    }
+    for (const entry of entries) {
       if (entry.kind === 'file') {
         if (files.length < limit) files.push(entry)
       } else if (!UNSEARCHED.has(entry.name)) {

@@ -1,11 +1,28 @@
+import { isImageData } from '#/lib/image-file'
+import type { FileLocation } from '#/lib/store/files'
+
 export interface SearchFile {
   id: string
   name: string
   content: string
+  location?: FileLocation
+}
+
+export interface DiskSearchFile {
+  id: string
+  name: string
+  location: FileLocation
+  handle: FileSystemFileHandle
+}
+
+export interface SearchSources {
+  files: Array<SearchFile>
+  disk: Array<DiskSearchFile>
 }
 
 export interface FileMatch {
   fileId: string
+  location?: FileLocation
   from: number
   line: number
   before: string
@@ -26,6 +43,7 @@ export function findInFiles(
   files: ReadonlyArray<SearchFile>,
   query: string,
   matchCase: boolean,
+  limit = TOTAL_LIMIT,
 ): SearchResults {
   const results: SearchResults = { groups: [], limited: false }
   if (!query) return results
@@ -42,7 +60,7 @@ export function findInFiles(
     let nextBreak = breaks.exec(content)
     pattern.lastIndex = 0
     for (let match; (match = pattern.exec(content));) {
-      if (count === TOTAL_LIMIT) {
+      if (count === limit) {
         results.limited = true
         return results
       }
@@ -69,6 +87,7 @@ export function findInFiles(
         results.groups.push({ id: file.id, name: file.name, hits })
       hits.push({
         fileId: file.id,
+        location: file.location,
         from: from - crlfCount,
         line,
         before,
@@ -79,4 +98,65 @@ export function findInFiles(
     }
   }
   return results
+}
+
+export interface SearchReply {
+  query: string
+  matchCase: boolean
+  results: SearchResults
+  pending: boolean
+  skipped: boolean
+}
+
+/** Search live browser text first, then read a bounded batch of disk files at a time. */
+export async function searchWorkspace(
+  { files, disk }: SearchSources,
+  terms: Pick<SearchReply, 'query' | 'matchCase'>,
+  send: (reply: SearchReply) => void,
+  cancelled: () => boolean,
+) {
+  const { query, matchCase } = terms
+  if (!query) return
+  const results = findInFiles(files, query, matchCase)
+  let remaining =
+    TOTAL_LIMIT - results.groups.reduce((sum, g) => sum + g.hits.length, 0)
+  let skipped = false
+  const publish = (pending: boolean) =>
+    send({
+      ...terms,
+      results,
+      pending,
+      skipped,
+    })
+  // Browser edits are available immediately. Read disk files in small batches
+  // and drop obsolete searches at the next I/O boundary.
+  let lastUpdate = performance.now()
+  if (disk.length && remaining > 0) publish(true)
+  for (let i = 0; i < disk.length; i += 4) {
+    if (remaining === 0) {
+      results.limited = true
+      break
+    }
+    const batch = await Promise.allSettled(
+      disk.slice(i, i + 4).map(async ({ handle, ...file }) => ({
+        ...file,
+        content: await (await handle.getFile()).text(),
+      })),
+    )
+    if (cancelled()) return
+    const readable: Array<SearchFile> = []
+    for (const result of batch) {
+      if (result.status === 'rejected') skipped = true
+      else if (!isImageData(result.value.content)) readable.push(result.value)
+    }
+    const next = findInFiles(readable, query, matchCase, remaining)
+    results.groups.push(...next.groups)
+    results.limited ||= next.limited
+    for (const group of next.groups) remaining -= group.hits.length
+    if (next.groups.length && performance.now() - lastUpdate >= 100) {
+      publish(true)
+      lastUpdate = performance.now()
+    }
+  }
+  publish(false)
 }

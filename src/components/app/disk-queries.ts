@@ -41,6 +41,7 @@ export const allFilesQuery = (root: DiskRoot) =>
 export const vaultQuery = (root: DiskRoot) =>
   queryOptions({
     queryKey: [...diskKeys.root(root.id), 'vault'],
+    networkMode: 'always',
     queryFn: () => readVault(root.handle),
     ...fresh,
   })
