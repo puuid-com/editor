@@ -5266,7 +5266,13 @@ function MovablePanes() {
   return <BeforeAfter before={before} after={after} />
 }
 
-function SearchExample({ all = false }: { all?: boolean }) {
+function SearchExample({
+  all = false,
+  searching = false,
+}: {
+  all?: boolean
+  searching?: boolean
+}) {
   return (
     <>
       <div className="flex items-center justify-between px-3 pt-2 font-medium">
@@ -5277,23 +5283,31 @@ function SearchExample({ all = false }: { all?: boolean }) {
         <IconSearch className="size-4 text-muted-foreground" />
         4821
       </div>
-      {[
-        ['order.xml', 2, '<order id="', '">'],
-        ['receipt.json', 7, '  "orderId": ', ','],
-        ...(all ? [['Invoices/2026/ledger.txt', 3, 'Order ', '']] : []),
-      ].map(([name, line, before, after]) => (
-        <div key={name} className="px-3 py-2">
-          <div className="mb-1.5 font-medium text-muted-foreground">{name}</div>
-          <div className="flex items-center gap-3 font-mono">
-            <span className="text-muted-foreground">{line}</span>
-            <span className="whitespace-pre">
-              {before}
-              <mark className="search-hit">4821</mark>
-              {after}
-            </span>
+      {searching && (
+        <p className="px-4 py-6 text-center text-muted-foreground">
+          {m.find_searching()}
+        </p>
+      )}
+      {!searching &&
+        [
+          ['order.xml', 2, '<order id="', '">'],
+          ['receipt.json', 7, '  "orderId": ', ','],
+          ...(all ? [['Invoices/2026/ledger.txt', 3, 'Order ', '']] : []),
+        ].map(([name, line, before, after]) => (
+          <div key={name} className="px-3 py-2">
+            <div className="mb-1.5 font-medium text-muted-foreground">
+              {name}
+            </div>
+            <div className="flex items-center gap-3 font-mono">
+              <span className="text-muted-foreground">{line}</span>
+              <span className="whitespace-pre">
+                {before}
+                <mark className="search-hit">4821</mark>
+                {after}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
       <StatusBar>
         <Kbd>↵</Kbd>
         {m.notice_go_to()}
@@ -5316,7 +5330,17 @@ function FindInAllFiles() {
   )
 }
 
+function SearchTypingPause() {
+  return (
+    <BeforeAfter
+      before={<SearchExample all />}
+      after={<SearchExample all searching />}
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.68.1': figure(SearchTypingPause),
   '1.68.0': figure(FindInAllFiles),
   '1.67.0': figure(FindInOpenFiles),
   '1.66.0': figure(SettingsPageLook),

@@ -160,7 +160,7 @@ export function FindInFiles({
 }) {
   const [query, setQuery] = useState('')
   const [matchCase, setMatchCase] = useState(false)
-  const [debounced] = useDebouncedValue(query, { wait: 150 })
+  const [debounced] = useDebouncedValue(query, { wait: 500 })
   const roots = useSelector(rootsStore, (state) => state)
   const folders = useQueries({
     queries: roots
