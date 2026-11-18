@@ -1,11 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
+    "agent-browser": {
+      "source": "vercel-labs/agent-browser",
+      "commit": "b06e2533ba9b3823b8a96c859d455cb55f4d7893",
+      "sourceType": "github",
+      "skillPath": "skills/agent-browser/SKILL.md",
+      "computedHash": "a0dfac7503f69bcf529b2660fc79964064c4f179eb65695904ddc45fc0d99d20"
+    },
     "stageshow": {
       "source": "benjitaylor/skills",
       "sourceType": "github",
       "skillPath": "stageshow/SKILL.md",
-      "computedHash": "bf9f07985a62882deae7935b5b1162fb5bf66b248930bb14a75dcaf9d67291b7"
+      "computedHash": "fadb708a3b7a8c7d4d05204b1920531dba0d5e19367177ba31c89f1570e97550"
     }
   }
 }
