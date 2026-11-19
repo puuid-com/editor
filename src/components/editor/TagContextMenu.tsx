@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { leafAt } from './actions'
 import { editorStore, getView } from './editor-store'
+import { docVars } from './language'
 import { tagAt } from './syntax'
 import { notify } from '#/components/app/notice-store'
 import { askVariableValue } from '#/components/app/ui-store'
@@ -31,6 +32,7 @@ import type { XmlElement } from '#/lib/xml/model'
 
 /** Name of the plain `<<name>>` variable at `pos`, if any. */
 function varAt(view: EditorView, pos: number) {
+  if (!view.state.facet(docVars)) return null
   const line = view.state.doc.lineAt(pos)
   const match = findVars(line.text).find(
     (v) => line.from + v.from <= pos && pos <= line.from + v.to,

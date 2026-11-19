@@ -20,6 +20,8 @@ export interface FormatOptions {
   joinLines?: boolean
   /** Rewrite `<< name >>` as `<<name>>`. */
   trimVars?: boolean
+  /** Off: the text has no variables, so `<<name>>` is read as written. */
+  vars?: boolean
   /** Rewrite `<ns:Body>` as `<Body>`. Attributes and `xmlns:` declarations stay. */
   stripPrefixes?: boolean
   /**
@@ -51,25 +53,27 @@ export function formatXml(
     removeEmptyLines = true,
     joinLines = false,
     trimVars = false,
+    vars = true,
     stripPrefixes = false,
     sort = 'none',
     order: custom = [],
     first = [],
   }: FormatOptions = {},
 ): FormatResult {
-  let doc = parseXml(text)
+  let doc = parseXml(text, undefined, vars)
   // Only XML that doesn't parse as written is unwrapped: in a valid file,
   // a `\"` is text, like JSON held in an element, and must stay as it is.
   if (doc.errors.length > 0) {
     const unwrapped = unwrapXml(text)
-    const retry = unwrapped === text ? doc : parseXml(unwrapped)
+    const retry =
+      unwrapped === text ? doc : parseXml(unwrapped, undefined, vars)
     if (retry.errors.length > 0) return { ok: false, errors: doc.errors }
     text = unwrapped
     doc = retry
   }
   if (stripPrefixes) {
     text = withoutTagPrefixes(text, doc.nodes)
-    doc = parseXml(text)
+    doc = parseXml(text, undefined, vars)
   }
 
   const lines: Array<string> = []
@@ -137,7 +141,7 @@ export function formatXml(
 
   writeAll(doc.nodes, 0)
   let out = lines.join('\n') + '\n'
-  if (trimVars) out = out.replace(varRegExp(), trimVar)
+  if (trimVars && vars) out = out.replace(varRegExp(), trimVar)
   return { ok: true, text: out }
 }
 

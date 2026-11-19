@@ -209,6 +209,17 @@ export async function loadLanguages(languages: Iterable<DocLanguage>) {
   )
 }
 
+/** Stock grammars, for a file whose variables are off: its text as written. */
+const PLAIN_SUPPORT: Partial<Record<DocLanguage, Extension>> = {
+  xml: new LanguageSupport(xmlLanguage, [autoCloseTags]),
+  json: new LanguageSupport(jsonLanguage),
+}
+
+/** Whether the file in this editor state reads variables. */
+export const docVars = Facet.define<boolean, boolean>({
+  combine: (values) => values.at(-1) ?? true,
+})
+
 /** The language of the file in this editor state. */
 export const docLanguage = Facet.define<DocLanguage, DocLanguage>({
   combine: (values) => values.at(-1) ?? 'xml',
@@ -234,9 +245,16 @@ export function structureGutters(language: DocLanguage | null): Extension {
   ]
 }
 
-export function languageExtension(language: DocLanguage): Extension {
+export function languageExtension(
+  language: DocLanguage,
+  vars = true,
+): Extension {
   return [
     docLanguage.of(language),
-    LAZY[language]?.extension() ?? SUPPORT[language] ?? [],
+    docVars.of(vars),
+    LAZY[language]?.extension() ??
+      (vars ? undefined : PLAIN_SUPPORT[language]) ??
+      SUPPORT[language] ??
+      [],
   ]
 }

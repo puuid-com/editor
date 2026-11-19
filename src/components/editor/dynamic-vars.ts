@@ -1,6 +1,6 @@
 import { Compartment, EditorState, Facet } from '@codemirror/state'
 
-import { docLanguage } from './language'
+import { docLanguage, docVars } from './language'
 import { isPlain } from '#/lib/document'
 import { DYNAMIC_VARS, isDynamicVar } from '#/lib/xml/dynamic-vars'
 import { m } from '#/paraglide/messages'
@@ -160,5 +160,7 @@ function varCompletions(context: CompletionContext): CompletionResult | null {
 
 /** Works in every language with variables, next to the grammar's own completions. */
 export const dynamicVarCompletions = EditorState.languageData.of((state) =>
-  isPlain(state.facet(docLanguage)) ? [] : [{ autocomplete: varCompletions }],
+  isPlain(state.facet(docLanguage)) || !state.facet(docVars)
+    ? []
+    : [{ autocomplete: varCompletions }],
 )

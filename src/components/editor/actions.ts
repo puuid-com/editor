@@ -2,6 +2,7 @@ import { redoDepth, undoDepth } from '@codemirror/commands'
 
 import {
   activeLanguage,
+  activeVars,
   editorStore,
   getText,
   getView,
@@ -104,6 +105,7 @@ export function formatActive() {
     removeEmptyLines,
     joinLines,
     trimVars,
+    vars: activeVars(),
     stripPrefixes,
     sort,
     order: customOrder,
@@ -196,7 +198,7 @@ export function resolveVarsActive() {
   const view = getView()
   const { fileId } = editorStore.state
   const language = activeLanguage()
-  if (!view || !fileId || isPlain(language)) return true
+  if (!view || !fileId || isPlain(language) || !activeVars()) return true
   const doc = view.state.doc
   // Faker is large and only needed here, so it loads on first use.
   void import('@faker-js/faker').then(({ faker }) => {
@@ -274,7 +276,7 @@ export function commitVarsPreview({
 /** Rewrites every variable in the active file in `style`, as one undo step. */
 export function convertVarsActive(style: VarStyle) {
   const view = getView()
-  if (!view || isPlain(activeLanguage())) return
+  if (!view || isPlain(activeLanguage()) || !activeVars()) return
   const text = view.state.doc.toString()
   const result = convertVars(text, style)
   if (result.count === 0) {

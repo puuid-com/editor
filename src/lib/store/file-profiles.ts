@@ -34,3 +34,35 @@ export function fileProfileIds() {
     return store
   })
 }
+
+/**
+ * Ids of the files whose variables are off, so what shows variables can
+ * tell without reading the files' text.
+ */
+export function filesWithoutVars() {
+  return singleton('filesWithoutVars', () => {
+    const store = new Store<ReadonlySet<string>>(
+      new Set(
+        [...filesCollection.values()]
+          .filter((file) => file.vars === false)
+          .map((file) => file.id),
+      ),
+    )
+    filesCollection.subscribeChanges(
+      (changes) => {
+        let next: Set<string> | undefined
+        for (const change of changes) {
+          const id = String(change.key)
+          const off = change.type !== 'delete' && change.value.vars === false
+          if ((next ?? store.state).has(id) === off) continue
+          next ??= new Set(store.state)
+          if (off) next.add(id)
+          else next.delete(id)
+        }
+        if (next) store.setState(() => next)
+      },
+      { includeInitialState: false },
+    )
+    return store
+  })
+}

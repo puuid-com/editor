@@ -419,3 +419,14 @@ describe('problem messages', () => {
     }
   })
 })
+
+describe('parseXml without variables', () => {
+  it('reads placeholders as the text they are written as', () => {
+    expect(parseXml('<a>{{ bad name }}</a>').errors).not.toEqual([])
+    expect(parseXml('<a>{{ bad name }}</a>', undefined, false).errors).toEqual(
+      [],
+    )
+    expect(parseXml('<a><<x>></a>').errors).toEqual([])
+    expect(parseXml('<a><<x>></a>', undefined, false).errors).not.toEqual([])
+  })
+})

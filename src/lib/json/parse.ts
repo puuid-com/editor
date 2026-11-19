@@ -62,9 +62,9 @@ const WHITESPACE = new Set([' ', '\t', '\n', '\r'])
  * what it could read, plus the problems found. `<<var>>`, `{{var}}` and `${var}`
  * placeholders are allowed wherever a value is, and inside strings.
  */
-export function parseJsonAst(text: string): JsonAst {
+export function parseJsonAst(text: string, vars = true): JsonAst {
   if (text.trim() === '') return { value: null, errors: [] }
-  const reader = new Reader(text)
+  const reader = new Reader(text, vars)
   const value = reader.value()
   reader.skipSpace()
   if (value && reader.pos < text.length) {
@@ -75,8 +75,8 @@ export function parseJsonAst(text: string): JsonAst {
 }
 
 /** Parses JSON into the shared element model used by the tree and editor. */
-export function parseJson(text: string): XmlDocument {
-  const { value, errors } = parseJsonAst(text)
+export function parseJson(text: string, vars = true): XmlDocument {
+  const { value, errors } = parseJsonAst(text, vars)
   return {
     language: 'json',
     nodes: value ? childrenOf(value, '', 0) : [],
@@ -89,7 +89,11 @@ class Reader {
   pos = 0
   errors: Array<XmlError> = []
 
-  constructor(private text: string) {}
+  constructor(
+    private text: string,
+    /** Off: placeholders are read as the JSON they are written as. */
+    private vars: boolean,
+  ) {}
 
   error(from: number, to: number, message: string) {
     this.errors.push({ from, to: Math.max(to, from + 1), message })
@@ -107,7 +111,7 @@ class Reader {
       this.error(Math.max(0, start - 1), start, m.parse_json_expected_value())
       return null
     }
-    if (c === '<' || c === '{' || c === '$') {
+    if (this.vars && (c === '<' || c === '{' || c === '$')) {
       VAR_RE.lastIndex = start
       const match = VAR_RE.exec(this.text)
       if (match) return this.literal('var', start + match[0].length)
@@ -174,7 +178,7 @@ class Reader {
       this.pos = i + 1
     }
     const raw = this.text.slice(from, this.pos)
-    this.errors.push(...findVarProblems(raw, from))
+    if (this.vars) this.errors.push(...findVarProblems(raw, from))
     return { type: 'string', from, to: this.pos, raw, value: decodeString(raw) }
   }
 

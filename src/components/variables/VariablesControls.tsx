@@ -3,7 +3,11 @@ import { useForm } from '@tanstack/react-form'
 import { useSelector } from '@tanstack/react-store'
 import { useMemo } from 'react'
 
-import { editorStore, getText } from '#/components/editor/editor-store'
+import {
+  activeVars,
+  editorStore,
+  getText,
+} from '#/components/editor/editor-store'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Separator } from '#/components/ui/separator'
@@ -74,7 +78,7 @@ function useSuggestedNames(existing: Array<string>) {
   return useMemo(() => {
     void revision
     const taken = new Set(existing)
-    const names = findVars(getText()).map((v) => v.name)
+    const names = activeVars() ? findVars(getText()).map((v) => v.name) : []
     return [...new Set(names)].filter(
       (name) => isVariableName(name) && !taken.has(name),
     )

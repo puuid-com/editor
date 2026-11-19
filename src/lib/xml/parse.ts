@@ -23,14 +23,15 @@ const PREDEFINED = new Set(['lt', 'gt', 'amp', 'quot', 'apos'])
  * `tree` is the syntax tree of `text` read with its variables masked, when
  * one is at hand: the editor keeps one up to date as it is typed in, which
  * saves parsing the whole text again.
+ *
+ * With `vars` off, the text is read as written: `<<name>>` is broken XML and
+ * `{{name}}` plain text.
  */
-export function parseXml(
-  text: string,
-  tree: Tree = parser.parse(maskVars(text)),
-): XmlDocument {
+export function parseXml(text: string, given?: Tree, vars = true): XmlDocument {
   if (text.trim() === '') {
     return { language: 'xml', nodes: [], root: null, errors: [] }
   }
+  const tree = given ?? parser.parse(vars ? maskVars(text) : text)
 
   const errors: Array<XmlError> = []
   // Masking leaves `<!DOCTYPE` alone, so the text says the same.
@@ -62,7 +63,10 @@ export function parseXml(
             message: m.parse_xml_unknown_entity({ entity }),
           })
         }
-      } else if (ref.name === 'Text' || ref.name === 'AttributeValue') {
+      } else if (
+        vars &&
+        (ref.name === 'Text' || ref.name === 'AttributeValue')
+      ) {
         // `{{{var}}}` or `<tag>><<var>>` parse as text, but only
         // well-formed variables are accepted.
         errors.push(...findVarProblems(text.slice(ref.from, ref.to), ref.from))

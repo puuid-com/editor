@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.69.0] - 2026-11-18
+
+### Added
+
+- The variable style switch in the bottom bar has a “None” option: the file's text is read exactly as written, with no variable highlighting, hints, checks or replacing. Pick a style again to turn variables back on.
+
 ## [1.68.3] - 2026-11-18
 
 ### Changed

@@ -5339,7 +5339,45 @@ function SearchTypingPause() {
   )
 }
 
+/** The bottom bar's variable style switch, with one option picked. */
+function VarStyleOptions({ picked }: { picked: string }) {
+  const options = ['{{x}}', '<<x>>', '${x}', m.vars_style_none()]
+  return (
+    <StatusBar className="border-t-0">
+      {m.variables_tab()}
+      <span className="ml-1 flex border font-mono text-[10.5px]">
+        {options.map((option) => (
+          <span
+            key={option}
+            className={cn(
+              'flex h-5 items-center border-l px-1.5 first:border-l-0',
+              option === picked && 'bg-foreground text-background',
+            )}
+          >
+            {option}
+          </span>
+        ))}
+      </span>
+    </StatusBar>
+  )
+}
+
+function VarsOff() {
+  const line = (vars: boolean) => (
+    <div className="font-mono text-[11px]">
+      <div className="px-3 py-2">
+        {'<host>'}
+        <span className={cn(vars && 'var-chip')}>{'{{host}}'}</span>
+        {'</host>'}
+      </div>
+      <VarStyleOptions picked={vars ? '{{x}}' : m.vars_style_none()} />
+    </div>
+  )
+  return <BeforeAfter before={line(true)} after={line(false)} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.69.0': figure(VarsOff),
   '1.68.1': figure(SearchTypingPause),
   '1.68.0': figure(FindInAllFiles),
   '1.67.0': figure(FindInOpenFiles),

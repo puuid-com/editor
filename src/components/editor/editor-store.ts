@@ -2,7 +2,7 @@ import { Store } from '@tanstack/store'
 import { EditorSelection } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 
-import { docLanguage } from './language'
+import { docLanguage, docVars } from './language'
 import { parseEditor } from './parse'
 import { parseDocument } from '#/lib/document'
 import { sessionStore } from '#/lib/store/session'
@@ -115,11 +115,16 @@ export function editAtPath(
 export function parseActive(text?: string) {
   return text === undefined && currentView
     ? parseEditor(currentView)
-    : parseDocument(text ?? '', activeLanguage())
+    : parseDocument(text ?? '', activeLanguage(), activeVars())
 }
 
 export function activeLanguage() {
   return currentView?.state.facet(docLanguage) ?? 'xml'
+}
+
+/** Whether the active file reads variables, rather than its text as written. */
+export function activeVars() {
+  return currentView?.state.facet(docVars) ?? true
 }
 
 /** Selects an element's open tag without stealing focus from the panel. */

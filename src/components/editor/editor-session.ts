@@ -5,6 +5,7 @@ import { fileIdField } from './file-id'
 import { dropParse } from './parse'
 import {
   docLanguage,
+  docVars,
   languageCompartment,
   languageExtension,
   structureGutters,
@@ -52,20 +53,27 @@ export function dropEditorState(fileId: string) {
 }
 
 /** The language and the gutters that only make sense for it. */
-function editorLanguage(language: DocLanguage) {
-  return [languageExtension(language), structureGutters(language)]
+function editorLanguage(language: DocLanguage, vars = true) {
+  return [languageExtension(language, vars), structureGutters(language)]
 }
 
 /**
- * Switches the editor to the language `content` reads as. `content` is the
- * text the view shows, which callers already hold: serializing the view's
- * document on each keystroke costs a copy of the whole file.
+ * Switches the editor to the language `content` reads as, with or without
+ * variables. `content` is the text the view shows, which callers already
+ * hold: serializing the view's document on each keystroke costs a copy of
+ * the whole file.
  */
-function syncLanguage(view: EditorView, name: string, content: string) {
-  const language = languageOf(name, content)
-  if (view.state.facet(docLanguage) === language) return false
+function syncLanguage(view: EditorView, file: XmlFile, content: string) {
+  const language = languageOf(file.name, content)
+  // Files stored before the setting have none.
+  const vars = file.vars !== false
+  if (
+    view.state.facet(docLanguage) === language &&
+    view.state.facet(docVars) === vars
+  )
+    return false
   view.dispatch({
-    effects: languageCompartment.reconfigure(editorLanguage(language)),
+    effects: languageCompartment.reconfigure(editorLanguage(language, vars)),
   })
   forceLinting(view)
   return true
@@ -92,7 +100,10 @@ export function createEditorSession(
       extensions: [
         fileIdField.init(() => fileId),
         languageCompartment.of(
-          editorLanguage(languageOf(file?.name ?? '', content)),
+          editorLanguage(
+            languageOf(file?.name ?? '', content),
+            file?.vars !== false,
+          ),
         ),
         extensions,
       ],
@@ -135,8 +146,8 @@ export function createEditorSession(
           shown = view.state.doc.toString()
         }
         // Renames and edits can both change the language, such as pasting
-        // a flat file into an XML one.
-        if (active && syncLanguage(view, file.name, shown))
+        // a flat file into an XML one; so can turning variables off.
+        if (active && syncLanguage(view, file, shown))
           callbacks.onLanguageChange(file.id)
       }
     },
@@ -167,8 +178,9 @@ export function createEditorSession(
       } else {
         view.setState(createState(fileId, file, extensions))
       }
-      // A file may have been renamed while its editor state was cached.
-      if (file) syncLanguage(view, file.name, content)
+      // A file may have been renamed, or its variables turned off, while
+      // its editor state was cached.
+      if (file) syncLanguage(view, file, content)
       return true
     },
     dispose() {

@@ -17,6 +17,7 @@ import {
   formatActive,
   resolveVarsActive,
 } from '#/components/editor/actions'
+import { notify } from './notice-store'
 import { editorStore, getText } from '#/components/editor/editor-store'
 import { hlStyle } from '#/components/highlights/hl-style'
 import { switchProfile } from '#/components/profiles/actions'
@@ -38,8 +39,13 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import { useEnabledDefaults } from '#/hooks/use-defaults'
-import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
+import {
+  useActiveProfile,
+  useFileVars,
+  useProfiles,
+} from '#/hooks/use-profiles'
 import { profileShortcuts, shortcuts } from '#/lib/shortcuts'
+import { setFileVars } from '#/lib/store/files'
 import { profileCss } from '#/lib/store/profiles'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { varStyles, writeVar } from '#/lib/xml/vars'
@@ -48,6 +54,8 @@ import type { Shortcut } from '#/lib/shortcuts'
 import type { VarStyle } from '#/lib/xml/vars'
 
 const VAR_STYLES: Array<VarStyle> = ['curly', 'angle', 'dollar']
+/** The switch's last option: no variables, the text as written. */
+const NO_VARS = 'none'
 
 let lastVars = { revision: -1, value: varStyles('') }
 
@@ -64,7 +72,10 @@ function varsAt(revision: number) {
  */
 export function ActionBar() {
   const doc = useSelector(editorStore, (s) => s.doc)
+  const fileId = useSelector(editorStore, (s) => s.fileId)
   const vars = useSelector(editorStore, (s) => varsAt(s.revision))
+  const varsOn = useFileVars(fileId)
+  const resolvable = varsOn ? vars.count : 0
   const rules = useEnabledDefaults()
   const defaults = useMemo(
     () =>
@@ -75,11 +86,11 @@ export function ActionBar() {
   return (
     <div className="flex shrink-0 items-center gap-1.5 text-muted-foreground">
       <ProfileSwitch />
-      {vars.count > 0 && (
+      {fileId && (vars.count > 0 || !varsOn) && (
         <>
           <Divider />
           <span className="max-xl:hidden">{m.variables_tab()}</span>
-          <VarStyleSwitch style={vars.style} />
+          <VarStyleSwitch fileId={fileId} on={varsOn} style={vars.style} />
         </>
       )}
       <Divider />
@@ -105,17 +116,19 @@ export function ActionBar() {
         <ActionButton
           label={m.vars_resolve()}
           detail={
-            vars.count > 0
-              ? m.status_vars_count({ count: vars.count })
-              : m.vars_resolve_none()
+            !varsOn
+              ? m.vars_off()
+              : vars.count > 0
+                ? m.status_vars_count({ count: vars.count })
+                : m.vars_resolve_none()
           }
           shortcut={shortcuts.resolveVars}
-          disabled={vars.count === 0}
+          disabled={resolvable === 0}
           onClick={resolveVarsActive}
         >
           <IconVariable />
           <span className="max-xl:hidden">{m.vars_resolve_short()}</span>
-          <Count value={vars.count} />
+          <Count value={resolvable} />
         </ActionButton>
       </div>
     </div>
@@ -222,8 +235,21 @@ function ProfileDot() {
   )
 }
 
-/** The bracket style the file's variables share; picking one rewrites them all. */
-function VarStyleSwitch({ style }: { style: VarStyle | null }) {
+/**
+ * The bracket style the file's variables share; picking one rewrites them
+ * all. The last option turns variables off, so the text is read as written.
+ */
+function VarStyleSwitch({
+  fileId,
+  on,
+  style,
+}: {
+  fileId: string
+  on: boolean
+  style: VarStyle | null
+}) {
+  const item =
+    'h-5 min-w-0 px-1.5 font-mono text-[10.5px] font-normal text-muted-foreground data-[state=on]:bg-foreground data-[state=on]:text-background max-md:h-8'
   return (
     <ToggleGroup
       type="single"
@@ -231,9 +257,21 @@ function VarStyleSwitch({ style }: { style: VarStyle | null }) {
       size="sm"
       spacing={0}
       aria-label={m.vars_convert()}
-      value={style ?? ''}
+      value={on ? (style ?? '') : NO_VARS}
       onValueChange={(value) => {
-        if (value) convertVarsActive(value as VarStyle)
+        if (!value) return
+        if (value === NO_VARS) {
+          void setFileVars(fileId, false).then(() =>
+            notify.info(m.vars_turned_off()),
+          )
+          return
+        }
+        const next = value as VarStyle
+        if (on) convertVarsActive(next)
+        else
+          void setFileVars(fileId, true).then(() => {
+            if (next !== style) convertVarsActive(next)
+          })
       }}
       className="shrink-0"
     >
@@ -242,11 +280,19 @@ function VarStyleSwitch({ style }: { style: VarStyle | null }) {
           key={option}
           value={option}
           aria-label={m.status_vars_switch({ style: writeVar('x', option) })}
-          className="h-5 min-w-0 px-1.5 font-mono text-[10.5px] font-normal text-muted-foreground data-[state=on]:bg-foreground data-[state=on]:text-background max-md:h-8"
+          className={item}
         >
           {writeVar('x', option)}
         </ToggleGroupItem>
       ))}
+      <ToggleGroupItem
+        value={NO_VARS}
+        aria-label={m.status_vars_none()}
+        title={m.status_vars_none()}
+        className={item}
+      >
+        {m.vars_style_none()}
+      </ToggleGroupItem>
     </ToggleGroup>
   )
 }

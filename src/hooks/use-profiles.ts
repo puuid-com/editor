@@ -1,7 +1,7 @@
 import { useLiveQuery } from '@tanstack/react-db'
 import { useSelector } from '@tanstack/react-store'
 
-import { fileProfileIds } from '#/lib/store/file-profiles'
+import { fileProfileIds, filesWithoutVars } from '#/lib/store/file-profiles'
 import { withDefaults } from '#/lib/store/format-settings'
 import { DEFAULT_PROFILE_ID } from '#/lib/store/persist'
 import { profilesCollection, resolveProfile } from '#/lib/store/profiles'
@@ -30,6 +30,13 @@ export function useActiveProfile(forFileId?: string) {
     fileId ? ids.get(fileId) : undefined,
   )
   return resolveProfile(profiles, profileId)
+}
+
+/** Whether a file, the active one unless given, reads variables. */
+export function useFileVars(forFileId?: string | null) {
+  const activeId = useSelector(sessionStore, (s) => s.activeId)
+  const fileId = forFileId ?? activeId
+  return useSelector(filesWithoutVars(), (ids) => !fileId || !ids.has(fileId))
 }
 
 export function useActiveProfileId(fileId?: string) {

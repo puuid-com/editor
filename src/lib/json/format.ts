@@ -16,12 +16,13 @@ export function formatJson(
     indent = '  ',
     removeEmptyLines = true,
     trimVars = false,
+    vars = true,
     sort = 'none',
     order = [],
     first = [],
   }: FormatOptions = {},
 ): FormatResult {
-  const { value, errors } = parseJsonAst(text)
+  const { value, errors } = parseJsonAst(text, vars)
   if (errors.length > 0) return { ok: false, errors }
   if (!value) return { ok: true, text }
 
@@ -70,6 +71,6 @@ export function formatJson(
   }
 
   let out = write(value, 0) + '\n'
-  if (trimVars) out = out.replace(varRegExp(), trimVar)
+  if (trimVars && vars) out = out.replace(varRegExp(), trimVar)
   return { ok: true, text: out }
 }

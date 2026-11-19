@@ -47,7 +47,7 @@ import {
   varValues,
   varValuesFacet,
 } from './dynamic-vars'
-import { docLanguage } from './language'
+import { docLanguage, docVars } from './language'
 import { fileIdField } from './file-id'
 import { parseEditor } from './parse'
 import { shortenLongValues } from './long-values'
@@ -65,7 +65,7 @@ import { isPlain } from '#/lib/document'
 import { defaultMatches } from '#/lib/xml/defaults'
 import { varName, varRegExp } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
-import type { Extension, Range } from '@codemirror/state'
+import type { EditorState, Extension, Range } from '@codemirror/state'
 import type {
   DecorationSet,
   KeyBinding,
@@ -91,11 +91,14 @@ const varDecorator = new MatchDecorator({
   },
 })
 
-// SQL, ZPL and Markdown have no variables, so `<<` there is just text.
+// SQL, ZPL and Markdown have no variables, so `<<` there is just text; so
+// is it in a file whose variables are off.
+function noVars(state: EditorState) {
+  return isPlain(state.facet(docLanguage)) || !state.facet(docVars)
+}
+
 function varMarks(view: EditorView) {
-  return isPlain(view.state.facet(docLanguage))
-    ? Decoration.none
-    : varDecorator.createDeco(view)
+  return noVars(view.state) ? Decoration.none : varDecorator.createDeco(view)
 }
 
 const varHighlighter = ViewPlugin.fromClass(
@@ -105,12 +108,12 @@ const varHighlighter = ViewPlugin.fromClass(
       this.decorations = varMarks(view)
     }
     update(update: ViewUpdate) {
-      const language = update.state.facet(docLanguage)
-      this.decorations = isPlain(language)
+      const { state, startState } = update
+      this.decorations = noVars(state)
         ? Decoration.none
-        : update.startState.facet(varValuesFacet) ===
-              update.state.facet(varValuesFacet) &&
-            update.startState.facet(docLanguage) === language
+        : startState.facet(varValuesFacet) === state.facet(varValuesFacet) &&
+            startState.facet(docLanguage) === state.facet(docLanguage) &&
+            startState.facet(docVars)
           ? varDecorator.updateDeco(update, this.decorations)
           : varDecorator.createDeco(update.view)
     }
@@ -319,12 +322,14 @@ export function editorExtensions(
       {
         delay: 150,
         // New rules need a fresh parse to mark matching values, and a new
-        // language one to drop errors only the old language had.
+        // language, or variables turned on or off, one to drop errors only
+        // the old reading had.
         needsRefresh: (update) =>
           update.startState.facet(defaultRulesFacet) !==
             update.state.facet(defaultRulesFacet) ||
           update.startState.facet(docLanguage) !==
-            update.state.facet(docLanguage),
+            update.state.facet(docLanguage) ||
+          update.startState.facet(docVars) !== update.state.facet(docVars),
       },
     ),
     EditorView.updateListener.of((update) => {

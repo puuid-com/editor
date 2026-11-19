@@ -32,6 +32,8 @@ export const fileSchema = z.object({
   /** Profile whose settings apply while this file is open. */
   profileId: z.string().default(DEFAULT_PROFILE_ID),
   zplSettings: labelSettingsSchema.optional(),
+  /** False: `<<name>>`, `{{name}}` and `${name}` are plain text in this file. */
+  vars: z.boolean().optional(),
   /** Where the file lives in a folder opened from disk, if it does. */
   location: z
     .object({
@@ -56,8 +58,9 @@ const BROWSER_FIELDS = [
   'folderId',
   'deletedAt',
   'zplSettings',
+  'vars',
 ]
-const DISK_FIELDS = ['profileId', 'zplSettings']
+const DISK_FIELDS = ['profileId', 'zplSettings', 'vars']
 
 export const filesCollection = localCollection('files', fileSchema, {
   // Closed tabs of the oldest versions were dropped rather than archived.
@@ -315,6 +318,16 @@ export async function setFileProfile(id: string, profileId: string) {
   if (!file || file.profileId === profileId) return
   await filesCollection.update(id, (draft) => {
     draft.profileId = profileId
+  }).isPersisted.promise
+}
+
+/** Turns variables on or off in a file; off, its text is read as written. */
+export async function setFileVars(id: string, vars: boolean) {
+  await drainContentSaves()
+  const file = filesCollection.get(id)
+  if (!file || (file.vars !== false) === vars) return
+  await filesCollection.update(id, (draft) => {
+    draft.vars = vars
   }).isPersisted.promise
 }
 

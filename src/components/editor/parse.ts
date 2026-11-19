@@ -1,7 +1,7 @@
 import { ensureSyntaxTree } from '@codemirror/language'
 
 import { fileIdField } from './file-id'
-import { docLanguage } from './language'
+import { docLanguage, docVars } from './language'
 import { parseDocument } from '#/lib/document'
 import { parseXml } from '#/lib/xml/parse'
 import type { Text } from '@codemirror/state'
@@ -19,6 +19,7 @@ const TREE_BUDGET_MS = 10_000
 interface Parse {
   text: Text
   language: DocLanguage
+  vars: boolean
   doc: XmlDocument
 }
 
@@ -49,8 +50,9 @@ function keep(fileId: string, parse: Parse) {
 export function parseEditor(view: EditorView) {
   const text = view.state.doc
   const language = view.state.facet(docLanguage)
+  const vars = view.state.facet(docVars)
   const fresh = (parse: Parse | undefined) =>
-    parse?.text === text && parse.language === language
+    parse?.text === text && parse.language === language && parse.vars === vars
   const cached = parsed.get(view)
   if (cached && fresh(cached)) return cached.doc
   const fileId = view.state.field(fileIdField, false)
@@ -66,9 +68,10 @@ export function parseEditor(view: EditorView) {
           // The grammar reads the same masked text the model's parse would.
           ensureSyntaxTree(view.state, text.length, TREE_BUDGET_MS) ??
             undefined,
+          vars,
         )
-      : parseDocument(text.toString(), language)
-  const parse = { text, language, doc }
+      : parseDocument(text.toString(), language, vars)
+  const parse = { text, language, vars, doc }
   parsed.set(view, parse)
   if (fileId) keep(fileId, parse)
   return doc

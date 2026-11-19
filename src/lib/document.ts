@@ -93,9 +93,11 @@ export function isPlain(language: DocLanguage) {
   )
 }
 
+/** With `vars` off, placeholders are read as the text they are written as. */
 export function parseDocument(
   text: string,
   language: DocLanguage,
+  vars = true,
 ): XmlDocument {
   if (language === 'flat' || isPlain(language)) {
     return {
@@ -106,7 +108,9 @@ export function parseDocument(
       ...(language === 'flat' && { flat: parseFlat(text) }),
     }
   }
-  return language === 'json' ? parseJson(text) : parseXml(text)
+  return language === 'json'
+    ? parseJson(text, vars)
+    : parseXml(text, undefined, vars)
 }
 
 export function formatDocument(

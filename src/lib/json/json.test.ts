@@ -281,3 +281,11 @@ describe('languageOf', () => {
     expect(languageOf('notes', '<a/>')).toBe('xml')
   })
 })
+
+describe('parseJson without variables', () => {
+  it('reads placeholders as the JSON they are written as', () => {
+    expect(parseJson('{"a": {{x}}}').errors).toEqual([])
+    expect(parseJson('{"a": {{x}}}', false).errors).not.toEqual([])
+    expect(parseJson('{"a": "{{ bad name }}"}', false).errors).toEqual([])
+  })
+})
