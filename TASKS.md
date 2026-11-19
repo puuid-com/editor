@@ -111,6 +111,6 @@ The current site edits XML, JSON, fixed-width records, SQL, ZPL, Markdown and pl
 
 ## Implementation rules for every task
 
-Follow [AGENTS.md](AGENTS.md). Use the appropriate TanStack libraries and their official documentation; check shadcn/ui before building a component and install missing primitives through its CLI. Keep the existing Geist, Tailwind tokens and [Vercel design conventions](https://vercel.com/design.md), with English and French messages and keyboard-accessible controls.
+Follow the workspace `AGENTS.md` in [puuid-com/ai](https://github.com/puuid-com/ai). Use the appropriate TanStack libraries and their official documentation; check shadcn/ui before building a component and install missing primitives through its CLI. Keep the existing Geist, Tailwind tokens and [Vercel design conventions](https://vercel.com/design.md), with English and French messages and keyboard-accessible controls.
 
 Each implementation needs focused regression coverage, a version bump and changelog entry, a light/dark changelog preview for its visible changes, and all required checks before committing and pushing. The release that only replaces this planning document is a patch and needs no visual preview.

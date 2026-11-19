@@ -7,7 +7,5 @@ project.inlang/*
 !project.inlang/settings.json
 src/routeTree.gen.ts
 
-# Vendored agent skills (installed with `npx skills add`)
-.agents/
 # The stageshow kit, vendored into the app
 src/components/showcase/kit/

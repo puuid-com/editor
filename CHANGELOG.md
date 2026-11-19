@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.68.3] - 2026-11-18
+
+### Changed
+
+- Coding agent instructions moved out of this repo into the shared workspace instructions. Nothing changes in the editor.
+
 ## [1.68.2] - 2026-11-17
 
 ### Added

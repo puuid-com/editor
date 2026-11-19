@@ -107,7 +107,7 @@ Use the appropriate TanStack libraries, shadcn/ui, and Tailwind CSS. Follow [Ver
 
 Import application code through `#/`. Add user-facing strings to both `messages/en.json` and `messages/fr.json`. Do not edit generated files in `src/paraglide/`, `src/routeTree.gen.ts`, or `worker-configuration.d.ts`.
 
-Every commit bumps `package.json` and adds a `CHANGELOG.md` entry. Releases with a visible change also get a small static preview in `src/components/changelog/previews.tsx`, keyed by version: a before/after pair for changes, a single shot for new features. See [AGENTS.md](AGENTS.md) for the full release steps.
+Every commit bumps `package.json` and adds a `CHANGELOG.md` entry. Releases with a visible change also get a small static preview in `src/components/changelog/previews.tsx`, keyed by version: a before/after pair for changes, a single shot for new features. The full release steps are in the workspace `AGENTS.md` in [puuid-com/ai](https://github.com/puuid-com/ai).
 
 Public routes set their SEO metadata through `seo()` and belong in `site.sitemapPaths`. To add a locale, update `project.inlang/settings.json`, add its messages, and update `localeNames` in `LocaleSwitcher.tsx`.
 

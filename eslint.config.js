@@ -22,8 +22,7 @@ export default [
       'src/routeTree.gen.ts',
       'worker-configuration.d.ts',
       'public/**',
-      '.agents/**',
-      // Vendored from the stageshow skill (.agents/skills/stageshow/kit)
+      // Vendored from the stageshow skill
       'src/components/showcase/kit/**',
     ],
   },
