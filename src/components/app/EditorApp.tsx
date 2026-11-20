@@ -33,6 +33,8 @@ import { lazyPart, onLoadFailed, startPreloading } from '#/lib/lazy'
 import { onSaveFailed } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
+import type { FilePaneGroup } from '#/lib/store/pane-layout'
+import type { TabFile } from './files'
 import { m } from '#/paraglide/messages'
 
 const SettingsSheet = lazyPart(() =>
@@ -49,7 +51,7 @@ export function EditorApp() {
   const wide = useMediaQuery('(min-width: 768px)')
   const settings = useSelector(settingsTab, (s) => s)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [dragging, setDragging] = useState(false)
+  const drop = useFileDrop()
 
   // Fall back to the first tab when the stored one is gone (closed here
   // or in another browser tab).
@@ -68,31 +70,8 @@ export function EditorApp() {
       setActive(activeId)
   }, [activeId, storedActive])
 
-  useEffect(() => onSaveFailed(reportSaveFailed), [])
-  useEffect(() => onLoadFailed(reportLoadFailed), [])
-  // What was left out of the first load is fetched now that it has rendered.
-  useEffect(() => startPreloading(), [])
-  // Tabs of folders opened from disk save there as they're edited.
-  useEffect(() => startDiskSync(), [])
-
-  const inUse = files.length > 0
-  useEffect(() => {
-    if (inUse) keepWorkspaceSafe()
-  }, [inUse])
-
-  // A comparison belongs to the tab it was opened for, ends when another tab
-  // is picked, and needs the other tab to stay open.
-  const compare = useSelector(uiStore, (s) => s.compare)
-  const compareId =
-    compare &&
-    compare.fileId === activeId &&
-    compare.otherId !== activeId &&
-    files.some((f) => f.id === compare.otherId)
-      ? compare.otherId
-      : null
-  useEffect(() => {
-    if (compare && !compareId) endCompare()
-  }, [compare, compareId])
+  useWorkspaceServices(files.length > 0)
+  const compareId = useCompareId(activeId, files)
 
   // Browsers that can write back to the file open it with a handle.
   const openFromDisk = () => {
@@ -103,26 +82,13 @@ export function EditorApp() {
   useAppShortcuts({
     activeId,
     fileIds:
-      (wide &&
-        panes?.find((p) => p.fileIds.includes(activeId ?? ''))?.fileIds) ||
-      files.map((f) => f.id),
+      (wide && paneOfFile(panes, activeId)?.fileIds) || files.map((f) => f.id),
     onOpenFromDisk: openFromDisk,
   })
 
   // The bottom bar is about the focused file, so it empties while the
   // settings page covers that file.
-  const settingsShown =
-    settings.open &&
-    (!activeId ||
-      (settings.active &&
-        (!wide ||
-          !panes?.length ||
-          !!settingsPane(settings.paneId, panes, activeId)?.fileIds.includes(
-            activeId,
-          ))))
-
-  const hasFiles = (e: React.DragEvent) =>
-    e.dataTransfer.types.includes('Files')
+  const settingsShown = settingsCover(settings, activeId, wide ? panes : [])
 
   return (
     <SidebarProvider
@@ -132,21 +98,7 @@ export function EditorApp() {
         'relative h-dvh overflow-hidden',
         sidebarRight && 'flex-row-reverse',
       )}
-      onDragOver={(e) => {
-        if (!hasFiles(e)) return
-        e.preventDefault()
-        setDragging(true)
-      }}
-      onDragLeave={(e) => {
-        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
-        setDragging(false)
-      }}
-      onDrop={(e) => {
-        if (!hasFiles(e)) return
-        e.preventDefault()
-        setDragging(false)
-        dropFiles(e.dataTransfer)
-      }}
+      {...drop.handlers}
     >
       <input
         ref={inputRef}
@@ -174,10 +126,8 @@ export function EditorApp() {
               compareId={compareId}
               wide={wide}
             />
-          ) : settings.open ? (
-            <SettingsSheet />
           ) : (
-            <DraftPane />
+            <NoFile settings={settings.open} />
           )}
         </div>
         <StatusBar
@@ -194,10 +144,10 @@ export function EditorApp() {
       />
 
       <div
-        aria-hidden={!dragging}
+        aria-hidden={!drop.dragging}
         className={cn(
           'pointer-events-none absolute inset-2 z-50 hidden place-items-center rounded-xl border-2 border-dashed border-ring bg-background/80',
-          dragging && 'grid',
+          drop.dragging && 'grid',
         )}
       >
         <div className="flex flex-col items-center gap-2 text-sm">
@@ -206,5 +156,90 @@ export function EditorApp() {
         </div>
       </div>
     </SidebarProvider>
+  )
+}
+
+/** With no file open: the settings page, or the draft to start one in. */
+function NoFile({ settings }: { settings: boolean }) {
+  return settings ? <SettingsSheet /> : <DraftPane />
+}
+
+/** What runs beside the editor for as long as it is open. */
+function useWorkspaceServices(inUse: boolean) {
+  useEffect(() => onSaveFailed(reportSaveFailed), [])
+  useEffect(() => onLoadFailed(reportLoadFailed), [])
+  // What was left out of the first load is fetched now that it has rendered.
+  useEffect(() => startPreloading(), [])
+  // Tabs of folders opened from disk save there as they're edited.
+  useEffect(() => startDiskSync(), [])
+  useEffect(() => {
+    if (inUse) keepWorkspaceSafe()
+  }, [inUse])
+}
+
+/**
+ * The tab the active one is compared with. A comparison belongs to the tab
+ * it was opened for, ends when another tab is picked, and needs the other
+ * tab to stay open.
+ */
+function useCompareId(activeId: string | null, files: Array<TabFile>) {
+  const compare = useSelector(uiStore, (s) => s.compare)
+  const compareId =
+    compare &&
+    compare.fileId === activeId &&
+    compare.otherId !== activeId &&
+    files.some((f) => f.id === compare.otherId)
+      ? compare.otherId
+      : null
+  useEffect(() => {
+    if (compare && !compareId) endCompare()
+  }, [compare, compareId])
+  return compareId
+}
+
+/** Files dropped anywhere on the editor open as tabs. */
+function useFileDrop() {
+  const [dragging, setDragging] = useState(false)
+  const hasFiles = (e: React.DragEvent) =>
+    e.dataTransfer.types.includes('Files')
+  const handlers = {
+    onDragOver: (e: React.DragEvent) => {
+      if (!hasFiles(e)) return
+      e.preventDefault()
+      setDragging(true)
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
+      setDragging(false)
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (!hasFiles(e)) return
+      e.preventDefault()
+      setDragging(false)
+      dropFiles(e.dataTransfer)
+    },
+  }
+  return { dragging, handlers }
+}
+
+function paneOfFile(
+  panes: ReadonlyArray<FilePaneGroup> | undefined,
+  fileId: string | null,
+) {
+  return panes?.find((p) => p.fileIds.includes(fileId ?? ''))
+}
+
+/** Whether the settings page covers the active file, or stands in for none. */
+function settingsCover(
+  settings: { open: boolean; active: boolean; paneId: string | null },
+  activeId: string | null,
+  panes: ReadonlyArray<FilePaneGroup> | undefined,
+) {
+  if (!settings.open) return false
+  if (!activeId) return true
+  if (!settings.active) return false
+  if (!panes?.length) return true
+  return !!settingsPane(settings.paneId, panes, activeId)?.fileIds.includes(
+    activeId,
   )
 }

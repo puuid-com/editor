@@ -59,8 +59,11 @@ async function exportPdf(labels: readonly LabelaryLabel[], baseName: string) {
   // Only PDF export needs pdf-lib, so fetch it on first use.
   const { PDFDocument } = await import('pdf-lib')
   const pdf = await PDFDocument.create()
-  for (const label of labels) {
-    const image = await pdf.embedPng(await toPngBytes(label))
+  const images = await Promise.all(
+    labels.map(async (label) => pdf.embedPng(await toPngBytes(label))),
+  )
+  for (const [index, label] of labels.entries()) {
+    const image = images[index]
     const width =
       dotsToInches(label.width, label.printDensity) * POINTS_PER_INCH
     const height =

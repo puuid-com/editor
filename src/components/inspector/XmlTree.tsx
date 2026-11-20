@@ -69,7 +69,6 @@ export function XmlTree() {
   const [searchCollapsed, setSearchCollapsed] = useState<Set<string>>(new Set())
   // The row the context menu is open for, or was last.
   const [menuPath, setMenuPath] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
   const wide = useMediaQuery('(min-width: 768px)')
   const rowHeight = wide ? 26 : 44
   const searching = query.trim() !== ''
@@ -207,72 +206,14 @@ export function XmlTree() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-12 shrink-0 items-center border-b px-1 md:h-9">
-        <InputGroup className="h-11 border-0 bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-inset md:h-8 dark:bg-transparent">
-          <InputGroupInput
-            ref={inputRef}
-            aria-label={m.tree_search()}
-            placeholder={m.tree_search_placeholder()}
-            value={query}
-            className="h-full text-base md:text-xs"
-            onChange={(event) => changeQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                event.preventDefault()
-                changeQuery('')
-              } else if (event.key === 'ArrowDown' && rows.length) {
-                event.preventDefault()
-                focusRow(0)
-              }
-            }}
-          />
-          <InputGroupAddon>
-            <IconSearch aria-hidden />
-          </InputGroupAddon>
-          {searching && (
-            <InputGroupAddon align="inline-end" className="shrink-0">
-              <span role="status" className="whitespace-nowrap font-normal">
-                {m.tree_search_matches({ count: matches.size })}
-              </span>
-            </InputGroupAddon>
-          )}
-          {query && (
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                size="icon-xs"
-                className="max-md:size-11"
-                aria-label={m.tree_search_clear()}
-                onClick={() => {
-                  changeQuery('')
-                  inputRef.current?.focus()
-                }}
-              >
-                <IconX />
-              </InputGroupButton>
-            </InputGroupAddon>
-          )}
-        </InputGroup>
+        <TreeSearch
+          query={query}
+          matches={matches.size}
+          onChange={changeQuery}
+          onFirstRow={rows.length ? () => focusRow(0) : undefined}
+        />
       </div>
-      {doc.errors.length > 0 && (
-        <div className="border-b bg-destructive/5 px-3 py-2 text-xs">
-          <div className="mb-1 flex items-center gap-1.5 font-medium text-destructive">
-            <IconAlertTriangle className="size-3.5" />
-            {m.tree_errors({ count: doc.errors.length })}
-          </div>
-          <ul className="space-y-0.5">
-            {doc.errors.slice(0, 3).map((error) => (
-              <li key={`${error.from}-${error.message}`}>
-                <button
-                  type="button"
-                  className="w-full truncate text-left text-muted-foreground hover:text-foreground"
-                  onClick={() => revealRange(error.from, error.to)}
-                >
-                  {error.message}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {doc.errors.length > 0 ? <ParseErrors errors={doc.errors} /> : null}
       {rows.length === 0 ? (
         <p className="flex-1 p-4 text-sm text-muted-foreground">
           {searching ? m.tree_search_empty() : m.tree_empty()}
@@ -354,6 +295,97 @@ export function XmlTree() {
         path={selectedPath}
         onNavigate={() => changeQuery('')}
       />
+    </div>
+  )
+}
+
+/** The search field over the tree, with its match count. */
+function TreeSearch({
+  query,
+  matches,
+  onChange,
+  onFirstRow,
+}: {
+  query: string
+  matches: number
+  onChange: (query: string) => void
+  /** Moves focus to the first row, when there is one. */
+  onFirstRow?: () => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return (
+    <InputGroup className="h-11 border-0 bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-inset md:h-8 dark:bg-transparent">
+      <InputGroupInput
+        ref={inputRef}
+        aria-label={m.tree_search()}
+        placeholder={m.tree_search_placeholder()}
+        value={query}
+        className="h-full text-base md:text-xs"
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            onChange('')
+          } else if (event.key === 'ArrowDown' && onFirstRow) {
+            event.preventDefault()
+            onFirstRow()
+          }
+        }}
+      />
+      <InputGroupAddon>
+        <IconSearch aria-hidden />
+      </InputGroupAddon>
+      {query.trim() !== '' ? (
+        <InputGroupAddon align="inline-end" className="shrink-0">
+          <span role="status" className="whitespace-nowrap font-normal">
+            {m.tree_search_matches({ count: matches })}
+          </span>
+        </InputGroupAddon>
+      ) : null}
+      {query ? (
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            size="icon-xs"
+            className="max-md:size-11"
+            aria-label={m.tree_search_clear()}
+            onClick={() => {
+              onChange('')
+              inputRef.current?.focus()
+            }}
+          >
+            <IconX />
+          </InputGroupButton>
+        </InputGroupAddon>
+      ) : null}
+    </InputGroup>
+  )
+}
+
+/** The first parse errors, each a link to where it is. */
+function ParseErrors({
+  errors,
+}: {
+  errors: ReadonlyArray<{ from: number; to: number; message: string }>
+}) {
+  return (
+    <div className="border-b bg-destructive/5 px-3 py-2 text-xs">
+      <div className="mb-1 flex items-center gap-1.5 font-medium text-destructive">
+        <IconAlertTriangle className="size-3.5" />
+        {m.tree_errors({ count: errors.length })}
+      </div>
+      <ul className="space-y-0.5">
+        {errors.slice(0, 3).map((error) => (
+          <li key={`${error.from}-${error.message}`}>
+            <button
+              type="button"
+              className="w-full truncate text-left text-muted-foreground hover:text-foreground"
+              onClick={() => revealRange(error.from, error.to)}
+            >
+              {error.message}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

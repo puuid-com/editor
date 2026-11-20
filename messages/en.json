@@ -129,6 +129,7 @@
   "flat_types": "Record types",
   "flat_line": "Line",
   "flat_empty": "No records yet.",
+  "flat_reveal": "Go to {column} {value}",
   "flat_summary": "{rows} rows · {fields} fields",
   "tree_errors": "Problems: {count}",
   "tree_expand": "Expand",

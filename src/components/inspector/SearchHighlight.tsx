@@ -19,7 +19,7 @@ export function SearchHighlightProvider({
 export function Highlighted({ text }: { text: string }) {
   const needle = use(SearchNeedle)
   const ranges = matchRanges(text, needle)
-  if (ranges.length === 0) return text
+  if (ranges.length === 0) return <>{text}</>
 
   const parts: Array<React.ReactNode> = []
   let last = 0
@@ -33,5 +33,5 @@ export function Highlighted({ text }: { text: string }) {
     last = to
   }
   if (last < text.length) parts.push(text.slice(last))
-  return parts
+  return <>{parts}</>
 }

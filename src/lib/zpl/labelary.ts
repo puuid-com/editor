@@ -105,24 +105,25 @@ async function drawPages(
   try {
     const pdf = await task.promise
     const scale = labelaryDpi(printDensity) / POINTS_PER_INCH
-    const labels: LabelaryLabel[] = []
-    for (let number = 1; number <= pdf.numPages; number++) {
-      signal?.throwIfAborted()
-      const page = await pdf.getPage(number)
-      const viewport = page.getViewport({ scale })
-      const canvas = document.createElement('canvas')
-      // Pages measure a whole number of dots, give or take float error.
-      canvas.width = Math.round(viewport.width)
-      canvas.height = Math.round(viewport.height)
-      await page.render({ canvas, viewport }).promise
-      labels.push({
-        canvas,
-        width: canvas.width,
-        height: canvas.height,
-        printDensity,
-      })
-    }
-    return labels
+    signal?.throwIfAborted()
+    return await Promise.all(
+      Array.from({ length: pdf.numPages }, async (_, index) => {
+        const page = await pdf.getPage(index + 1)
+        signal?.throwIfAborted()
+        const viewport = page.getViewport({ scale })
+        const canvas = document.createElement('canvas')
+        // Pages measure a whole number of dots, give or take float error.
+        canvas.width = Math.round(viewport.width)
+        canvas.height = Math.round(viewport.height)
+        await page.render({ canvas, viewport }).promise
+        return {
+          canvas,
+          width: canvas.width,
+          height: canvas.height,
+          printDensity,
+        } satisfies LabelaryLabel
+      }),
+    )
   } finally {
     void task.destroy()
   }

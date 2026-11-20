@@ -96,85 +96,118 @@ export function StatusLine({
   /** Controls at the end of the line. */
   children?: React.ReactNode
 }) {
-  const settings = useSelector(
-    zplStore,
-    (state) => selectFile(state, panelId)?.settings ?? DEFAULT_SETTINGS,
-  )
-  const labels = render?.labels ?? []
-  const problems = render?.warnings.length ?? 0
-  const zplSize = render ? zplSizeSettings(render.zplSize, settings) : null
-
   return (
     <div className="pointer-events-none absolute inset-x-2 bottom-2 flex items-end gap-2 text-xs text-muted-foreground tabular-nums *:pointer-events-auto">
       <div className="flex min-h-7 min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2 py-0.5 has-[>*:not(:empty)]:border has-[>*:not(:empty)]:bg-background">
-        {zplSize && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="xs"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => setSettings(panelId, zplSize)}
-              >
-                <IconAlertTriangle data-icon="inline-start" />
-                {m.zpl_zpl_size_differs({
-                  width: zplSize.widthIn,
-                  height: zplSize.heightIn,
-                })}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{m.zpl_use_zpl_size()}</TooltipContent>
-          </Tooltip>
-        )}
+        {render ? <ZplSizeFix panelId={panelId} render={render} /> : null}
         <div
           role="status"
           aria-live="polite"
           className="flex flex-wrap items-center gap-x-3 gap-y-1"
         >
-          {error ? (
-            <span className="flex items-center gap-2">
-              <span className="text-destructive">
-                {error instanceof LabelaryError && error.status === 429
-                  ? m.zpl_render_rate_limited()
-                  : m.zpl_render_failed({ message: error.message })}
-              </span>
-              <Button variant="outline" size="xs" onClick={onRetry}>
-                {m.zpl_retry()}
-              </Button>
-            </span>
+          {error ? <RenderError error={error} onRetry={onRetry} /> : null}
+          {render ? (
+            <RenderNotes render={render} otherPanel={otherPanel} />
           ) : null}
-          {render && render.total > labels.length && (
-            <span>
-              {m.zpl_status_first_labels({
-                shown: labels.length,
-                count: render.total,
-              })}
-            </span>
-          )}
-          {problems > 0 && (
-            <span className="text-foreground">
-              {problems === 1
-                ? m.zpl_status_one_problem()
-                : m.zpl_status_many_problems({ count: problems })}
-            </span>
-          )}
-          {otherPanel && otherPanel.labelCount !== labels.length && (
-            <span className="text-foreground">
-              {otherPanel.labelCount === 1
-                ? m.zpl_compare_panel_one_label({ name: otherPanel.name })
-                : m.zpl_compare_panel_many_labels({
-                    name: otherPanel.name,
-                    count: otherPanel.labelCount,
-                  })}
-            </span>
-          )}
-          {isRendering && <span>{m.zpl_status_rendering()}</span>}
+          {isRendering ? <span>{m.zpl_status_rendering()}</span> : null}
         </div>
       </div>
       <div className="ml-auto flex h-7 shrink-0 items-center rounded-md border bg-background px-0.5">
         {children}
       </div>
     </div>
+  )
+}
+
+/** Offers the size the ZPL asks for when the label renders at another. */
+function ZplSizeFix({
+  panelId,
+  render,
+}: {
+  panelId: string
+  render: LabelRender
+}) {
+  const settings = useSelector(
+    zplStore,
+    (state) => selectFile(state, panelId)?.settings ?? DEFAULT_SETTINGS,
+  )
+  const zplSize = zplSizeSettings(render.zplSize, settings)
+  if (!zplSize) return null
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="xs"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => setSettings(panelId, zplSize)}
+        >
+          <IconAlertTriangle data-icon="inline-start" />
+          {m.zpl_zpl_size_differs({
+            width: zplSize.widthIn,
+            height: zplSize.heightIn,
+          })}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{m.zpl_use_zpl_size()}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+function RenderError({
+  error,
+  onRetry,
+}: {
+  error: Error
+  onRetry: () => void
+}) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="text-destructive">
+        {error instanceof LabelaryError && error.status === 429
+          ? m.zpl_render_rate_limited()
+          : m.zpl_render_failed({ message: error.message })}
+      </span>
+      <Button variant="outline" size="xs" onClick={onRetry}>
+        {m.zpl_retry()}
+      </Button>
+    </span>
+  )
+}
+
+/** Labels left out, problems found and a label count the other panel doesn't share. */
+function RenderNotes({
+  render,
+  otherPanel,
+}: {
+  render: LabelRender
+  otherPanel?: { name: string; labelCount: number }
+}) {
+  const shown = render.labels.length
+  const problems = render.warnings.length
+  return (
+    <>
+      {render.total > shown ? (
+        <span>{m.zpl_status_first_labels({ shown, count: render.total })}</span>
+      ) : null}
+      {problems > 0 ? (
+        <span className="text-foreground">
+          {problems === 1
+            ? m.zpl_status_one_problem()
+            : m.zpl_status_many_problems({ count: problems })}
+        </span>
+      ) : null}
+      {otherPanel && otherPanel.labelCount !== shown ? (
+        <span className="text-foreground">
+          {otherPanel.labelCount === 1
+            ? m.zpl_compare_panel_one_label({ name: otherPanel.name })
+            : m.zpl_compare_panel_many_labels({
+                name: otherPanel.name,
+                count: otherPanel.labelCount,
+              })}
+        </span>
+      ) : null}
+    </>
   )
 }
 

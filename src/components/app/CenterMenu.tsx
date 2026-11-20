@@ -22,9 +22,8 @@ const labels: Record<Centerable, () => string> = {
 }
 
 function setCentered(kind: Centerable, on: boolean) {
-  const centered = centerables.filter((k) =>
-    k === kind ? on : editorPrefs.state.centered.includes(k),
-  )
+  const current = new Set(editorPrefs.state.centered)
+  const centered = centerables.filter((k) => (k === kind ? on : current.has(k)))
   editorPrefs.setState((s) => ({ ...s, centered }))
   applyCentered(centered)
 }
@@ -32,6 +31,7 @@ function setCentered(kind: Centerable, on: boolean) {
 /** Picks which Markdown blocks sit in the middle of the page, for every file. */
 export function CenterMenu() {
   const centered = useSelector(editorPrefs, (s) => s.centered)
+  const picked = new Set(centered)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -44,7 +44,7 @@ export function CenterMenu() {
         {centerables.map((kind) => (
           <DropdownMenuCheckboxItem
             key={kind}
-            checked={centered.includes(kind)}
+            checked={picked.has(kind)}
             onCheckedChange={(on) => setCentered(kind, on)}
             onSelect={(event) => event.preventDefault()}
           >

@@ -4,7 +4,7 @@ import { useSelector } from '@tanstack/react-store'
 import { SettingSwitch } from './FormatControls'
 import { ShortcutKeys } from './ShortcutKeys'
 import { setCodeFont, setCodeSize } from '#/components/editor/code-font'
-import { panelSideLabel } from './PanelFrame'
+import { panelSideLabel } from './panel-side-label'
 import {
   editorPrefs,
   setPanelSide,

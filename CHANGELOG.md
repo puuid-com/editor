@@ -8,6 +8,14 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.70.1] - 2026-11-19
+
+### Fixed
+
+- Cells in a flat file's records table tell screen readers which column and value they go to.
+- Markdown code blocks format all at once, and ZPL labels render and export to PDF faster when there are several.
+- A `[[#heading]]` link in a note points at its heading, so it can be copied or opened like any other link.
+
 ## [1.70.0] - 2026-11-19
 
 ### Added

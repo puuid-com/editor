@@ -35,7 +35,7 @@ export function TabCloseButton({
   label,
   onClick,
   hidden,
-  children = <IconX className="size-3" />,
+  children,
 }: {
   label: string
   onClick: () => void
@@ -54,7 +54,7 @@ export function TabCloseButton({
           'max-md:hidden md:opacity-0 md:group-hover/tab:opacity-100 md:focus-visible:opacity-100',
       )}
     >
-      {children}
+      {children ?? <IconX className="size-3" />}
     </button>
   )
 }

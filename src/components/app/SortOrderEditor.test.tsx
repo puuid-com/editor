@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SortOrderEditor } from './SortOrderEditor'
@@ -7,18 +7,23 @@ import { publishParse } from '#/components/editor/editor-store'
 import { parseXml } from '#/lib/xml/parse'
 
 let current: Array<string> = []
-let update: (order: Array<string>) => void = () => {}
+const listeners = new Set<(order: Array<string>) => void>()
 
 vi.mock('#/lib/store/profiles', () => ({
-  setCustomOrder: (order: Array<string>) => update(order),
+  setCustomOrder: (order: Array<string>) => {
+    current = order
+    for (const listener of listeners) listener(order)
+  },
 }))
 
 function Harness({ initial }: { initial: Array<string> }) {
   const [order, setOrder] = useState(initial)
-  update = (next) => {
-    current = next
-    setOrder(next)
-  }
+  useEffect(() => {
+    listeners.add(setOrder)
+    return () => {
+      listeners.delete(setOrder)
+    }
+  }, [])
   return <SortOrderEditor order={order} />
 }
 

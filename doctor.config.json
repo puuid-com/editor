@@ -1,13 +1,56 @@
 {
   "ignore": {
+    "files": ["src/components/showcase/kit/**"],
     "overrides": [
       {
         "files": [
           "src/components/editor/**",
           "src/components/compare/**",
-          "src/components/markdown/md-language.ts"
+          "src/components/app/DraftPane.tsx",
+          "src/components/markdown/image-paste.ts",
+          "src/components/markdown/md-*",
+          "src/components/zpl/editor-support.ts",
+          "src/components/zpl/zpl-help.ts",
+          "src/components/zpl/zpl-language.ts"
         ],
         "rules": ["react-doctor/prefer-dynamic-import"]
+      },
+      {
+        "files": ["src/components/ui/**"],
+        "rules": [
+          "react-doctor/only-export-components",
+          "react-doctor/prefer-tag-over-role"
+        ]
+      },
+      {
+        "files": [
+          "src/routes/_site/changelog.tsx",
+          "src/components/markdown/MermaidDiagram.tsx"
+        ],
+        "rules": ["react-doctor/dangerous-html-sink"]
+      },
+      {
+        "files": ["src/components/markdown/pdf/print.tsx"],
+        "rules": ["react-doctor/no-create-object-url-without-revoke"]
+      },
+      {
+        "files": ["src/components/zpl/label-preview.tsx"],
+        "rules": ["react-doctor/no-array-index-as-key"]
+      },
+      {
+        "files": ["src/components/app/ShareDialog.tsx"],
+        "rules": ["react-doctor/no-prevent-default"]
+      },
+      {
+        "files": [
+          "src/hooks/use-object-url.ts",
+          "src/components/app/use-file-search.ts"
+        ],
+        "rules": ["react-hooks-js/set-state-in-effect"]
+      },
+      {
+        "files": ["src/components/editor/CodeEditor.tsx"],
+        "rules": ["react-doctor/no-pass-live-state-to-parent"]
       }
     ]
   }

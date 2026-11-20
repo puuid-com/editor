@@ -62,7 +62,7 @@ export function TablePicker({
           const row = Math.floor(index / PICKER_COLS) + 1
           return (
             <button
-              key={index}
+              key={`${row}x${col}`}
               type="button"
               tabIndex={-1}
               aria-label={m.md_table_size({ cols: col, rows: row })}

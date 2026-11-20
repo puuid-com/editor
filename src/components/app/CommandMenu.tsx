@@ -43,7 +43,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { downloadBackup, pickBackup } from './backup'
 import { FILE_TYPES, canReadAs, setFileType, useFileType } from './file-type'
-import { FindInFiles, openSearchMatch } from './FindInFiles'
+import { FindInFiles } from './FindInFiles'
+import { openSearchMatch } from './search-match'
 import type { FileMatch } from './file-search'
 import { FileIcon } from './FileIcon'
 import {

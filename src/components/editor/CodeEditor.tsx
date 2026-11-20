@@ -1,5 +1,5 @@
 import { EditorView } from '@codemirror/view'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import type { RefObject } from 'react'
 
 import { notify } from '#/components/app/notice-store'
@@ -192,28 +192,24 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     }
   }, [])
 
-  useEffect(() => {
+  // Opening reads the settings as they are now; their own effects keep the
+  // view up to date after that.
+  const loadFile = useEffectEvent(() => {
     const view = viewRef.current
-    if (!view) return
-    const opened = sessionRef.current?.open(
-      fileId,
-      sharedExtensions(
+    const session = sessionRef.current
+    if (!view || !session) return
+    openInView(view, session, fileId, {
+      shared: sharedExtensions(
         highlights.value(),
         defaults.value(),
         values.value(),
         shortenAt.value(),
       ),
-    )
-    if (!opened) return
-    registerFileView(fileId, view)
-    view.dispatch({ effects: settings.map((setting) => setting.effect()) })
-    if (sessionStore.state.activeId === fileId) {
-      setView(view)
-      publishCursorFrom(view.state)
-      publishParse(fileId, parseActive())
-    }
-    // A file started in the draft takes over what was typed there.
-    replayDraftEdits(fileId, view)
+      effects: settings.map((setting) => setting.effect()),
+    })
+  })
+  useEffect(() => {
+    loadFile()
   }, [fileId])
 
   /** Makes this editor the one that commands and the panels act on. */
@@ -229,12 +225,13 @@ export function CodeEditor({ fileId }: { fileId: string }) {
     setActive(fileId)
     attach()
   }
-  useEffect(() => {
-    // Asks the session, not this render: by the time an effect runs another
-    // file may have been picked, as when several are opened at once, and
-    // picking this one again would set the two taking turns for good.
+  // Asks the session, not this render: by the time an effect runs another
+  // file may have been picked, as when several are opened at once, and
+  // picking this one again would set the two taking turns for good.
+  const attachIfActive = useEffectEvent(() => {
     if (sessionStore.state.activeId === fileId) attach()
-  }, [active, fileId])
+  })
+  useEffect(() => attachIfActive(), [active, fileId])
 
   return (
     <TagContextMenu>
@@ -248,6 +245,28 @@ export function CodeEditor({ fileId }: { fileId: string }) {
   )
 }
 
+/** Shows `fileId` in `view`, which then takes the editor's commands if the file is active. */
+function openInView(
+  view: EditorView,
+  session: ReturnType<typeof createEditorSession>,
+  fileId: string,
+  {
+    shared,
+    effects,
+  }: { shared: Extension; effects: Array<StateEffect<unknown>> },
+) {
+  if (!session.open(fileId, shared)) return
+  registerFileView(fileId, view)
+  view.dispatch({ effects })
+  if (sessionStore.state.activeId === fileId) {
+    setView(view)
+    publishCursorFrom(view.state)
+    publishParse(fileId, parseActive())
+  }
+  // A file started in the draft takes over what was typed there.
+  replayDraftEdits(fileId, view)
+}
+
 /**
  * Dispatches `toEffect(value)` to the view whenever `value` changes. The
  * latest value stays readable for views that open a file later.
@@ -258,10 +277,11 @@ function useViewSetting<T>(
   toEffect: (value: T) => StateEffect<unknown>,
 ) {
   const ref = useRef(value)
-  useEffect(() => {
-    ref.current = value
-    viewRef.current?.dispatch({ effects: toEffect(value) })
-  }, [value])
+  const apply = useEffectEvent((next: T) => {
+    ref.current = next
+    viewRef.current?.dispatch({ effects: toEffect(next) })
+  })
+  useEffect(() => apply(value), [value])
   return {
     value: () => ref.current,
     effect: () => toEffect(ref.current),

@@ -45,9 +45,9 @@ export async function writeCached(key: string, response: Response) {
     // Keys come back oldest first, so drop from the front.
     const keys = await cache.keys()
     const excess = Math.max(0, keys.length - MAX_CACHED_RENDERS)
-    for (const request of keys.slice(0, excess)) {
-      await cache.delete(request)
-    }
+    await Promise.all(
+      keys.slice(0, excess).map((request) => cache.delete(request)),
+    )
   } catch {
     // A full or unavailable cache only means the next render is fetched.
   }

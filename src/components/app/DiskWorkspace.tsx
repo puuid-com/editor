@@ -36,12 +36,14 @@ import {
   useHiddenTypes,
   useRowContextMenu,
   WorkspaceHeader,
+} from './explorer-parts'
+import {
   activeRowClass,
   nestClass,
   rowButtonClass,
   rowClass,
   scrollToRow,
-} from './explorer-parts'
+} from './explorer-rows'
 import type { NameRequest } from './NameDialog'
 import { FileIcon } from './FileIcon'
 import { notify } from './notice-store'
@@ -234,24 +236,14 @@ export function DiskWorkspace({
         if (!value) return
         event.preventDefault()
         event.stopPropagation()
-        void (async () => {
-          const source = JSON.parse(value) as { rootId: string; path: string }
-          if (source.rootId !== root.id || parentPath(source.path) === parent)
-            return
-          const handle = await fileAtPath(root.handle, source.path)
-          if (
-            await renameDiskEntry(
-              root,
-              { path: source.path, kind: 'file', handle },
-              handle.name,
-              parent,
-            )
-          ) {
+        void moveDroppedFile(root, value, parent)
+          .then(async (moved) => {
+            if (!moved) return
             setOpen(true)
             expand(parent)
             await refresh()
-          }
-        })().catch(() => notify.error(m.explorer_failed()))
+          })
+          .catch(() => notify.error(m.explorer_failed()))
       },
     }),
   }
@@ -290,109 +282,26 @@ export function DiskWorkspace({
         title={vault ? m.vault_on_device() : m.folder_on_device()}
         open={open}
       >
-        {!granted && (
-          <Button
-            variant="outline"
-            size="xs"
-            className="mr-1 shrink-0"
-            onClick={() =>
-              void reconnectFolder(root).then(async (done) => {
-                if (done) await refresh()
-              })
-            }
-          >
-            {m.folder_reconnect()}
-          </Button>
-        )}
-        {granted && (
-          <>
-            <RowAction
-              label={m.file_new()}
-              hint={m.explorer_in_folder({ name: root.name })}
-              onClick={() => tree.create('', 'file')}
-            >
-              <IconFilePlus />
-            </RowAction>
-            <RowAction
-              label={m.explorer_new_folder()}
-              hint={m.explorer_in_folder({ name: root.name })}
-              onClick={() => tree.create('', 'directory')}
-            >
-              <IconFolderPlus />
-            </RowAction>
-          </>
-        )}
-        <RowMenu label={m.folder_actions()}>
-          <DropdownMenuItem
-            disabled={!granted}
-            onSelect={() =>
-              exportMarkdownPdf({
-                kind: 'disk',
-                root,
-                path: '',
-                directory: true,
-              })
-            }
-          >
-            {m.md_pdf_folder()}
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={!granted} onSelect={() => void refresh()}>
-            {m.folder_refresh()}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() =>
-              void closeFolder(root).catch(() =>
-                notify.error(m.explorer_failed()),
-              )
-            }
-          >
-            {m.folder_close()}
-          </DropdownMenuItem>
-          <HiddenTypesMenu />
-        </RowMenu>
+        <FolderActions
+          root={root}
+          onRefresh={refresh}
+          onCreate={(kind) => tree.create('', kind)}
+        />
       </WorkspaceHeader>
       <CollapsibleContent className={nestClass}>
-        {!granted ? (
-          <Hint>{m.folder_access_hint()}</Hint>
-        ) : vaultPending ? (
-          // Until then a vault's attachment folder would show for a moment.
-          <Hint>{m.folder_loading()}</Hint>
-        ) : search ? (
-          <SearchResults tree={tree} search={search} />
-        ) : (
-          <Directory tree={tree} path="" />
-        )}
+        <FolderBody
+          tree={tree}
+          search={search}
+          granted={granted}
+          vaultPending={vaultPending}
+        />
       </CollapsibleContent>
-      <AlertDialog
-        open={!!deleting}
-        onOpenChange={(next) => {
-          if (!next && !busy) setDeleting(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {m.folder_delete_title({ name: deleting?.name ?? '' })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {m.folder_delete_description()}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>{m.cancel()}</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={busy}
-              onClick={(event) => {
-                event.preventDefault()
-                void confirmDelete()
-              }}
-            >
-              {m.folder_delete()}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteEntryDialog
+        entry={deleting}
+        busy={busy}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => void confirmDelete()}
+      />
     </Collapsible>
   )
 }
@@ -578,4 +487,158 @@ function SearchResults({ tree, search }: { tree: Tree; search: string }) {
     .map((entry) => (
       <FileRow key={entry.path} tree={tree} entry={entry} showPath />
     ))
+}
+
+/** Moves a file dragged within this folder; false when it stays put. */
+async function moveDroppedFile(root: DiskRoot, value: string, parent: string) {
+  const source = JSON.parse(value) as { rootId: string; path: string }
+  if (source.rootId !== root.id || parentPath(source.path) === parent)
+    return false
+  const handle = await fileAtPath(root.handle, source.path)
+  return renameDiskEntry(
+    root,
+    { path: source.path, kind: 'file', handle },
+    handle.name,
+    parent,
+  )
+}
+
+/** A folder's header buttons: reconnect it, or add to it, and its ⋯ menu. */
+function FolderActions({
+  root,
+  onRefresh,
+  onCreate,
+}: {
+  root: DiskRoot
+  onRefresh: () => Promise<void>
+  onCreate: (kind: 'file' | 'directory') => void
+}) {
+  const granted = root.access === 'granted'
+  return (
+    <>
+      {granted ? (
+        <>
+          <RowAction
+            label={m.file_new()}
+            hint={m.explorer_in_folder({ name: root.name })}
+            onClick={() => onCreate('file')}
+          >
+            <IconFilePlus />
+          </RowAction>
+          <RowAction
+            label={m.explorer_new_folder()}
+            hint={m.explorer_in_folder({ name: root.name })}
+            onClick={() => onCreate('directory')}
+          >
+            <IconFolderPlus />
+          </RowAction>
+        </>
+      ) : (
+        <Button
+          variant="outline"
+          size="xs"
+          className="mr-1 shrink-0"
+          onClick={() =>
+            void reconnectFolder(root).then(async (done) => {
+              if (done) await onRefresh()
+            })
+          }
+        >
+          {m.folder_reconnect()}
+        </Button>
+      )}
+      <RowMenu label={m.folder_actions()}>
+        <DropdownMenuItem
+          disabled={!granted}
+          onSelect={() =>
+            exportMarkdownPdf({
+              kind: 'disk',
+              root,
+              path: '',
+              directory: true,
+            })
+          }
+        >
+          {m.md_pdf_folder()}
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!granted} onSelect={() => void onRefresh()}>
+          {m.folder_refresh()}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() =>
+            void closeFolder(root).catch(() =>
+              notify.error(m.explorer_failed()),
+            )
+          }
+        >
+          {m.folder_close()}
+        </DropdownMenuItem>
+        <HiddenTypesMenu />
+      </RowMenu>
+    </>
+  )
+}
+
+/** What an open folder shows: its tree, the search hits in it, or why neither. */
+function FolderBody({
+  tree,
+  search,
+  granted,
+  vaultPending,
+}: {
+  tree: Tree
+  search: string
+  granted: boolean
+  vaultPending: boolean
+}) {
+  if (!granted) return <Hint>{m.folder_access_hint()}</Hint>
+  // Until then a vault's attachment folder would show for a moment.
+  if (vaultPending) return <Hint>{m.folder_loading()}</Hint>
+  if (search) return <SearchResults tree={tree} search={search} />
+  return <Directory tree={tree} path="" />
+}
+
+function DeleteEntryDialog({
+  entry,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  entry: DiskEntry | null
+  busy: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <AlertDialog
+      open={!!entry}
+      onOpenChange={(next) => {
+        if (!next && !busy) onCancel()
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {m.folder_delete_title({ name: entry?.name ?? '' })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {m.folder_delete_description()}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={busy}>{m.cancel()}</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={busy}
+            onClick={(event) => {
+              event.preventDefault()
+              onConfirm()
+            }}
+          >
+            {m.folder_delete()}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }

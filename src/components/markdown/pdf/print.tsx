@@ -96,8 +96,8 @@ export async function preparePdf(source: PdfSource, signal: AbortSignal) {
       <QueryClientProvider client={browserQueryClient()}>
         <TooltipProvider>
           <LightOnly value>
-            {notes.map((note, index) => (
-              <section key={index} data-pdf-note={note.path}>
+            {notes.map((note) => (
+              <section key={note.path} data-pdf-note={note.path}>
                 {notes.length > 1 && (
                   <div className="mb-5 border-b pb-2 font-mono text-xs text-muted-foreground">
                     {note.path}

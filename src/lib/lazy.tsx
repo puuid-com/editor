@@ -73,6 +73,15 @@ const retries = new Set<() => void>()
 // all hear of it in the same turn.
 let reported = false
 
+function reportFailure() {
+  if (reported) return
+  reported = true
+  setTimeout(() => {
+    reported = false
+  })
+  for (const listener of failureListeners) listener()
+}
+
 /** Calls `listener` when a part that was asked for could not be fetched. */
 export function onLoadFailed(listener: FailureListener) {
   failureListeners.add(listener)
@@ -122,12 +131,7 @@ export function lazyPart<TProps extends object>(
             if (mounted) setAttempt((count) => count + 1)
           },
           () => {
-            if (!mounted || reported) return
-            reported = true
-            setTimeout(() => {
-              reported = false
-            })
-            for (const listener of failureListeners) listener()
+            if (mounted) reportFailure()
           },
         )
       }

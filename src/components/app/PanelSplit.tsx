@@ -1,5 +1,5 @@
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef } from 'react'
 import { usePanelRef } from 'react-resizable-panels'
 
 import {
@@ -54,10 +54,13 @@ export function PanelSplit({
   // Turning from beside to stacked keeps the group: give the panel the size
   // it had that way round.
   const shown = useRef(beside)
+  const restoreSize = useEffectEvent(() => {
+    panelRef.current?.resize(`${size}%`)
+  })
   useEffect(() => {
     if (shown.current === beside) return
     shown.current = beside
-    panelRef.current?.resize(`${size}%`)
+    restoreSize()
   }, [beside])
 
   const main = (

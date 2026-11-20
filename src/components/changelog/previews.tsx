@@ -76,8 +76,8 @@ import {
   Syn,
   Tab,
   Tabs,
-  sql,
 } from './kit'
+import { sql } from './sql'
 import { Logo } from '#/components/Logo'
 import { colorLabel } from '#/components/highlights/color-label'
 import { codeColorStyle } from '#/components/markdown/code-colors'
@@ -571,12 +571,17 @@ const FLAT = [
 ]
 
 function flat(line: string) {
-  return line.split('|').map((field, i) => (
-    <span key={i}>
-      {i > 0 && <Syn k="punct">|</Syn>}
-      <Syn k={i === 0 ? 'tag' : 'value'}>{field}</Syn>
-    </span>
-  ))
+  let at = 0
+  return line.split('|').map((field, i) => {
+    const from = at
+    at += field.length + 1
+    return (
+      <span key={from}>
+        {i > 0 && <Syn k="punct">|</Syn>}
+        <Syn k={i === 0 ? 'tag' : 'value'}>{field}</Syn>
+      </span>
+    )
+  })
 }
 
 function FlatFiles() {
@@ -1104,8 +1109,11 @@ function LabelledSwitches() {
     <BeforeAfter
       before={
         <StatusBar className="border-t-0">
-          {icons.map((Icon, i) => (
-            <span key={i} className="flex size-6 items-center justify-center">
+          {icons.map((Icon) => (
+            <span
+              key={Icon.displayName}
+              className="flex size-6 items-center justify-center"
+            >
               <Icon className="size-3.5" />
             </span>
           ))}
@@ -1444,7 +1452,7 @@ function PinTagChipClick() {
   )
 }
 
-function PinOccurrence({ count }: { count?: boolean }) {
+function PinOccurrence({ listed }: { listed?: boolean }) {
   const rows = [
     ['Line', 'Bolts'],
     ['Line[2]', 'Washers'],
@@ -1459,16 +1467,16 @@ function PinOccurrence({ count }: { count?: boolean }) {
           <span
             className={cn(
               'flex items-center gap-0.5 text-muted-foreground tabular-nums',
-              count && 'bg-muted px-1 text-foreground',
+              listed && 'bg-muted px-1 text-foreground',
             )}
           >
-            {count ? '2/3' : '3'}
-            {count && <IconSelector aria-hidden className="size-3" />}
+            {listed ? '2/3' : '3'}
+            {listed && <IconSelector aria-hidden className="size-3" />}
           </span>
           <IconCopy aria-hidden className="size-3 text-muted-foreground" />
         </span>
       </div>
-      {count && (
+      {listed && (
         <ol className="ml-auto w-48 border bg-popover p-1 shadow-md">
           {rows.map(([parent, value], i) => (
             <li
@@ -1496,7 +1504,7 @@ function PinOccurrence({ count }: { count?: boolean }) {
 
 function PinOccurrences() {
   return (
-    <BeforeAfter before={<PinOccurrence />} after={<PinOccurrence count />} />
+    <BeforeAfter before={<PinOccurrence />} after={<PinOccurrence listed />} />
   )
 }
 
@@ -1539,7 +1547,7 @@ function PinOccurrenceRows() {
 function PinOccurrenceList() {
   return (
     <BeforeAfter
-      before={<PinOccurrence count />}
+      before={<PinOccurrence listed />}
       after={<PinOccurrenceRows />}
     />
   )
@@ -1818,8 +1826,8 @@ function figure(...parts: Array<ComponentType>): ComponentType {
   return function Preview() {
     return (
       <Figure>
-        {parts.map((Part, i) => (
-          <Part key={i} />
+        {parts.map((Part) => (
+          <Part key={Part.name} />
         ))}
       </Figure>
     )
@@ -2879,8 +2887,8 @@ function ExplorerNewMenu() {
               IconUpload,
               IconFolderUp,
               IconFolderRoot,
-            ].map((Icon, index) => (
-              <span key={index} className={icon}>
+            ].map((Icon) => (
+              <span key={Icon.displayName} className={icon}>
                 <Icon />
               </span>
             ))}
@@ -3573,7 +3581,7 @@ function TableHelpers() {
 
 /** A Markdown table in the preview, from rules under rows to a full grid. */
 function RuledTables() {
-  const table = (ruled?: boolean) => {
+  const grid = (ruled?: boolean) => {
     const cell = ruled
       ? 'border px-2 py-1 text-left'
       : 'border-b py-1 pr-2 text-left'
@@ -3604,7 +3612,7 @@ function RuledTables() {
       </Shot>
     )
   }
-  return <BeforeAfter before={table()} after={table(true)} />
+  return <BeforeAfter before={grid()} after={grid(true)} />
 }
 
 /** Markdown tables, from a plain grid to a sheet with letters, numbers and stripes. */
@@ -3875,6 +3883,8 @@ function MarkdownLivePreview() {
           <input
             type="checkbox"
             readOnly
+            aria-hidden
+            tabIndex={-1}
             className="mr-1.5 align-[-0.1em] accent-foreground"
           />
         ) : (

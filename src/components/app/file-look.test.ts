@@ -9,7 +9,7 @@ import {
 } from '@tabler/icons-react'
 import { describe, expect, it } from 'vitest'
 
-import { fileLook } from './FileIcon'
+import { fileLook } from './file-look'
 
 describe('fileLook', () => {
   it('gives each extension its own icon and colour', () => {

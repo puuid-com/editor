@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSelector } from '@tanstack/react-store'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext } from 'react'
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
 
 import {
@@ -12,6 +12,7 @@ import { openDiskFile } from '#/components/app/disk-workspace'
 import { isEditableName } from '#/lib/disk-tree'
 import type { DiskEntry } from '#/lib/disk-tree'
 import { useFileContent, useOpenFiles } from '#/hooks/use-files'
+import { useObjectUrl } from '#/hooks/use-object-url'
 import {
   imageSize,
   hrefPath,
@@ -111,6 +112,15 @@ function scrollToHeading(event: MouseEvent<HTMLElement>, heading: string) {
   match?.scrollIntoView({ block: 'start' })
 }
 
+/** Scrolls the preview to the `#section` a link names, not the page. */
+function scrollToSection(event: MouseEvent<HTMLElement>, href: string) {
+  event.preventDefault()
+  event.currentTarget
+    .closest('article')
+    ?.querySelector(`[id="${CSS.escape(headingId(href))}"]`)
+    ?.scrollIntoView({ block: 'start' })
+}
+
 /** A link to nothing in the folder, faded as Obsidian shows one. */
 function MissingLink({
   name,
@@ -177,7 +187,7 @@ export function WikiLink({
   if (!target && heading) {
     return (
       <a
-        href="#"
+        href={`#${encodeURIComponent(heading)}`}
         data-note-heading={heading}
         onClick={(event) => scrollToHeading(event, heading)}
       >
@@ -325,13 +335,7 @@ export function PreviewLink({ href = '', ...props }: ComponentProps<'a'>) {
       <a
         {...props}
         href={href}
-        onClick={(event) => {
-          event.preventDefault()
-          event.currentTarget
-            .closest('article')
-            ?.querySelector(`[id="${CSS.escape(headingId(href))}"]`)
-            ?.scrollIntoView({ block: 'start' })
-        }}
+        onClick={(event) => scrollToSection(event, href)}
       />
     )
   }
@@ -388,18 +392,6 @@ export function PreviewImage({ src, alt, ...props }: ComponentProps<'img'>) {
       />
     )
   return <img {...props} {...size} src={src} alt={label} />
-}
-
-/** An object URL for `blob`, let go once it changes or nothing shows it. */
-function useObjectUrl(blob: Blob | undefined) {
-  const [url, setUrl] = useState<string>()
-  useEffect(() => {
-    if (!blob) return
-    const next = URL.createObjectURL(blob)
-    setUrl(next)
-    return () => URL.revokeObjectURL(next)
-  }, [blob])
-  return blob ? url : undefined
 }
 
 function DiskImage({

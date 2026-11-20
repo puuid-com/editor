@@ -150,6 +150,10 @@ function RecordTable({ group, line }: { group: FlatGroup; line: number }) {
                         <button
                           type="button"
                           className="w-full px-2 py-1.5 text-left"
+                          aria-label={m.flat_reveal({
+                            column: i === 0 ? m.flat_line() : `#${i + 1}`,
+                            value: String(cell.getValue()),
+                          })}
                           onClick={() =>
                             revealRange(
                               field?.from ?? record.to,

@@ -4,28 +4,23 @@ import { useQueries } from '@tanstack/react-query'
 import type { UseQueryResult } from '@tanstack/react-query'
 import { useSelector } from '@tanstack/react-store'
 import { IconLetterCase } from '@tabler/icons-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
-import SearchWorker from './file-search.worker?worker'
+import { useFileSearch } from './use-file-search'
 import { FILE_LIMIT, TOTAL_LIMIT } from './file-search'
 import type {
   FileMatch,
   SearchFile,
-  SearchReply,
+  SearchResults,
   SearchSources,
 } from './file-search'
 import { diskSearchId, searchFolderQuery } from './search-folders'
 import type { FolderContents } from './search-folders'
-import { openDiskFile } from './disk-workspace'
-import { fileAtPath } from '#/lib/disk-tree'
 import { isExcluded } from '#/lib/obsidian'
-import { diskRoot, rootsStore } from '#/lib/store/disk'
+import { rootsStore } from '#/lib/store/disk'
+import type { DiskRoot } from '#/lib/store/disk'
 import { folderPath } from '#/lib/store/folders'
 import { FileIcon } from './FileIcon'
-import { notify } from './notice-store'
-import { setSettingsActive } from './settings-tab'
-import { endCompare } from './ui-store'
-import { focusFileView } from '#/components/editor/editor-store'
 import {
   Command,
   CommandGroup,
@@ -36,120 +31,15 @@ import {
 import { Kbd } from '#/components/ui/kbd'
 import { Toggle } from '#/components/ui/toggle'
 import { imageMime, isImageData } from '#/lib/image-file'
-import { fileAt, filesCollection, isOpen, reopenFile } from '#/lib/store/files'
-import { sessionStore, setActive } from '#/lib/store/session'
+import { filesCollection } from '#/lib/store/files'
+import type { FileLocation, XmlFile } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
-
-/** The editor receives the selection after the palette releases focus, even when it has to mount first. */
-export async function openSearchMatch(hit: FileMatch) {
-  let fileId = hit.fileId
-  try {
-    if (hit.location) {
-      const { rootId, path } = hit.location
-      const open = fileAt(rootId, path)
-      if (open) fileId = open.id
-      else {
-        const root = diskRoot(rootId)
-        if (!root || root.access !== 'granted') {
-          notify.info(m.find_match_changed())
-          return
-        }
-        const handle = await fileAtPath(root.handle, path)
-        const id = await openDiskFile(root, {
-          name: handle.name,
-          path,
-          kind: 'file',
-          handle,
-        })
-        if (!id) return
-        fileId = id
-      }
-    } else {
-      await reopenFile(fileId)
-    }
-    if (!isOpen(filesCollection.get(fileId))) {
-      notify.info(m.find_match_changed())
-      return
-    }
-  } catch {
-    notify.info(m.find_match_changed())
-    return
-  }
-  setSettingsActive(false)
-  endCompare()
-  setActive(fileId)
-  // A view hidden behind Settings or a comparison can already be registered.
-  // Let the pane reveal it before trying to focus it.
-  requestAnimationFrame(() => {
-    if (sessionStore.state.activeId !== fileId) return
-    focusFileView(fileId, (view) => {
-      const to = hit.from + hit.text.length
-      if (
-        to > view.state.doc.length ||
-        view.state.sliceDoc(hit.from, to) !== hit.text
-      ) {
-        notify.info(m.find_match_changed())
-        return
-      }
-      view.dispatch({
-        selection: { anchor: hit.from, head: to },
-        scrollIntoView: true,
-        userEvent: 'select.search',
-      })
-    })
-  })
-}
 
 function combineFolders(queries: Array<UseQueryResult<FolderContents>>) {
   return {
     contents: queries.flatMap((q) => (q.data ? [q.data] : [])),
     pending: queries.some((q) => q.isFetching),
     skipped: queries.some((q) => q.isError || q.data?.skipped),
-  }
-}
-
-function useFileSearch(
-  sources: SearchSources,
-  query: string,
-  matchCase: boolean,
-) {
-  const worker = useRef<Worker | null>(null)
-  const [reply, setReply] = useState<
-    (SearchReply & { sources: SearchSources }) | null
-  >(null)
-  const [failed, setFailed] = useState(false)
-  useEffect(() => {
-    // Send the text once per snapshot. Keystrokes send only the search terms.
-    let search: Worker
-    try {
-      search = new SearchWorker()
-    } catch {
-      setFailed(true)
-      return
-    }
-    worker.current = search
-    search.onmessage = ({ data }: MessageEvent<SearchReply>) => {
-      setFailed(false)
-      setReply({ ...data, sources })
-    }
-    search.onerror = () => setFailed(true)
-    search.postMessage(sources)
-    return () => {
-      search.terminate()
-      worker.current = null
-    }
-  }, [sources])
-  useEffect(() => {
-    worker.current?.postMessage({ query, matchCase })
-  }, [sources, query, matchCase])
-  return {
-    failed,
-    reply:
-      reply?.sources === sources &&
-      reply.query === query &&
-      reply.matchCase === matchCase
-        ? reply
-        : null,
   }
 }
 
@@ -187,34 +77,10 @@ export function FindInFiles({
           location: file.location,
         })),
   })
-  const sources = useMemo(() => {
-    const live = new Set<string>()
-    const files: Array<SearchFile> = []
-    for (const row of rows) {
-      let name = row.name
-      if (row.location) {
-        const { rootId, path } = row.location
-        live.add(diskSearchId(row.location))
-        const folder = folders.contents.find((item) => item.rootId === rootId)
-        const root = roots.find((item) => item.id === rootId)
-        // Wait for a connected vault's exclusions before showing its open files.
-        if (
-          (root?.access === 'granted' && !folder) ||
-          isExcluded(folder?.vault ?? null, path)
-        )
-          continue
-        name = root ? `${root.name}/${path}` : path
-      } else if (row.folderId) {
-        name = [folderPath(row.folderId), row.name].filter(Boolean).join('/')
-      }
-      if (imageMime(row.name) || isImageData(row.content)) continue
-      files.push({ id: row.id, name, content: row.content })
-    }
-    const disk = folders.contents.flatMap((folder) =>
-      folder.files.filter((file) => !live.has(file.id)),
-    )
-    return { files, disk }
-  }, [rows, roots, folders.contents])
+  const sources = useMemo(
+    () => searchSources(rows, roots, folders.contents),
+    [rows, roots, folders.contents],
+  )
   const { reply, failed } = useFileSearch(sources, debounced, matchCase)
   const current = query === debounced && query ? reply : null
   const results = current?.results
@@ -223,15 +89,12 @@ export function FindInFiles({
     current?.skipped ||
     folders.skipped ||
     roots.some((root) => root.access !== 'granted')
-  const message = failed
-    ? m.find_failed()
-    : !query
-      ? m.find_hint()
-      : !results?.groups.length
-        ? pending
-          ? m.find_searching()
-          : m.find_empty()
-        : null
+  const message = statusMessage(
+    failed,
+    query,
+    !!results?.groups.length,
+    pending,
+  )
   return (
     <Command shouldFilter={false} label={m.find_in_files()} loop>
       <div className="relative">
@@ -270,39 +133,7 @@ export function FindInFiles({
           </p>
         )}
         {results?.groups.map((group) => (
-          <CommandGroup
-            key={group.id}
-            value={group.id}
-            heading={
-              <span className="flex min-w-0 items-center gap-2 [&_svg]:size-3.5">
-                <FileIcon file={{ name: group.name, empty: false }} />
-                <span title={group.name} className="truncate">
-                  {group.name}
-                </span>
-              </span>
-            }
-          >
-            {group.hits.map((hit) => (
-              <CommandItem
-                key={hit.from}
-                value={`${group.id}:${hit.from}`}
-                onSelect={() => onSelect(hit)}
-                className="gap-3 py-1.5 font-mono [&>svg]:hidden"
-              >
-                <span
-                  className="min-w-8 shrink-0 text-right text-muted-foreground tabular-nums"
-                  aria-label={m.find_line({ line: hit.line })}
-                >
-                  {hit.line}
-                </span>
-                <span className="truncate whitespace-pre">
-                  {hit.before}
-                  <mark className="search-hit">{hit.text}</mark>
-                  {hit.after}
-                </span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <ResultGroup key={group.id} group={group} onSelect={onSelect} />
         ))}
         {query && !failed && pending && !!results?.groups.length && (
           <p role="status" className="px-3 py-2 text-xs text-muted-foreground">
@@ -336,5 +167,110 @@ export function FindInFiles({
         </span>
       </div>
     </Command>
+  )
+}
+
+type SearchGroup = SearchResults['groups'][number]
+type SearchRow = Pick<
+  XmlFile,
+  'id' | 'name' | 'folderId' | 'content' | 'location'
+>
+
+/** The files to search: browser files by folder path, open disk tabs with their edits, and the rest of each folder. */
+function searchSources(
+  rows: ReadonlyArray<SearchRow>,
+  roots: ReadonlyArray<DiskRoot>,
+  contents: ReadonlyArray<FolderContents>,
+): SearchSources {
+  const live = new Set<string>()
+  const files: Array<SearchFile> = []
+  const folderByRoot = new Map(contents.map((item) => [item.rootId, item]))
+  const rootById = new Map(roots.map((item) => [item.id, item]))
+  for (const row of rows) {
+    if (row.location) live.add(diskSearchId(row.location))
+    if (imageMime(row.name) || isImageData(row.content)) continue
+    const name = row.location
+      ? diskName(row.location, rootById, folderByRoot)
+      : row.folderId
+        ? [folderPath(row.folderId), row.name].filter(Boolean).join('/')
+        : row.name
+    if (name !== null) files.push({ id: row.id, name, content: row.content })
+  }
+  const disk = contents.flatMap((folder) =>
+    folder.files.filter((file) => !live.has(file.id)),
+  )
+  return { files, disk }
+}
+
+/** A disk tab's name under its folder, or null while it shouldn't show. */
+function diskName(
+  { rootId, path }: FileLocation,
+  rootById: ReadonlyMap<string, DiskRoot>,
+  folderByRoot: ReadonlyMap<string, FolderContents>,
+) {
+  const folder = folderByRoot.get(rootId)
+  const root = rootById.get(rootId)
+  // Wait for a connected vault's exclusions before showing its open files.
+  if (
+    (root?.access === 'granted' && !folder) ||
+    isExcluded(folder?.vault ?? null, path)
+  )
+    return null
+  return root ? `${root.name}/${path}` : path
+}
+
+function statusMessage(
+  failed: boolean,
+  query: string,
+  found: boolean,
+  pending: boolean,
+) {
+  if (failed) return m.find_failed()
+  if (!query) return m.find_hint()
+  if (found) return null
+  return pending ? m.find_searching() : m.find_empty()
+}
+
+/** One file's matches, under its name. */
+function ResultGroup({
+  group,
+  onSelect,
+}: {
+  group: SearchGroup
+  onSelect: (match: FileMatch) => void
+}) {
+  return (
+    <CommandGroup
+      value={group.id}
+      heading={
+        <span className="flex min-w-0 items-center gap-2 [&_svg]:size-3.5">
+          <FileIcon file={{ name: group.name, empty: false }} />
+          <span title={group.name} className="truncate">
+            {group.name}
+          </span>
+        </span>
+      }
+    >
+      {group.hits.map((hit) => (
+        <CommandItem
+          key={hit.from}
+          value={`${group.id}:${hit.from}`}
+          onSelect={() => onSelect(hit)}
+          className="gap-3 py-1.5 font-mono [&>svg]:hidden"
+        >
+          <span
+            className="min-w-8 shrink-0 text-right text-muted-foreground tabular-nums"
+            aria-label={m.find_line({ line: hit.line })}
+          >
+            {hit.line}
+          </span>
+          <span className="truncate whitespace-pre">
+            {hit.before}
+            <mark className="search-hit">{hit.text}</mark>
+            {hit.after}
+          </span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
   )
 }

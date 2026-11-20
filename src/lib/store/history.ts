@@ -228,11 +228,12 @@ function same(a: unknown, b: unknown) {
 function editable(source: WatchedCollection, a: Row, b: Row) {
   if (source.fields) {
     // Both sides decide: a file that moved to disk keeps its name there.
-    const other = source.fields(b)
-    return source.fields(a).filter((k) => other.includes(k))
+    const other = new Set(source.fields(b))
+    return source.fields(a).filter((k) => other.has(k))
   }
+  const ignored = new Set(source.ignore)
   return [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
-    (k) => k !== 'id' && !k.startsWith('$') && !source.ignore.includes(k),
+    (k) => k !== 'id' && !k.startsWith('$') && !ignored.has(k),
   )
 }
 

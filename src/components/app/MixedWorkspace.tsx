@@ -39,7 +39,12 @@ import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import { PasteBar } from './PasteBar'
 import { layoutKey, normalizeWorkspace } from '#/lib/store/pane-layout'
-import type { FilePaneGroup, PaneLayout } from '#/lib/store/pane-layout'
+import type {
+  FilePaneGroup,
+  PaneEdge,
+  PaneLayout,
+} from '#/lib/store/pane-layout'
+import type { DocLanguage } from '#/lib/xml/model'
 import type { PaneZone } from './panes'
 
 const SettingsPage = lazyPart(() =>
@@ -222,33 +227,19 @@ function FilePane({
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   const live = useSelector(editorPrefs, (s) => s.markdownLive)
   const side = useSelector(editorPrefs, (s) => s.panelSide)
-  const markdown = language === 'md'
   const zpl = language === 'zpl'
-  // ZPL has its own label preview; SQL and plain text have nothing to show
-  // beside them, and live Markdown renders in the editor itself.
-  const hasPanel =
-    !image &&
-    !zpl &&
-    language !== 'sql' &&
-    language !== 'txt' &&
-    !(markdown && live)
+  const hasPanel = !image && hasSidePanel(language, live)
   const showPanel = active && panelOpen && hasPanel && !!file?.hasContent
   const [sizeRef, size] = useElementSize<HTMLElement>()
   const edge = panelEdge(side, {
-    // Until it's measured, a pane alone on a wide screen has the room.
-    roomy: size.width ? size.width >= ROOMY_WIDTH : wide && count === 1,
+    roomy: isRoomy(size.width, wide, count),
     phone: !wide,
     // A flat file's records are wide tables.
     wideContent: language === 'flat',
     // A label reads first, so stacked it goes over its code.
     above: zpl,
   })
-  // Opening another file here, from the sidebar or a new tab, shows it.
-  const shownId = useRef(fileId)
-  useEffect(() => {
-    if (shownId.current !== fileId && settings) setSettingsActive(false)
-    shownId.current = fileId
-  }, [fileId, settings])
+  useShowOpenedFile(fileId, settings)
   return (
     <section
       ref={sizeRef}
@@ -260,11 +251,7 @@ function FilePane({
       <AppHeader
         paneId={pane.id}
         fileId={fileId}
-        files={
-          wide
-            ? pane.fileIds.flatMap((id) => files.find((f) => f.id === id) ?? [])
-            : files
-        }
+        files={wide ? paneFiles(pane, files) : files}
         allFiles={files}
         active={active}
         count={count}
@@ -276,77 +263,169 @@ function FilePane({
         settings={settings}
         settingsActive={settingsActive}
         actions={
-          zpl && (
+          zpl ? (
             <Suspense>
               <ZplHeaderActions fileId={fileId} />
             </Suspense>
-          )
+          ) : null
         }
         menuItems={
-          zpl && (
+          zpl ? (
             <Suspense>
               <ZplMenuItems fileId={fileId} />
             </Suspense>
-          )
+          ) : null
         }
       />
-      {!image && !settingsActive && <PasteBar fileId={fileId} />}
+      {!image && !settingsActive ? <PasteBar fileId={fileId} /> : null}
       <div className="relative flex min-h-0 flex-1 flex-col">
-        {settingsActive && (
-          <div className="min-h-0 flex-1">
-            <SettingsPage />
-          </div>
-        )}
-        {/* The file stays mounted under the settings page, to keep its place. */}
-        <div className={cn('min-h-0 flex-1', settingsActive && 'hidden')}>
-          {image ? (
-            <ImagePane fileId={fileId} active={active} />
-          ) : zpl ? (
-            <Suspense>
-              <div className={compareId ? 'hidden h-full' : 'h-full'}>
-                <ZplPane fileId={fileId} edge={edge} />
-              </div>
-              {compareId && (
-                <CompareView fileId={fileId} otherId={compareId} wide={wide} />
-              )}
-            </Suspense>
-          ) : (
-            <PanelSplit
-              edge={edge}
-              // Markdown gets a live preview, every other type its structure.
-              kind={markdown ? 'preview' : 'structure'}
-              panelClassName={markdown ? undefined : 'bg-muted/20'}
-              panel={
-                showPanel &&
-                (markdown ? (
-                  <PanelFrame title={m.md_preview()} edge={edge}>
-                    <Suspense>
-                      <MarkdownPreview fileId={fileId} />
-                    </Suspense>
-                  </PanelFrame>
-                ) : (
-                  <SidePanel edge={edge} />
-                ))
-              }
-            >
-              <Suspense>
-                <div className={compareId ? 'hidden h-full' : 'h-full'}>
-                  <CodeEditor fileId={fileId} />
-                </div>
-                {compareId && (
-                  <CompareView
-                    fileId={fileId}
-                    otherId={compareId}
-                    wide={wide}
-                  />
-                )}
-              </Suspense>
-            </PanelSplit>
-          )}
-        </div>
-        {wide && !zoomed && <DropZones paneId={pane.id} />}
+        <UnderSettings settings={settingsActive}>
+          <PaneBody
+            fileId={fileId}
+            kind={bodyKind(image, language)}
+            active={active}
+            compareId={compareId}
+            wide={wide}
+            edge={edge}
+            showPanel={showPanel}
+          />
+        </UnderSettings>
+        {wide && !zoomed ? <DropZones paneId={pane.id} /> : null}
       </div>
     </section>
+  )
+}
+
+/**
+ * Whether a file of `language` has a panel beside its code. ZPL has its own
+ * label preview; SQL and plain text have nothing to show beside them, and
+ * live Markdown renders in the editor itself.
+ */
+function hasSidePanel(language: DocLanguage, live: boolean) {
+  if (language === 'zpl' || language === 'sql' || language === 'txt')
+    return false
+  return !(language === 'md' && live)
+}
+
+/** Opening another file in the pane, from the sidebar or a new tab, shows it over the settings page. */
+function useShowOpenedFile(fileId: string, settings: boolean) {
+  const shownId = useRef(fileId)
+  useEffect(() => {
+    if (shownId.current !== fileId && settings) setSettingsActive(false)
+    shownId.current = fileId
+  }, [fileId, settings])
+}
+
+/** Whether the pane has room for its panel beside the code. Until it's measured, a pane alone on a wide screen has. */
+function isRoomy(width: number, wide: boolean, count: number) {
+  return width ? width >= ROOMY_WIDTH : wide && count === 1
+}
+
+/** The settings page over `children`, which stay mounted under it to keep their place. */
+function UnderSettings({
+  settings,
+  children,
+}: {
+  settings: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      {settings ? (
+        <div className="min-h-0 flex-1">
+          <SettingsPage />
+        </div>
+      ) : null}
+      <div className={cn('min-h-0 flex-1', settings && 'hidden')}>
+        {children}
+      </div>
+    </>
+  )
+}
+
+function bodyKind(image: boolean, language: DocLanguage) {
+  if (image) return 'image'
+  if (language === 'zpl' || language === 'md') return language
+  return 'code'
+}
+
+/** The pane's tabs, in its order. */
+function paneFiles(pane: FilePaneGroup, files: Array<WorkspaceFile>) {
+  const byId = new Map(files.map((file) => [file.id, file]))
+  return pane.fileIds.flatMap((id) => byId.get(id) ?? [])
+}
+
+/** The file itself: an image, a label, or code with its panel beside it. */
+function PaneBody({
+  fileId,
+  kind,
+  active,
+  compareId,
+  wide,
+  edge,
+  showPanel,
+}: {
+  fileId: string
+  kind: 'image' | 'zpl' | 'md' | 'code'
+  active: boolean
+  compareId: string | null
+  wide: boolean
+  edge: PaneEdge
+  showPanel: boolean
+}) {
+  if (kind === 'image') return <ImagePane fileId={fileId} active={active} />
+  if (kind === 'zpl')
+    return (
+      <Comparable fileId={fileId} compareId={compareId} wide={wide}>
+        <ZplPane fileId={fileId} edge={edge} />
+      </Comparable>
+    )
+  const markdown = kind === 'md'
+  return (
+    <PanelSplit
+      edge={edge}
+      // Markdown gets a live preview, every other type its structure.
+      kind={markdown ? 'preview' : 'structure'}
+      panelClassName={markdown ? undefined : 'bg-muted/20'}
+      panel={
+        showPanel &&
+        (markdown ? (
+          <PanelFrame title={m.md_preview()} edge={edge}>
+            <Suspense>
+              <MarkdownPreview fileId={fileId} />
+            </Suspense>
+          </PanelFrame>
+        ) : (
+          <SidePanel edge={edge} />
+        ))
+      }
+    >
+      <Comparable fileId={fileId} compareId={compareId} wide={wide}>
+        <CodeEditor fileId={fileId} />
+      </Comparable>
+    </PanelSplit>
+  )
+}
+
+/** `children`, hidden but kept while the file is compared with another. */
+function Comparable({
+  fileId,
+  compareId,
+  wide,
+  children,
+}: {
+  fileId: string
+  compareId: string | null
+  wide: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Suspense>
+      <div className={compareId ? 'hidden h-full' : 'h-full'}>{children}</div>
+      {compareId ? (
+        <CompareView fileId={fileId} otherId={compareId} wide={wide} />
+      ) : null}
+    </Suspense>
   )
 }
 

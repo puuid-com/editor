@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
 import { PANEL_SIDES } from '#/lib/panel-side'
+import { panelSideLabel } from './panel-side-label'
 import { shortcuts } from '#/lib/shortcuts'
 import { setPanelOpen } from '#/lib/store/session'
 import { m } from '#/paraglide/messages'
@@ -30,16 +31,6 @@ const EDGE_ICON = {
   left: IconLayoutSidebar,
   top: IconLayoutNavbar,
 } satisfies Record<PaneEdge, unknown>
-
-/** What each place for the side panel is called. */
-export const panelSideLabel = (side: PanelSide) =>
-  ({
-    auto: m.panel_position_auto,
-    right: m.edge_right,
-    bottom: m.edge_bottom,
-    left: m.edge_left,
-    top: m.edge_top,
-  })[side]()
 
 /** The places the side panel can sit, as a dropdown menu's radio items. */
 export function PanelSideItems() {

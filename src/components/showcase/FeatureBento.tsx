@@ -243,7 +243,7 @@ function Sync() {
             <div className="xb-code">
               {CODE.map((line, i) => (
                 <div
-                  key={i}
+                  key={line ?? 'status'}
                   className="xb-line"
                   data-active={(line === null && on) || undefined}
                 >
@@ -392,8 +392,8 @@ function Compare() {
               <span className="xb-diff-b">catalog-v2.xml</span>
             </div>
             <div className="xb-code">
-              {DIFF.map((line, i) => (
-                <div key={i} className="xb-line" data-kind={line.kind}>
+              {DIFF.map((line) => (
+                <div key={line.text} className="xb-line" data-kind={line.kind}>
                   <span className="xb-gutter">
                     {line.kind === 'del' ? '−' : line.kind === 'add' ? '+' : ''}
                   </span>

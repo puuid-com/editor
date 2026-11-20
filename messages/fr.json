@@ -129,6 +129,7 @@
   "flat_types": "Types d'enregistrement",
   "flat_line": "Ligne",
   "flat_empty": "Aucun enregistrement pour l'instant.",
+  "flat_reveal": "Aller à {column} {value}",
   "flat_summary": "{rows} lignes · {fields} champs",
   "tree_errors": "Problèmes : {count}",
   "tree_expand": "Déplier",

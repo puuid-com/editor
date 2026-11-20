@@ -118,26 +118,35 @@ export async function formatMarkdownCode(text: string) {
     },
   })
 
+  // Every block formats at once; a failed one is left as written.
+  const results = await Promise.allSettled(
+    blocks.map(({ from, to, indent, format }) => {
+      const strip = new RegExp(`^ {0,${indent}}`)
+      const code = text
+        .slice(from, to - 1)
+        .split('\n')
+        .map((line) => line.replace(strip, ''))
+        .join('\n')
+      return format(code)
+    }),
+  )
+
   let skipped = 0
   let out = text
   // From the end, so earlier offsets stay valid.
-  for (const { from, to, indent, format } of blocks.reverse()) {
-    const pad = ' '.repeat(indent)
-    const strip = new RegExp(`^ {0,${indent}}`)
-    const code = text
-      .slice(from, to - 1)
-      .split('\n')
-      .map((line) => line.replace(strip, ''))
-      .join('\n')
-    try {
-      const formatted = (await format(code)).replace(/\s+$/, '')
-      const lines = formatted
-        .split('\n')
-        .map((line) => (line ? pad + line : line))
-      out = out.slice(0, from) + lines.join('\n') + '\n' + out.slice(to)
-    } catch {
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const { from, to, indent } = blocks[i]
+    const result = results[i]
+    if (result.status === 'rejected') {
       skipped++
+      continue
     }
+    const pad = ' '.repeat(indent)
+    const lines = result.value
+      .replace(/\s+$/, '')
+      .split('\n')
+      .map((line) => (line ? pad + line : line))
+    out = out.slice(0, from) + lines.join('\n') + '\n' + out.slice(to)
   }
   return { text: out, skipped }
 }
