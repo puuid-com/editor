@@ -1,4 +1,4 @@
-import { IconPlus, IconSettings } from '@tabler/icons-react'
+import { IconGitCompare, IconPlus, IconSettings } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
@@ -9,7 +9,7 @@ import { newFile } from './files'
 import { TabClose, TabCloseButton } from './TabClose'
 import { TabList } from './TabList'
 import { ToolbarButton } from './ToolbarButton'
-import { closeTab, askRename, uiStore } from './ui-store'
+import { closeTab, askRename, openCompare, uiStore } from './ui-store'
 import { closeSettings, setSettingsActive } from './settings-tab'
 import { UnsavedMark } from './UnsavedMark'
 import { focusFileView } from '#/components/editor/editor-store'
@@ -27,8 +27,10 @@ import {
   ContextMenuTrigger,
 } from '#/components/ui/context-menu'
 import { Tabs, TabsList, TabsTrigger } from '#/components/ui/tabs'
+import { useOpenFiles } from '#/hooks/use-files'
 import { useProfiles } from '#/hooks/use-profiles'
 import { useScrollEdges } from '#/hooks/use-scroll-edges'
+import { imageMime } from '#/lib/image-file'
 import { shortcuts } from '#/lib/shortcuts'
 import { profileCss, resolveProfile } from '#/lib/store/profiles'
 import { sessionStore, setActive } from '#/lib/store/session'
@@ -306,6 +308,7 @@ function TabContextMenu({
       {panes.length > 1 && (
         <ContextMenuItem onSelect={joinPanes}>{m.pane_join()}</ContextMenuItem>
       )}
+      <CompareSubMenu file={file} />
       <TypeSubMenu file={file} />
       <ContextMenuSeparator />
       <ContextMenuItem onSelect={() => closeTab(file.id)}>
@@ -327,6 +330,36 @@ function TabContextMenu({
         {m.tabs_close_all()}
       </ContextMenuItem>
     </ContextMenuContent>
+  )
+}
+
+/** Shows the tab's changes against another open tab, the other as the original. */
+function CompareSubMenu({ file }: { file: TabFile }) {
+  const type = useFileType(file.id)
+  const others = useOpenFiles().filter(
+    (other) => other.id !== file.id && !imageMime(other.name),
+  )
+  return (
+    <ContextMenuSub>
+      <ContextMenuSubTrigger disabled={!type || !others.length}>
+        {m.compare_with_menu()}
+      </ContextMenuSubTrigger>
+      <ContextMenuSubContent className="max-h-80 w-56 overflow-y-auto">
+        {others.map((other) => (
+          <ContextMenuItem
+            key={other.id}
+            onSelect={() => {
+              setSettingsActive(false)
+              setActive(file.id)
+              openCompare(file.id, other.id)
+            }}
+          >
+            <IconGitCompare />
+            <span className="truncate">{other.name}</span>
+          </ContextMenuItem>
+        ))}
+      </ContextMenuSubContent>
+    </ContextMenuSub>
   )
 }
 

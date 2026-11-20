@@ -14,7 +14,7 @@ Open http://localhost:3000. Installation compiles the English and French message
 ## Features
 
 - Edit XML and JSON in CodeMirror, or edit values in the searchable structure tree.
-- Open multiple files, retain undo history across tabs, and compare two files.
+- Open multiple files, retain undo history across tabs, and compare two tabs in a git-style diff: split or unified, hunks with expandable context, word-level changes, and jumps between changes.
 - Keep formatting settings, tag highlights, pinned fields, defaults, and variables in profiles.
 - Open files from disk and save back where the browser supports file handles.
 - Archive closed files, export workspace backups, and restore them later.

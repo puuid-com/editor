@@ -307,11 +307,7 @@ function FilePane({
                 <ZplPane fileId={fileId} edge={edge} />
               </div>
               {compareId && (
-                <CompareView
-                  fileId={fileId}
-                  otherId={compareId}
-                  layout={wide ? 'split' : 'unified'}
-                />
+                <CompareView fileId={fileId} otherId={compareId} wide={wide} />
               )}
             </Suspense>
           ) : (
@@ -341,7 +337,7 @@ function FilePane({
                   <CompareView
                     fileId={fileId}
                     otherId={compareId}
-                    layout={wide ? 'split' : 'unified'}
+                    wide={wide}
                   />
                 )}
               </Suspense>

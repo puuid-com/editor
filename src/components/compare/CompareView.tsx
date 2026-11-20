@@ -1,55 +1,87 @@
-import { IconAlertTriangle, IconX } from '@tabler/icons-react'
+import {
+  IconAdjustmentsHorizontal,
+  IconAlertTriangle,
+  IconArrowRight,
+  IconArrowsExchange,
+  IconChevronDown,
+  IconChevronUp,
+  IconLayoutColumns,
+  IconLayoutRows,
+  IconX,
+} from '@tabler/icons-react'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
-import { createCompare } from './merge'
+import { DiffBody } from './DiffBody'
+import { SideSyntax, syntaxRules } from './highlight'
 import { ToolbarButton } from '#/components/app/ToolbarButton'
 import {
-  setCompareId,
+  endCompare,
   setCompareIgnoreFormatting,
+  setCompareIgnoreWhitespace,
+  swapCompare,
   uiStore,
 } from '#/components/app/ui-store'
 import { getView } from '#/components/editor/editor-store'
-import { editorPrefs } from '#/components/editor/word-wrap'
-import { Label } from '#/components/ui/label'
+import { editorPrefs, setDiffLayout } from '#/components/editor/word-wrap'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from '#/components/ui/empty'
 import { Separator } from '#/components/ui/separator'
-import { Switch } from '#/components/ui/switch'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
 import { useFileContent } from '#/hooks/use-files'
 import { useHighlights } from '#/hooks/use-highlights'
 import { useFormatSettings } from '#/hooks/use-profiles'
 import { compareTexts } from '#/lib/compare'
+import { diffLines, diffRows, diffStat, reveal } from '#/lib/diff'
 import { languageOf } from '#/lib/document'
+import { shortcuts } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
-import type { CompareHandle } from './merge'
-import type { CompareSide, CompareTexts } from '#/lib/compare'
-import type { DocLanguage } from '#/lib/document'
-
-type Layout = 'split' | 'unified'
+import type { DiffNavigation } from './DiffBody'
+import type { DiffLayout } from '#/components/editor/word-wrap'
+import type { CompareSide } from '#/lib/compare'
+import type { FileDiff, Reveal, Revealed } from '#/lib/diff'
 
 /** Ends the comparison and hands focus back to the editor. */
 function closeCompare() {
-  setCompareId(null)
+  endCompare()
   requestAnimationFrame(() => getView()?.focus())
 }
 
 /**
- * Read-only diff of the active file against another open tab, shown in place
- * of the editor. The other tab is the original, so what the active file adds
- * reads as inserted.
+ * The active file's changes against another open tab, shown in place of the
+ * editor as git shows a diff. The other tab is the original, so what the
+ * active file adds reads as added, until the sides are swapped.
  */
 export function CompareView({
   fileId,
   otherId,
-  layout,
+  wide,
 }: {
   fileId: string
   otherId: string
-  layout: Layout
+  /** Room for the two sides next to each other. */
+  wide: boolean
 }) {
   const file = useFileContent(fileId)
   const other = useFileContent(otherId)
+  const swapped = useSelector(uiStore, (s) => s.compareSwapped)
 
   useHotkey(
     'Escape',
@@ -63,18 +95,17 @@ export function CompareView({
   )
 
   if (!file || !other) return null
-  return <CompareFiles original={other} changed={file} layout={layout} />
+  return (
+    <CompareFiles
+      original={swapped ? file : other}
+      changed={swapped ? other : file}
+      wide={wide}
+    />
+  )
 }
 
-function CompareFiles({
-  original,
-  changed,
-  layout,
-}: {
-  original: CompareSide
-  changed: CompareSide
-  layout: Layout
-}) {
+/** The formatting options both sides share when formatting is ignored. */
+function useCompareTexts(original: CompareSide, changed: CompareSide) {
   const ignoreFormatting = useSelector(
     uiStore,
     (s) => s.compareIgnoreFormatting,
@@ -90,7 +121,7 @@ function CompareFiles({
   // changes. The pieces are listed one by one, as query rows are new objects.
   const { name: nameA, content: contentA } = original
   const { name: nameB, content: contentB } = changed
-  const texts = useMemo(
+  return useMemo(
     () =>
       compareTexts(
         { name: nameA, content: contentA },
@@ -121,23 +152,84 @@ function CompareFiles({
       firstKey,
     ],
   )
-  const [chunks, setChunks] = useState<number | null>(null)
+}
+
+const NOTHING_REVEALED: Revealed = new Map()
+
+function CompareFiles({
+  original,
+  changed,
+  wide,
+}: {
+  original: CompareSide
+  changed: CompareSide
+  wide: boolean
+}) {
+  const texts = useCompareTexts(original, changed)
+  const ignoreFormatting = useSelector(
+    uiStore,
+    (s) => s.compareIgnoreFormatting,
+  )
+  const ignoreWhitespace = useSelector(
+    uiStore,
+    (s) => s.compareIgnoreWhitespace,
+  )
+  const preferred = useSelector(editorPrefs, (s) => s.diffLayout)
+  const wrap = useSelector(editorPrefs, (s) => s.wordWrap)
+  const layout: DiffLayout = wide ? preferred : 'unified'
+
+  const fileDiff = useMemo(
+    () => diffLines(texts.a, texts.b, ignoreWhitespace),
+    [texts.a, texts.b, ignoreWhitespace],
+  )
+  // Opened folds belong to one diff; a new one starts folded.
+  const [opened, setOpened] = useState<{
+    diff: FileDiff
+    revealed: Revealed
+  }>({ diff: fileDiff, revealed: NOTHING_REVEALED })
+  const revealed = opened.diff === fileDiff ? opened.revealed : NOTHING_REVEALED
+  const rows = useMemo(
+    () => diffRows(fileDiff, layout, revealed, ignoreWhitespace),
+    [fileDiff, layout, revealed, ignoreWhitespace],
+  )
+  const onReveal = (gap: number, way: Reveal) =>
+    setOpened({ diff: fileDiff, revealed: reveal(revealed, gap, way) })
+
+  const languageA = languageOf(original.name, texts.a)
+  const languageB = languageOf(changed.name, texts.b)
+  const syntaxA = useMemo(
+    () => new SideSyntax(fileDiff.a, languageA),
+    [fileDiff.a, languageA],
+  )
+  const syntaxB = useMemo(
+    () => new SideSyntax(fileDiff.b, languageB),
+    [fileDiff.b, languageB],
+  )
+
+  const nav = useRef<DiffNavigation>(null)
+  const changes = fileDiff.changes.length
+  useHotkey(shortcuts.nextChange.hotkey, () => nav.current?.next(), {
+    enabled: changes > 0,
+  })
+  useHotkey(shortcuts.previousChange.hotkey, () => nav.current?.previous(), {
+    enabled: changes > 0,
+  })
 
   return (
     <section
       aria-label={m.compare_label({ a: original.name, b: changed.name })}
       className="flex h-full min-h-0 flex-col"
     >
-      <div className="flex h-11 shrink-0 items-center gap-2 border-b pr-1 pl-3 text-[11px] text-muted-foreground md:h-8">
-        <span aria-live="polite" className="truncate">
-          {chunks === null
-            ? null
-            : chunks === 0
-              ? m.compare_no_changes()
-              : m.compare_changes({ count: chunks })}
-        </span>
+      {/* The editor's syntax colours, even with no editor on the page. */}
+      <style>{syntaxRules}</style>
+      <div className="flex h-11 shrink-0 items-center gap-1 border-b pr-1 pl-3 text-[11px] text-muted-foreground md:h-8">
+        <Stats
+          added={fileDiff.added}
+          removed={fileDiff.removed}
+          changes={changes}
+        />
         {texts.unparsed !== null && (
-          <span className="flex min-w-0 items-center gap-1 text-foreground">
+          <span className="ml-2 flex min-w-0 items-center gap-1 text-foreground">
             <IconAlertTriangle className="size-3.5 shrink-0" />
             <span className="truncate">
               {m.compare_unparsed({ name: texts.unparsed })}
@@ -145,18 +237,60 @@ function CompareFiles({
           </span>
         )}
         <div className="flex-1" />
-        <Label
-          htmlFor="compare-ignore-formatting"
-          className="shrink-0 gap-2 text-[11px] font-normal text-foreground max-md:h-11"
+        <ToolbarButton
+          label={m.compare_previous()}
+          shortcut={shortcuts.previousChange}
+          disabled={!changes}
+          onClick={() => nav.current?.previous()}
         >
-          {m.compare_ignore_formatting()}
-          <Switch
-            id="compare-ignore-formatting"
-            size="sm"
-            checked={ignoreFormatting}
-            onCheckedChange={setCompareIgnoreFormatting}
-          />
-        </Label>
+          <IconChevronUp />
+        </ToolbarButton>
+        <ToolbarButton
+          label={m.compare_next()}
+          shortcut={shortcuts.nextChange}
+          disabled={!changes}
+          onClick={() => nav.current?.next()}
+        >
+          <IconChevronDown />
+        </ToolbarButton>
+        <Separator
+          orientation="vertical"
+          className="mx-1 data-vertical:h-4 data-vertical:self-center"
+        />
+        {wide && <LayoutToggle layout={layout} />}
+        <ToolbarButton
+          label={m.compare_swap()}
+          hint={m.compare_swap_hint()}
+          onClick={swapCompare}
+        >
+          <IconArrowsExchange />
+        </ToolbarButton>
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <ToolbarButton label={m.compare_options()}>
+                  <IconAdjustmentsHorizontal />
+                </ToolbarButton>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{m.compare_options()}</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuCheckboxItem
+              checked={ignoreWhitespace}
+              onCheckedChange={setCompareIgnoreWhitespace}
+            >
+              {m.compare_ignore_whitespace()}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={ignoreFormatting}
+              onCheckedChange={setCompareIgnoreFormatting}
+            >
+              {m.compare_ignore_formatting()}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Separator
           orientation="vertical"
           className="mx-1 data-vertical:h-4 data-vertical:self-center"
@@ -167,25 +301,127 @@ function CompareFiles({
       </div>
       <div
         className={cn(
-          'shrink-0 border-b text-[11px] font-mono',
-          layout === 'split' ? 'grid grid-cols-2' : 'flex flex-wrap gap-x-4',
+          'shrink-0 border-b font-mono text-[11px]',
+          layout === 'split' ? 'grid grid-cols-2' : 'flex min-w-0 items-center',
         )}
       >
         <SideName name={original.name} side="removed" />
+        {layout === 'unified' && (
+          <IconArrowRight
+            aria-hidden
+            className="size-3 shrink-0 text-muted-foreground"
+          />
+        )}
         <SideName
           name={changed.name}
           side="added"
           className={layout === 'split' ? 'border-l' : undefined}
         />
       </div>
-      <MergeHost
-        texts={texts}
-        languageA={languageOf(original.name, texts.a)}
-        languageB={languageOf(changed.name, texts.b)}
-        layout={layout}
-        onChunks={setChunks}
-      />
+      {changes ? (
+        <DiffBody
+          diff={rows}
+          a={fileDiff.a}
+          b={fileDiff.b}
+          syntaxA={syntaxA}
+          syntaxB={syntaxB}
+          layout={layout}
+          wrap={wrap}
+          label={m.compare_lines()}
+          onReveal={onReveal}
+          navRef={nav}
+        />
+      ) : (
+        <Empty className="flex-1">
+          <EmptyHeader>
+            <EmptyTitle>{m.compare_no_changes()}</EmptyTitle>
+            <EmptyDescription>
+              {ignoreFormatting || ignoreWhitespace
+                ? m.compare_identical_ignoring()
+                : m.compare_identical()}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
     </section>
+  )
+}
+
+/** `+12 −4` and five squares, as GitHub sums up a file's changes. */
+function Stats({
+  added,
+  removed,
+  changes,
+}: {
+  added: number
+  removed: number
+  changes: number
+}) {
+  const squares = diffStat(added, removed)
+  return (
+    <span aria-live="polite" className="flex shrink-0 items-center gap-2">
+      <span className="sr-only">
+        {changes
+          ? m.compare_stats({ added, removed, count: changes })
+          : m.compare_no_changes()}
+      </span>
+      <span aria-hidden className="flex items-center gap-1.5 font-mono">
+        <span className="font-medium text-(--hl-green)">+{added}</span>
+        <span className="font-medium text-destructive">−{removed}</span>
+        <span className="flex gap-px">
+          {Array.from({ length: 5 }, (_, i) => (
+            <span
+              key={i}
+              className={cn(
+                'size-2 rounded-[1px]',
+                i < squares.added
+                  ? 'bg-(--hl-green)'
+                  : i < squares.added + squares.removed
+                    ? 'bg-destructive'
+                    : 'bg-muted-foreground/25',
+              )}
+            />
+          ))}
+        </span>
+      </span>
+      <span aria-hidden className="max-sm:hidden">
+        {changes
+          ? m.compare_changes({ count: changes })
+          : m.compare_no_changes()}
+      </span>
+    </span>
+  )
+}
+
+/** Side by side or in one column, kept for the next comparison. */
+function LayoutToggle({ layout }: { layout: DiffLayout }) {
+  return (
+    <ToggleGroup
+      type="single"
+      size="sm"
+      spacing={0}
+      value={layout}
+      onValueChange={(value) => {
+        if (value) setDiffLayout(value as DiffLayout)
+      }}
+      aria-label={m.compare_layout()}
+      className="mr-1"
+    >
+      <ToggleGroupItem
+        value="split"
+        className="h-6 gap-1.5 px-2 text-[11px] font-normal"
+      >
+        <IconLayoutColumns className="size-3.5" />
+        {m.compare_split()}
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="unified"
+        className="h-6 gap-1.5 px-2 text-[11px] font-normal"
+      >
+        <IconLayoutRows className="size-3.5" />
+        {m.compare_unified()}
+      </ToggleGroupItem>
+    </ToggleGroup>
   )
 }
 
@@ -212,59 +448,5 @@ function SideName({
       />
       <span className="truncate">{name}</span>
     </div>
-  )
-}
-
-function MergeHost({
-  texts,
-  languageA,
-  languageB,
-  layout,
-  onChunks,
-}: {
-  texts: CompareTexts
-  languageA: DocLanguage
-  languageB: DocLanguage
-  layout: Layout
-  onChunks: (count: number) => void
-}) {
-  const hostRef = useRef<HTMLDivElement>(null)
-  const handleRef = useRef<CompareHandle | null>(null)
-  const latest = useRef(texts)
-
-  // Later edits go through `update`, which keeps scroll and selection.
-  useEffect(() => {
-    latest.current = texts
-    handleRef.current?.update(texts.a, texts.b)
-  }, [texts])
-
-  // Wrapping follows the editor's setting; new views read it on creation.
-  const wrap = useSelector(editorPrefs, (s) => s.wordWrap)
-  useEffect(() => {
-    handleRef.current?.setWordWrap(wrap)
-  }, [wrap])
-
-  useEffect(() => {
-    const { a, b } = latest.current
-    const handle = createCompare(
-      hostRef.current!,
-      { text: a, language: languageA },
-      { text: b, language: languageB },
-      layout,
-      onChunks,
-    )
-    handleRef.current = handle
-    if (layout === 'split') handle.focus()
-    return () => {
-      handle.destroy()
-      handleRef.current = null
-    }
-  }, [languageA, languageB, layout, onChunks])
-
-  return (
-    <div
-      ref={hostRef}
-      className="min-h-0 flex-1 overflow-hidden [&_.cm-mergeView]:h-full [&_.cm-mergeViewEditor+.cm-mergeViewEditor]:border-l"
-    />
   )
 }

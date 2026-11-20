@@ -8,6 +8,19 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.70.0] - 2026-11-19
+
+### Added
+
+- Right-click a tab and pick “Compare with” to compare it with any other open tab.
+- Jump from one change to the next with the arrows in the comparison bar, or F7 and ⇧F7.
+- Swap sides to read the other file as the original, and hide whitespace changes from the comparison's options, next to “Ignore formatting”.
+
+### Changed
+
+- Comparing two tabs looks like a git diff: changes are grouped into hunks under an `@@ -12,7 +12,8 @@` header, with both line numbers in the margin, `+` and `-` signs, the changed words marked and three unchanged lines around each change. The arrows on a hunk's header show the lines hidden between hunks, 20 at a time.
+- The comparison bar sums up the changes as `+12 −4` with five squares, as GitHub does. Switch between Split and Unified there; the choice is kept for the next comparison.
+
 ## [1.69.0] - 2026-11-18
 
 ### Added

@@ -24,7 +24,7 @@ import { folderPath } from '#/lib/store/folders'
 import { FileIcon } from './FileIcon'
 import { notify } from './notice-store'
 import { setSettingsActive } from './settings-tab'
-import { setCompareId } from './ui-store'
+import { endCompare } from './ui-store'
 import { focusFileView } from '#/components/editor/editor-store'
 import {
   Command,
@@ -76,7 +76,7 @@ export async function openSearchMatch(hit: FileMatch) {
     return
   }
   setSettingsActive(false)
-  setCompareId(null)
+  endCompare()
   setActive(fileId)
   // A view hidden behind Settings or a comparison can already be registered.
   // Let the pane reveal it before trying to focus it.

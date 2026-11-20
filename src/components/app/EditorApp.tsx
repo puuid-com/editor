@@ -17,7 +17,7 @@ import {
 import { settingsPane, settingsTab } from './settings-tab'
 import { StatusBar } from './StatusBar'
 import { useAppShortcuts } from './use-app-shortcuts'
-import { setCompareId, uiStore } from './ui-store'
+import { endCompare, uiStore } from './ui-store'
 import { DraftControls, DraftPane } from './DraftPane'
 import { MixedWorkspace } from './MixedWorkspace'
 import { editorPrefs } from '#/components/editor/word-wrap'
@@ -80,19 +80,19 @@ export function EditorApp() {
     if (inUse) keepWorkspaceSafe()
   }, [inUse])
 
-  // A comparison belongs to the tab it was opened from, and needs the other
-  // tab to stay open.
-  const storedCompareId = useSelector(uiStore, (s) => s.compareId)
+  // A comparison belongs to the tab it was opened for, ends when another tab
+  // is picked, and needs the other tab to stay open.
+  const compare = useSelector(uiStore, (s) => s.compare)
   const compareId =
-    storedCompareId &&
-    storedCompareId !== activeId &&
-    files.some((f) => f.id === storedCompareId)
-      ? storedCompareId
+    compare &&
+    compare.fileId === activeId &&
+    compare.otherId !== activeId &&
+    files.some((f) => f.id === compare.otherId)
+      ? compare.otherId
       : null
-  useEffect(() => setCompareId(null), [activeId])
   useEffect(() => {
-    if (storedCompareId && !compareId) setCompareId(null)
-  }, [storedCompareId, compareId])
+    if (compare && !compareId) endCompare()
+  }, [compare, compareId])
 
   // Browsers that can write back to the file open it with a handle.
   const openFromDisk = () => {

@@ -8,6 +8,10 @@ import type { PanelSide } from '#/lib/panel-side'
 
 const AUTO_SIDE = 'auto' as PanelSide
 
+export type DiffLayout = 'split' | 'unified'
+
+const SPLIT = 'split' as DiffLayout
+
 // Editor preferences shared by every file and kept across reloads.
 export const editorPrefs = persistedStore(
   'editor-preferences',
@@ -25,6 +29,8 @@ export const editorPrefs = persistedStore(
     sidebarRight: true,
     /** Where the structure, preview and label panels sit beside the code. */
     panelSide: AUTO_SIDE,
+    /** Comparisons side by side, or in one column, where there's room. */
+    diffLayout: SPLIT,
   },
   { undoable: true },
 )
@@ -47,6 +53,11 @@ export function setSidebarRight(right: boolean) {
 /** Docks the side panel on an edge of the code, or by the room there is. */
 export function setPanelSide(panelSide: PanelSide) {
   editorPrefs.setState((s) => ({ ...s, panelSide }))
+}
+
+/** Shows comparisons side by side or in one column. */
+export function setDiffLayout(diffLayout: DiffLayout) {
+  editorPrefs.setState((s) => ({ ...s, diffLayout }))
 }
 
 /** Moves the sidebar to the other side of the sheet. */

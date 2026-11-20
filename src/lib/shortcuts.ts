@@ -39,6 +39,9 @@ export const shortcuts = {
   previousTab: { hotkey: 'Control+ArrowLeft', keys: ['⌃', '←'] },
   nextTab: { hotkey: 'Control+ArrowRight', keys: ['⌃', '→'] },
   tabList: { hotkey: 'Mod+Shift+A', keys: ['⇧', mod, 'A'] },
+  // As in VS Code's diff editor.
+  nextChange: { hotkey: 'F7', keys: ['F7'] },
+  previousChange: { hotkey: 'Shift+F7', keys: ['⇧', 'F7'] },
 } satisfies Record<string, Shortcut>
 
 /** ⌥⌘1 to ⌥⌘9 switch the current file to the profile in that position. */

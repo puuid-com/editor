@@ -35,10 +35,20 @@ interface UiState {
   restorePreview: RestorePreview | null
   /** Variable whose value is being set from the editor. */
   variableName: string | null
-  /** Tab the active file is being compared with, shown in place of the editor. */
-  compareId: string | null
+  /** A file compared with another tab, shown in place of its editor. */
+  compare: CompareTarget | null
+  /** The other tab reads as the new side instead of the original. */
+  compareSwapped: boolean
   /** Format both sides before comparing, so only the data differs. */
   compareIgnoreFormatting: boolean
+  /** Lines that differ only in spaces and tabs count as unchanged. */
+  compareIgnoreWhitespace: boolean
+}
+
+/** `fileId`, while it's the active file, compared with tab `otherId`. */
+interface CompareTarget {
+  fileId: string
+  otherId: string
 }
 
 /** The filled-in copy of `fileId`, computed up front so the dialog shows its values. */
@@ -99,8 +109,10 @@ export const uiStore = new Store<UiState>({
   deleteProfileId: null,
   restorePreview: null,
   variableName: null,
-  compareId: null,
+  compare: null,
+  compareSwapped: false,
   compareIgnoreFormatting: false,
+  compareIgnoreWhitespace: false,
 })
 
 /** A function that sets one field of the store. */
@@ -122,9 +134,27 @@ export const setPasteChoice = setter('pasteChoice')
 export const askDeleteProfile = setter('deleteProfileId')
 export const setRestorePreview = setter('restorePreview')
 export const askVariableValue = setter('variableName')
-/** Compares the active file with `compareId`, or closes the comparison. */
-export const setCompareId = setter('compareId')
 export const setCompareIgnoreFormatting = setter('compareIgnoreFormatting')
+export const setCompareIgnoreWhitespace = setter('compareIgnoreWhitespace')
+
+/** Compares `fileId` with tab `otherId`, the other tab as the original. */
+export function openCompare(fileId: string, otherId: string) {
+  uiStore.setState((s) => ({
+    ...s,
+    compare: { fileId, otherId },
+    compareSwapped: false,
+  }))
+}
+
+/** Ends the comparison, if one is open. */
+export function endCompare() {
+  uiStore.setState((s) => (s.compare ? { ...s, compare: null } : s))
+}
+
+/** Trades which side reads as the original. */
+export function swapCompare() {
+  uiStore.setState((s) => ({ ...s, compareSwapped: !s.compareSwapped }))
+}
 
 /** Closes one tab, or several. Nothing is lost, so nothing is asked. */
 export function closeTab(ids: string | Array<string>) {

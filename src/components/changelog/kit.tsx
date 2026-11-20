@@ -295,6 +295,65 @@ export function Code({
   )
 }
 
+/* ---------------- Diff ---------------- */
+
+export type DiffKitLine =
+  | { hunk: string }
+  | { sign: ' ' | '+' | '-'; a?: number; b?: number; line: Line }
+
+const DIFF_TONE = { ' ': '', '+': 'bg-(--hl-green)/10', '-': 'bg-(--hl-red)/8' }
+const DIFF_NUMBER = {
+  ' ': 'text-(--syntax-gutter)',
+  '+': 'bg-(--hl-green)/18 text-foreground/70',
+  '-': 'bg-(--hl-red)/14 text-foreground/70',
+}
+
+/** A unified diff as the compare view shows it: hunk headers, both numbers, signs. */
+export function DiffLines({ lines }: { lines: Array<DiffKitLine> }) {
+  return (
+    <div className="font-mono text-[11px] leading-5">
+      {lines.map((item) =>
+        'hunk' in item ? (
+          <div
+            key={item.hunk}
+            className="flex bg-muted/70 text-muted-foreground"
+          >
+            <span className="w-17 shrink-0 bg-muted text-center">↕</span>
+            <span className="px-2 whitespace-pre">{item.hunk}</span>
+          </div>
+        ) : (
+          <div
+            key={`${item.sign}${item.a ?? ''}:${item.b ?? ''}`}
+            className={cn(
+              'grid grid-cols-[2rem_2rem_1rem_minmax(0,1fr)]',
+              DIFF_TONE[item.sign],
+            )}
+          >
+            <span className={cn('pr-2 text-right', DIFF_NUMBER[item.sign])}>
+              {item.a}
+            </span>
+            <span className={cn('pr-2 text-right', DIFF_NUMBER[item.sign])}>
+              {item.b}
+            </span>
+            <span
+              className={cn(
+                'text-center',
+                item.sign === '+' && 'text-(--hl-green)',
+                item.sign === '-' && 'text-(--hl-red)',
+              )}
+            >
+              {item.sign}
+            </span>
+            <span className="truncate whitespace-pre">
+              {typeof item.line === 'string' ? xml(item.line) : item.line}
+            </span>
+          </div>
+        ),
+      )}
+    </div>
+  )
+}
+
 /* ---------------- Chrome ---------------- */
 
 /** A tab strip: browser-style tabs on a muted band, as the editor has them. */

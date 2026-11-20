@@ -60,7 +60,8 @@ import {
   askDeleteProfile,
   askRename,
   setArchiveOpen,
-  setCompareId,
+  endCompare,
+  openCompare,
   setPalette,
   setProfileDialog,
   setShareOpen,
@@ -205,7 +206,7 @@ function FileCommands({
   const [search, setSearch] = useState('')
   // "Compare with…" and "Change type" open a second page of choices.
   const [page, setPage] = useState<Page>('root')
-  const comparing = useSelector(uiStore, (s) => s.compareId !== null)
+  const comparing = useSelector(uiStore, (s) => s.compare !== null)
   const activeFile = files.find((f) => f.id === activeId)
   // Opens on the command run last, so repeating it is just ↵.
   const [value, setValue] = useState(readLastCommand)
@@ -271,7 +272,9 @@ function FileCommands({
                 <CommandItem
                   key={file.id}
                   value={`${file.name} ${file.id}`}
-                  onSelect={() => run(() => setCompareId(file.id))}
+                  onSelect={() =>
+                    run(() => openCompare(activeFile.id, file.id))
+                  }
                 >
                   <IconGitCompare />
                   <span className="truncate font-mono">{file.name}</span>
@@ -510,7 +513,7 @@ function CurrentFile({
           </CommandItem>
         )}
         {comparing && (
-          <CommandItem onSelect={() => run(() => setCompareId(null))}>
+          <CommandItem onSelect={() => run(endCompare)}>
             <IconGitCompare />
             {m.compare_close()}
             <CommandShortcut>Esc</CommandShortcut>

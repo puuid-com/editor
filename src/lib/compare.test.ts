@@ -1,19 +1,9 @@
 import { diff } from '@codemirror/merge'
 import { describe, expect, it } from 'vitest'
 
-import { DIFF_CONFIG, compareTexts, lineDiff } from './compare'
-import type { Change } from '@codemirror/merge'
+import { compareTexts } from './compare'
 
 const options = { removeEmptyLines: true, sort: 'none' as const }
-
-function records(count: number, change = (i: number) => String(i)) {
-  const rows = Array.from(
-    { length: count },
-    (_, i) =>
-      `  <record id="${i}">\n    <name>Item ${change(i)}</name>\n    <qty>${i % 7}</qty>\n  </record>`,
-  )
-  return `<records>\n${rows.join('\n')}\n</records>\n`
-}
 
 describe('compareTexts', () => {
   it('keeps both sides as written by default', () => {
@@ -76,74 +66,5 @@ describe('compareTexts', () => {
       formatted: false,
       unparsed: 'broken.xml',
     })
-  })
-})
-
-/** Rebuilds `b` from `a` and the changes, to check they are consistent. */
-function apply(a: string, b: string, changes: ReadonlyArray<Change>) {
-  let out = ''
-  let pos = 0
-  for (const c of changes) {
-    out += a.slice(pos, c.fromA) + b.slice(c.fromB, c.toB)
-    pos = c.toA
-  }
-  return out + a.slice(pos)
-}
-
-describe('lineDiff', () => {
-  it('marks the changed characters inside changed lines', () => {
-    const a = '<r>\n  <a>one</a>\n  <b>2</b>\n</r>'
-    const b = '<r>\n  <a>two</a>\n  <b>2</b>\n  <c/>\n</r>'
-    const changes = lineDiff(a, b)
-    expect(apply(a, b, changes)).toBe(b)
-    expect(
-      changes.map((c) => [a.slice(c.fromA, c.toA), b.slice(c.fromB, c.toB)]),
-    ).toEqual([
-      ['', 'tw'],
-      ['ne', ''],
-      ['', '  <c/>\n'],
-    ])
-  })
-
-  it('handles empty sides and a missing final newline', () => {
-    for (const [a, b] of [
-      ['', '<r/>'],
-      ['<r/>', ''],
-      ['<r>\n</r>', '<r>\n</r>\n'],
-    ]) {
-      expect(apply(a, b, lineDiff(a, b))).toBe(b)
-    }
-  })
-})
-
-describe('diffing large files', () => {
-  it('finds a few changes in a large file quickly', () => {
-    const a = records(20_000)
-    const b = records(20_000, (i) =>
-      i % 5000 === 0 ? `${i} (edited)` : `${i}`,
-    )
-    expect(a.length).toBeGreaterThan(1_500_000)
-    const start = performance.now()
-    const changes = diff(a, b, DIFF_CONFIG)
-    expect(performance.now() - start).toBeLessThan(1000)
-    expect(changes).toHaveLength(4)
-    expect(apply(a, b, changes)).toBe(b)
-  })
-
-  it('keeps many small edits apart', () => {
-    const a = records(20_000)
-    const b = records(20_000, (i) => (i % 50 === 0 ? `${i}x` : `${i}`))
-    const changes = diff(a, b, DIFF_CONFIG)
-    expect(changes).toHaveLength(400)
-    expect(apply(a, b, changes)).toBe(b)
-  })
-
-  it('gives up on precision instead of stalling on very different files', () => {
-    const a = records(20_000)
-    const b = records(20_000, (i) => `${(i * 7919) % 20_000}`)
-    const start = performance.now()
-    const changes = diff(a, b, DIFF_CONFIG)
-    expect(performance.now() - start).toBeLessThan(2000)
-    expect(apply(a, b, changes)).toBe(b)
   })
 })

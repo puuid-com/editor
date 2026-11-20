@@ -237,7 +237,7 @@ const theme = EditorView.theme({
   '.cm-sql-column': { color: 'var(--sql-column)' },
 })
 
-const highlightStyle = HighlightStyle.define([
+export const highlightStyle = HighlightStyle.define([
   // Leaf colour; tags that contain elements are re-inked by `parentTags`.
   { tag: t.tagName, color: 'var(--syntax-leaf)' },
   { tag: t.attributeName, color: 'var(--syntax-attr)' },

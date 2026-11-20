@@ -64,6 +64,7 @@ import {
   BeforeAfter,
   Chip,
   Code,
+  DiffLines,
   Figure,
   NewTab,
   PillTab,
@@ -5376,7 +5377,95 @@ function VarsOff() {
   return <BeforeAfter before={line(true)} after={line(false)} />
 }
 
+function GitDiff() {
+  const status = (value: string, sign: '+' | '-') => (
+    <span>
+      {'  '}
+      <Syn k="punct">{'<'}</Syn>
+      <Syn k="leaf">status</Syn>
+      <Syn k="punct">{'>'}</Syn>
+      <span
+        className={cn(
+          'rounded-xs text-foreground',
+          sign === '+' ? 'bg-(--hl-green)/35' : 'bg-(--hl-red)/28',
+        )}
+      >
+        {value}
+      </span>
+      <Syn k="punct">{'</'}</Syn>
+      <Syn k="leaf">status</Syn>
+      <Syn k="punct">{'>'}</Syn>
+    </span>
+  )
+  const names = (
+    <div className="flex h-7 items-center gap-2 border-b px-3 font-mono text-[11px]">
+      <span className="h-3 w-0.5 bg-(--hl-red)" />
+      orders.xml
+      <span className="text-muted-foreground">→</span>
+      <span className="h-3 w-0.5 bg-(--hl-green)" />
+      orders-v2.xml
+    </div>
+  )
+  const before = (
+    <>
+      <div className="flex h-8 items-center gap-2 border-b px-3 whitespace-nowrap text-muted-foreground">
+        <span className="truncate text-foreground">orders.xml</span>
+        <span>↔</span>
+        <span className="truncate text-foreground">orders-v2.xml</span>
+        <div className="flex-1" />
+        <span>{m.compare_changes({ count: 1 })}</span>
+      </div>
+      <div className="grid grid-cols-2 divide-x">
+        <Code
+          lines={[ORDER[0], ORDER[1], ORDER[2].replace('shipped', 'pending')]}
+          marks={{ 2: 'remove' }}
+        />
+        <Code lines={[ORDER[0], ORDER[1], ORDER[2]]} marks={{ 2: 'add' }} />
+      </div>
+    </>
+  )
+  const after = (
+    <>
+      <div className="flex h-8 items-center gap-1.5 border-b px-3 font-mono text-[11px]">
+        <span className="font-medium text-(--hl-green)">+1</span>
+        <span className="font-medium text-(--hl-red)">−1</span>
+        <span className="flex gap-px">
+          {[
+            'bg-(--hl-green)',
+            'bg-(--hl-green)',
+            'bg-(--hl-red)',
+            'bg-(--hl-red)',
+            'bg-muted-foreground/25',
+          ].map((tone, i) => (
+            <span key={i} className={cn('size-2 rounded-[1px]', tone)} />
+          ))}
+        </span>
+        <div className="flex-1" />
+        <span className="flex font-sans text-muted-foreground">
+          <span className="rounded-md px-2 py-0.5">{m.compare_split()}</span>
+          <span className="rounded-md bg-muted px-2 py-0.5 text-foreground">
+            {m.compare_unified()}
+          </span>
+        </span>
+      </div>
+      {names}
+      <DiffLines
+        lines={[
+          { hunk: '@@ -1,4 +1,4 @@' },
+          { sign: ' ', a: 1, b: 1, line: ORDER[0] },
+          { sign: ' ', a: 2, b: 2, line: ORDER[1] },
+          { sign: '-', a: 3, line: status('pending', '-') },
+          { sign: '+', b: 3, line: status('shipped', '+') },
+          { sign: ' ', a: 4, b: 4, line: ORDER[3] },
+        ]}
+      />
+    </>
+  )
+  return <BeforeAfter before={before} after={after} />
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.70.0': figure(GitDiff),
   '1.69.0': figure(VarsOff),
   '1.68.1': figure(SearchTypingPause),
   '1.68.0': figure(FindInAllFiles),
