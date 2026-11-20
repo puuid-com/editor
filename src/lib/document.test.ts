@@ -81,6 +81,13 @@ describe('languageOf', () => {
   it('reads an untitled file that starts with a heading as Markdown', () => {
     expect(languageOf('untitled', '# Title')).toBe('md')
   })
+
+  it('reads an untitled file of plain text as Markdown', () => {
+    expect(languageOf('untitled', 'hello there')).toBe('md')
+    expect(languageOf('untitled', '<order/>')).toBe('xml')
+    expect(languageOf('untitled', '{"a": 1}')).toBe('json')
+    expect(languageOf('untitled', '')).toBe('xml')
+  })
 })
 
 describe('isPlain', () => {

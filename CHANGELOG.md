@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.71.0] - 2026-11-19
+
+### Changed
+
+- Plain text that isn't JSON or XML opens as a Markdown note. Pasting it into an untitled file names it `untitled.md`.
+
 ## [1.70.1] - 2026-11-19
 
 ### Fixed

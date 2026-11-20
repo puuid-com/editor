@@ -54,6 +54,12 @@ describe('askPasteChoice', () => {
     await expect.poll(() => filesCollection.get(id)?.name).toBe('Untitled.json')
   })
 
+  it('makes plain text pasted in an untitled file a note', async () => {
+    const id = paste('Untitled', 'hello there')
+    expect(offer()).toBeNull()
+    await expect.poll(() => filesCollection.get(id)?.name).toBe('Untitled.md')
+  })
+
   it('clears an earlier offer when a later paste needs none', () => {
     paste('first.xml', '{"a": 1}')
     paste('second.xml', '<b/>')

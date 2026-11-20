@@ -21,9 +21,11 @@ export function askPasteChoice(fileId: string, text: string) {
     void setFileType(fileId, detected)
     return
   }
-  // Notes and plain text take any text, so there is nothing to ask.
+  // Notes and plain text take any text, so there is nothing to ask. A file
+  // with no type of its own becomes a note.
   if (!detected && (current === 'md' || current === 'txt')) {
     setPasteChoice(null)
+    if (current === 'md') void setFileType(fileId, 'md')
     return
   }
   const language = detected ?? current

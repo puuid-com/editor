@@ -5474,7 +5474,34 @@ function GitDiff() {
   return <BeforeAfter before={before} after={after} />
 }
 
+const NOTE = ['Call the carrier', 'Ship order 4821 on Friday']
+
+function PlainTextNote() {
+  return (
+    <BeforeAfter
+      className="flex flex-col"
+      before={
+        <>
+          <Tabs>
+            <Tab name={m.file_untitled()} active />
+          </Tabs>
+          <Code lines={NOTE} format={(line) => line} />
+        </>
+      }
+      after={
+        <>
+          <Tabs>
+            <Tab name={m.file_untitled_md()} active />
+          </Tabs>
+          <Code lines={NOTE} format={(line) => line} />
+        </>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.71.0': figure(PlainTextNote),
   '1.70.0': figure(GitDiff),
   '1.69.0': figure(VarsOff),
   '1.68.1': figure(SearchTypingPause),

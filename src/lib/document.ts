@@ -35,7 +35,10 @@ const MD_START = /^\s*#{1,6}[ \t]+\S/
 const SQL_START =
   /^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*(select|with|insert|update|delete|merge|create|alter|drop|truncate)\b/i
 
-/** By extension, else by the first character of the content. */
+/**
+ * By extension, else by the content: JSON or XML by the first character, and
+ * any other text as Markdown.
+ */
 export function languageOf(name: string, content: string): DocLanguage {
   if (isImageData(content) || (imageMime(name) && !/\.svg$/i.test(name)))
     return 'image'
@@ -49,7 +52,9 @@ export function languageOf(name: string, content: string): DocLanguage {
   if (EXT.txt.test(name)) return 'txt'
   if (SQL_START.test(content)) return 'sql'
   if (MD_START.test(content)) return 'md'
-  return /^\s*[[{]/.test(content) ? 'json' : 'xml'
+  if (/^\s*[[{]/.test(content)) return 'json'
+  // Text that reads as neither JSON nor XML is taken as Markdown.
+  return content.trim() === '' || /^\s*</.test(content) ? 'xml' : 'md'
 }
 
 /** The language `content` reads as on its own, or null when nothing gives it away. */
