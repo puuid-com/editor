@@ -47,6 +47,7 @@ import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
 import { diffChange } from '#/lib/xml/edit'
 import { allElements, elementAt } from '#/lib/xml/locate'
+import { removePrefix, tagPrefixes } from '#/lib/xml/prefixes'
 import { hasName, isLeaf, leafValue } from '#/lib/xml/model'
 import { convertVars } from '#/lib/xml/vars'
 import type { VarStyle } from '#/lib/xml/vars'
@@ -90,7 +91,6 @@ export function formatActive() {
     removeEmptyLines,
     joinLines,
     trimVars,
-    stripPrefixes,
     sort,
     customOrder,
     highlightedFirst,
@@ -106,7 +106,6 @@ export function formatActive() {
     joinLines,
     trimVars,
     vars: activeVars(),
-    stripPrefixes,
     sort,
     order: customOrder,
     first,
@@ -187,6 +186,25 @@ export function commitDefaultsActive() {
   if (changes.length === 0) return
   view.dispatch({ changes, userEvent: 'input.defaults' })
   notify.success(m.defaults_applied({ count: changes.length }))
+}
+
+/** Tag prefixes in the active XML file, with how many tags use each. */
+export function activeTagPrefixes() {
+  if (activeLanguage() !== 'xml') return []
+  return tagPrefixes(parseActive().nodes)
+}
+
+/** Drops `prefix:` from every tag in the active XML file, as one undo step. */
+export function removePrefixActive(prefix: string) {
+  const view = getView()
+  if (!view || activeLanguage() !== 'xml') return
+  const { changes, count } = removePrefix(parseActive().nodes, prefix)
+  if (count === 0) {
+    notify.info(m.prefix_none())
+    return
+  }
+  view.dispatch({ changes, userEvent: 'input.prefix' })
+  notify.success(m.prefix_removed({ prefix, count }))
 }
 
 /**

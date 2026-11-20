@@ -31,6 +31,7 @@ import {
   IconPencil,
   IconPlus,
   IconReplace,
+  IconTagMinus,
   IconTrash,
   IconUserCircle,
   IconEyeEdit,
@@ -56,6 +57,7 @@ import {
 } from './files'
 import { openFolder } from './disk-workspace'
 import { readLastCommand, saveLastCommand } from './last-command'
+import { readLastPrefix, saveLastPrefix } from './last-prefix'
 import { openSettings } from './settings-tab'
 import {
   askDeleteProfile,
@@ -69,12 +71,14 @@ import {
   uiStore,
 } from './ui-store'
 import {
+  activeTagPrefixes,
   applyDefaultsActive,
   copyActive,
   downloadFile,
   highlightAtCursor,
   historyDepth,
   redoActive,
+  removePrefixActive,
   resolveVarsActive,
   undoActive,
 } from '#/components/editor/actions'
@@ -233,9 +237,14 @@ function FileCommands({
     requestAnimationFrame(fn)
   }
 
-  const openPage = (next: Page) => {
+  const openPage = (next: Page, initial = '') => {
     setPage(next)
-    setSearch('')
+    setSearch(initial)
+    if (!initial) return
+    // Selected, so ↵ runs it again and typing replaces it.
+    requestAnimationFrame(() =>
+      root.current?.querySelector<HTMLInputElement>('[cmdk-input]')?.select(),
+    )
   }
 
   return (
@@ -257,13 +266,17 @@ function FileCommands({
             ? m.compare_placeholder()
             : page === 'type'
               ? m.file_type_placeholder()
-              : m.palette_placeholder()
+              : page === 'prefix'
+                ? m.prefix_placeholder()
+                : m.palette_placeholder()
         }
         value={search}
         onValueChange={setSearch}
       />
       <CommandList className="h-[min(26rem,60vh)] max-h-none">
-        <CommandEmpty>{m.palette_empty()}</CommandEmpty>
+        <CommandEmpty>
+          {page === 'prefix' ? m.prefix_none() : m.palette_empty()}
+        </CommandEmpty>
         {page === 'compare' && activeFile && (
           <CommandGroup
             heading={m.compare_with_heading({ name: activeFile.name })}
@@ -292,6 +305,15 @@ function FileCommands({
             }
           />
         )}
+        {page === 'prefix' && activeFile && (
+          <PrefixCommands
+            name={activeFile.name}
+            onSelect={(prefix) => {
+              saveLastPrefix(`${prefix}:`)
+              run(() => removePrefixActive(prefix))
+            }}
+          />
+        )}
         {page === 'root' && (
           <RootCommands
             files={files}
@@ -305,6 +327,10 @@ function FileCommands({
             onChangeType={() => {
               saveLastCommand(value)
               openPage('type')
+            }}
+            onRemovePrefix={() => {
+              saveLastCommand(value)
+              openPage('prefix', readLastPrefix())
             }}
             onOpenFromDisk={onOpenFromDisk}
           />
@@ -329,7 +355,37 @@ function FileCommands({
   )
 }
 
-type Page = 'root' | 'compare' | 'type'
+type Page = 'root' | 'compare' | 'type' | 'prefix'
+
+/** The tag prefixes in the active file, to pick the one to remove. */
+function PrefixCommands({
+  name,
+  onSelect,
+}: {
+  name: string
+  onSelect: (prefix: string) => void
+}) {
+  // Read as the page opens; nothing edits the file while it is open.
+  const [prefixes] = useState(activeTagPrefixes)
+  if (prefixes.length === 0) return null
+  return (
+    <CommandGroup heading={m.prefix_heading({ name })}>
+      {prefixes.map(({ prefix, count }) => (
+        <CommandItem
+          key={prefix}
+          value={`${prefix}:`}
+          onSelect={() => onSelect(prefix)}
+        >
+          <IconTagMinus />
+          <span className="truncate font-mono">{prefix}:</span>
+          <CommandShortcut className="tracking-normal tabular-nums">
+            {m.highlight_matches({ count })}
+          </CommandShortcut>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  )
+}
 
 /** The types the active file can be read as, its current one checked. */
 function TypeCommands({
@@ -370,6 +426,7 @@ function RootCommands({
   run,
   onCompare,
   onChangeType,
+  onRemovePrefix,
   onOpenFromDisk,
 }: {
   files: Array<WorkspaceFile>
@@ -378,6 +435,7 @@ function RootCommands({
   run: Run
   onCompare: () => void
   onChangeType: () => void
+  onRemovePrefix: () => void
   onOpenFromDisk: () => void
 }) {
   return (
@@ -393,7 +451,7 @@ function RootCommands({
             onCompare={onCompare}
             onChangeType={onChangeType}
           />
-          <Edit run={run} />
+          <Edit run={run} onRemovePrefix={onRemovePrefix} />
           <Profiles run={run} />
         </>
       )}
@@ -532,11 +590,18 @@ function CurrentFile({
   )
 }
 
-function Edit({ run }: { run: Run }) {
+function Edit({
+  run,
+  onRemovePrefix,
+}: {
+  run: Run
+  onRemovePrefix: () => void
+}) {
   // Read as the menu opens; nothing edits the file while it is open.
   const [depth] = useState(historyDepth)
   // SQL, ZPL, Markdown and text files have no tags, defaults or variables to act on.
   const formatOnly = useSelector(editorStore, (s) => isPlain(s.doc.language))
+  const xml = useSelector(editorStore, (s) => s.doc.language === 'xml')
   return (
     <>
       <CommandSeparator />
@@ -585,6 +650,15 @@ function Edit({ run }: { run: Run }) {
               </CommandShortcut>
             </CommandItem>
           </>
+        )}
+        {xml && (
+          <CommandItem
+            keywords={[m.prefix_keywords()]}
+            onSelect={onRemovePrefix}
+          >
+            <IconTagMinus />
+            {m.prefix_remove()}
+          </CommandItem>
         )}
       </CommandGroup>
     </>

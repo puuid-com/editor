@@ -48,6 +48,7 @@ import {
   IconReplace,
   IconSchema,
   IconSearch,
+  IconTagMinus,
   IconSelector,
   IconShare,
   IconTag,
@@ -5581,7 +5582,47 @@ function ShortcutList() {
   )
 }
 
+/** The command menu's prefix page, opened on the last prefix removed. */
+function RemovePrefix() {
+  return (
+    <Shot className="mx-auto w-full max-w-lg">
+      <div className="flex items-center gap-2 border-b px-3 py-2 font-mono">
+        <IconSearch className="size-4 text-muted-foreground" />
+        <span className="bg-primary/15">soap:</span>
+      </div>
+      <div className="p-1">
+        <div className="px-2 py-1.5 text-muted-foreground">
+          {m.prefix_heading({ name: 'order.xml' })}
+        </div>
+        {[
+          ['soap', 6],
+          ['ns2', 14],
+        ].map(([prefix, count], i) => (
+          <div
+            key={prefix}
+            className={cn(
+              'flex items-center gap-2 rounded-md px-2 py-1.5',
+              i === 0 && 'bg-muted',
+            )}
+          >
+            <IconTagMinus className="size-4 text-muted-foreground" />
+            <span className="font-mono">{prefix}:</span>
+            <span className="ml-auto text-muted-foreground tabular-nums">
+              {m.highlight_matches({ count })}
+            </span>
+          </div>
+        ))}
+      </div>
+      <StatusBar>
+        <Kbd>↵</Kbd>
+        {m.prefix_remove()}
+      </StatusBar>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.73.0': figure(RemovePrefix),
   '1.72.0': figure(KeyCaps, ShortcutList),
   '1.71.0': figure(PlainTextNote),
   '1.70.0': figure(GitDiff),

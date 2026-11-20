@@ -31,7 +31,6 @@ describe('share links', () => {
         removeEmptyLines: true,
         joinLines: false,
         trimVars: false,
-        stripPrefixes: false,
         hideSoapNamespaces: false,
         shortenSoapUrls: false,
         sort: 'custom' as const,

@@ -9,7 +9,6 @@ export const formatSettingsSchema = z.object({
   trimVars: z.boolean(),
   /** Drop line breaks inside tag values when formatting XML. */
   joinLines: z.boolean().default(false),
-  stripPrefixes: z.boolean().default(false),
   /** Hide `xmlns` declarations on SOAP envelope tags in the editor. */
   hideSoapNamespaces: z.boolean().default(false),
   /** Show URLs on SOAP envelope tags as `…` until expanded. */
@@ -39,7 +38,6 @@ export const DEFAULT_FORMAT: FormatSettings = {
   removeEmptyLines: true,
   trimVars: false,
   joinLines: false,
-  stripPrefixes: false,
   hideSoapNamespaces: false,
   shortenSoapUrls: false,
   sort: 'none',

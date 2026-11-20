@@ -8,6 +8,16 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.73.0] - 2026-11-20
+
+### Added
+
+- Remove prefix…, in the command menu, drops one tag prefix, like `soap:`, from every tag in an XML file. It lists the prefixes the file uses and opens on the last one removed, so repeating it is just ↵.
+
+### Changed
+
+- The "Remove tag prefixes" format setting is gone: removing a prefix is now an action you run, one prefix at a time.
+
 ## [1.72.0] - 2026-11-19
 
 ### Added

@@ -63,13 +63,6 @@ function StructuredSwitches() {
         {m.format_trim_vars()}
       </SettingSwitch>
       <SettingSwitch
-        id="format-strip-prefixes"
-        checked={settings.stripPrefixes}
-        onCheckedChange={(v) => setFormatSetting('stripPrefixes', v)}
-      >
-        {m.format_strip_prefixes()}
-      </SettingSwitch>
-      <SettingSwitch
         id="format-hide-soap-namespaces"
         checked={settings.hideSoapNamespaces}
         onCheckedChange={(v) => setFormatSetting('hideSoapNamespaces', v)}

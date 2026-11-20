@@ -1,4 +1,3 @@
-import { allElements } from './locate'
 import { parseXml } from './parse'
 import { localName } from '#/lib/names'
 import { trimVar, varRegExp } from './vars'
@@ -22,8 +21,6 @@ export interface FormatOptions {
   trimVars?: boolean
   /** Off: the text has no variables, so `<<name>>` is read as written. */
   vars?: boolean
-  /** Rewrite `<ns:Body>` as `<Body>`. Attributes and `xmlns:` declarations stay. */
-  stripPrefixes?: boolean
   /**
    * Order sibling elements by tag name and attributes by name, prefixes
    * aside: `soap:Body` sorts as `Body`.
@@ -54,7 +51,6 @@ export function formatXml(
     joinLines = false,
     trimVars = false,
     vars = true,
-    stripPrefixes = false,
     sort = 'none',
     order: custom = [],
     first = [],
@@ -70,10 +66,6 @@ export function formatXml(
     if (retry.errors.length > 0) return { ok: false, errors: doc.errors }
     text = unwrapped
     doc = retry
-  }
-  if (stripPrefixes) {
-    text = withoutTagPrefixes(text, doc.nodes)
-    doc = parseXml(text, undefined, vars)
   }
 
   const lines: Array<string> = []
@@ -158,29 +150,6 @@ function unwrapXml(text: string) {
 }
 
 /** `text` with every tag name's prefix dropped: `</s:Body>` → `</Body>`. */
-function withoutTagPrefixes(text: string, nodes: Array<XmlNode>) {
-  const edits: Array<{ from: number; to: number; insert: string }> = []
-  for (const el of allElements(nodes)) {
-    const name = localName(el.name)
-    if (name === el.name) continue
-    edits.push({ from: el.nameFrom, to: el.nameTo, insert: name })
-    if (el.closeNameFrom !== null) {
-      const from = el.closeNameFrom
-      edits.push({ from, to: from + el.name.length, insert: name })
-    }
-  }
-  if (edits.length === 0) return text
-  edits.sort((a, b) => a.from - b.from)
-  const parts: Array<string> = []
-  let end = 0
-  for (const { from, to, insert } of edits) {
-    parts.push(text.slice(end, from), insert)
-    end = to
-  }
-  parts.push(text.slice(end))
-  return parts.join('')
-}
-
 type Compare = (a: string, b: string) => number
 
 /**
