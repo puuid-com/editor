@@ -1083,5 +1083,15 @@
   "panel_position": "Side panel position",
   "panel_position_auto": "Automatic",
   "panel_close": "Close side panel",
-  "panel_records": "Records"
+  "panel_records": "Records",
+  "shortcuts_title": "Keyboard shortcuts",
+  "shortcuts_description": "Every key the editor listens for. Editing shortcuts work while the cursor is in a file.",
+  "shortcuts_general": "General",
+  "shortcuts_tabs": "Tabs",
+  "shortcuts_compare": "Comparing tabs",
+  "shortcuts_save": "Save",
+  "shortcuts_tab_previous": "Previous tab",
+  "shortcuts_tab_next": "Next tab",
+  "shortcuts_panel_toggle": "Show or hide side panel",
+  "shortcuts_profile_at": "Switch to profile 1 to 9"
 }

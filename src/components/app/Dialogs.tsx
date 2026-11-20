@@ -15,6 +15,9 @@ import type { WorkspaceFile } from '#/hooks/use-files'
 const ArchiveDialog = lazyPart(() =>
   import('./on-demand').then((mod) => mod.ArchiveDialog),
 )
+const ShortcutsDialog = lazyPart(() =>
+  import('./on-demand').then((mod) => mod.ShortcutsDialog),
+)
 const CommandMenu = lazyPart(() =>
   import('./on-demand').then((mod) => mod.CommandMenu),
 )
@@ -79,6 +82,7 @@ export function Dialogs({
   const palette = useSelector(uiStore, (s) => s.palette)
   const rename = useSelector(uiStore, (s) => s.renameId !== null)
   const archive = useSelector(uiStore, (s) => s.archiveOpen)
+  const shortcutList = useSelector(uiStore, (s) => s.shortcutsOpen)
   const deleting = useSelector(uiStore, (s) => s.deleteIds !== null)
   const defaults = useSelector(uiStore, (s) => s.defaultsPreview !== null)
   const vars = useSelector(uiStore, (s) => s.varsPreview !== null)
@@ -102,6 +106,9 @@ export function Dialogs({
       </Once>
       <Once shown={archive}>
         <ArchiveDialog />
+      </Once>
+      <Once shown={shortcutList}>
+        <ShortcutsDialog />
       </Once>
       <Once shown={!!palette}>
         <CommandMenu

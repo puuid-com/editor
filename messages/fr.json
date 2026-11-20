@@ -1083,5 +1083,15 @@
   "panel_position": "Position du panneau latéral",
   "panel_position_auto": "Automatique",
   "panel_close": "Fermer le panneau latéral",
-  "panel_records": "Enregistrements"
+  "panel_records": "Enregistrements",
+  "shortcuts_title": "Raccourcis clavier",
+  "shortcuts_description": "Toutes les touches que l’éditeur reconnaît. Les raccourcis d’édition fonctionnent quand le curseur est dans un fichier.",
+  "shortcuts_general": "Général",
+  "shortcuts_tabs": "Onglets",
+  "shortcuts_compare": "Comparaison d’onglets",
+  "shortcuts_save": "Enregistrer",
+  "shortcuts_tab_previous": "Onglet précédent",
+  "shortcuts_tab_next": "Onglet suivant",
+  "shortcuts_panel_toggle": "Afficher ou masquer le panneau latéral",
+  "shortcuts_profile_at": "Passer au profil 1 à 9"
 }

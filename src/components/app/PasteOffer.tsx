@@ -165,7 +165,7 @@ export function PasteOffer({
           {choice.detected
             ? m.paste_switch({ type: typeLabel(choice.language) })
             : m.paste_apply()}
-          <Kbd className="bg-primary-foreground/15 text-primary-foreground">
+          <Kbd className="border-primary-foreground/30 bg-transparent text-primary-foreground">
             ↵
           </Kbd>
         </Button>

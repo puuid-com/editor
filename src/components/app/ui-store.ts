@@ -19,6 +19,8 @@ interface UiState {
   /** The searchable list of every open tab. */
   tabListOpen: boolean
   archiveOpen: boolean
+  /** The list of every keyboard shortcut. */
+  shortcutsOpen: boolean
   /** Choosing what a share link of the active file carries. */
   shareOpen: boolean
   /** Tag whose colour picker is open next to the editor cursor. */
@@ -100,6 +102,7 @@ export const uiStore = new Store<UiState>({
   deleteIds: null,
   tabListOpen: false,
   archiveOpen: false,
+  shortcutsOpen: false,
   shareOpen: false,
   quickHighlight: null,
   defaultsPreview: null,
@@ -125,6 +128,7 @@ export const setPalette = setter('palette')
 export const askRename = setter('renameId')
 export const setTabListOpen = setter('tabListOpen')
 export const setArchiveOpen = setter('archiveOpen')
+export const setShortcutsOpen = setter('shortcutsOpen')
 export const setShareOpen = setter('shareOpen')
 export const setQuickHighlight = setter('quickHighlight')
 export const setDefaultsPreview = setter('defaultsPreview')

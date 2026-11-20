@@ -3,7 +3,6 @@ import { useState } from 'react'
 
 import { hlStyle } from './hl-style'
 import { Button } from '#/components/ui/button'
-import { Kbd } from '#/components/ui/kbd'
 import {
   Popover,
   PopoverContent,
@@ -16,7 +15,8 @@ import { useHighlights } from '#/hooks/use-highlights'
 import { useTagCounts } from '#/hooks/use-tag-counts'
 import { lazyPart } from '#/lib/lazy'
 import { localName } from '#/lib/names'
-import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import { shortcuts } from '#/lib/shortcuts'
+import { ShortcutKeys } from '#/components/app/ShortcutKeys'
 import { groupByColor, highlightCss } from '#/lib/store/highlights'
 import { m } from '#/paraglide/messages'
 import type { Highlight } from '#/lib/store/highlights'
@@ -87,7 +87,10 @@ export function HighlightsBar() {
       {rules.length === 0 && (
         <span className="ml-1 hidden min-w-0 truncate text-muted-foreground lg:inline">
           {m.highlights_hint_prefix()}{' '}
-          <Kbd>{shortcutLabel(shortcuts.highlight)}</Kbd>{' '}
+          <ShortcutKeys
+            shortcut={shortcuts.highlight}
+            className="align-middle"
+          />{' '}
           {m.highlights_hint_suffix()}
         </span>
       )}

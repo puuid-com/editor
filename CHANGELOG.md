@@ -8,6 +8,20 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.72.0] - 2026-11-19
+
+### Added
+
+- A Keyboard shortcuts list, opened from the keyboard button at the bottom of the sidebar, shows every shortcut the editor has.
+
+### Changed
+
+- Shortcuts look the same everywhere: one key cap per key, in the command menu, menus, tooltips and hints.
+
+### Fixed
+
+- On Windows and Linux, shortcuts read as Ctrl+Shift+S instead of mixing Mac symbols with key names, and on macOS modifiers follow the usual ⌃⌥⇧⌘ order.
+
 ## [1.71.0] - 2026-11-19
 
 ### Changed

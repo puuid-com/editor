@@ -3,6 +3,7 @@ import {
   IconTypography,
   IconMoon,
   IconArchive,
+  IconSettings,
   IconAlertTriangle,
   IconAlignCenter,
   IconAlignLeft,
@@ -24,6 +25,7 @@ import {
   IconFileCode,
   IconFileDots,
   IconFilePlus,
+  IconKeyboard,
   IconFileText,
   IconFolder,
   IconFolderOpen,
@@ -91,7 +93,8 @@ import { CODE_FONT_PROPERTY, codeFonts, codeSizes } from '#/lib/code-font'
 import { LANGUAGE_EXTENSIONS } from '#/lib/languages'
 import { HIGHLIGHT_PRESETS, highlightCss } from '#/lib/store/colors'
 import type { HighlightPreset } from '#/lib/store/colors'
-import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import { shortcutKeys, shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import type { Shortcut } from '#/lib/shortcuts'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 
@@ -5500,7 +5503,86 @@ function PlainTextNote() {
   )
 }
 
+/** A shortcut as key caps, one per key. */
+function Keys({ shortcut }: { shortcut: Shortcut }) {
+  return (
+    <span className="ml-auto flex gap-0.5">
+      {shortcutKeys(shortcut).map((key) => (
+        <Kbd key={key}>{key}</Kbd>
+      ))}
+    </span>
+  )
+}
+
+const KEY_ROWS = [
+  { label: () => m.find_in_files(), shortcut: shortcuts.findInFiles },
+  { label: () => m.file_new_json(), shortcut: shortcuts.newJsonFile },
+  { label: () => m.profile_next(), shortcut: shortcuts.nextProfile },
+]
+
+function KeyCaps() {
+  return (
+    <BeforeAfter
+      className="p-1.5"
+      before={KEY_ROWS.map((row, i) => (
+        <div
+          key={row.shortcut.hotkey}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5"
+        >
+          {row.label()}
+          {i === 2 ? (
+            <Keys shortcut={row.shortcut} />
+          ) : (
+            <span className="ml-auto tracking-widest text-muted-foreground">
+              {shortcutLabel(row.shortcut)}
+            </span>
+          )}
+        </div>
+      ))}
+      after={KEY_ROWS.map((row) => (
+        <div
+          key={row.shortcut.hotkey}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5"
+        >
+          {row.label()}
+          <Keys shortcut={row.shortcut} />
+        </div>
+      ))}
+    />
+  )
+}
+
+function ShortcutList() {
+  return (
+    <Shot className="grid gap-3 p-3 sm:grid-cols-[auto_1fr]">
+      <div className="flex items-start gap-0.5 text-muted-foreground">
+        <IconArchive className="size-4" />
+        <span className="-m-1 rounded-md bg-muted p-1 text-foreground">
+          <IconKeyboard className="size-4" />
+        </span>
+        <IconSettings className="size-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="mb-1 text-sm font-medium">{m.shortcuts_title()}</p>
+        <div className="divide-y">
+          {[
+            { label: m.palette_title(), shortcut: shortcuts.palette },
+            { label: m.action_format(), shortcut: shortcuts.format },
+            { label: m.shortcuts_tab_next(), shortcut: shortcuts.nextTab },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center gap-2 py-1.5">
+              {row.label}
+              <Keys shortcut={row.shortcut} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.72.0': figure(KeyCaps, ShortcutList),
   '1.71.0': figure(PlainTextNote),
   '1.70.0': figure(GitDiff),
   '1.69.0': figure(VarsOff),

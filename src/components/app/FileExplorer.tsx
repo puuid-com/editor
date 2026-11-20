@@ -41,7 +41,11 @@ import { deleteFolders, importFiles, showFile } from './files'
 import { FileIcon } from './FileIcon'
 import { ToolbarButton } from './ToolbarButton'
 import { askDelete, closeTab, setPalette } from './ui-store'
-import { ArchiveButton, SettingsButton } from './SidebarButtons'
+import {
+  ArchiveButton,
+  SettingsButton,
+  ShortcutsButton,
+} from './SidebarButtons'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
@@ -52,7 +56,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '#/components/ui/input-group'
-import { Kbd } from '#/components/ui/kbd'
 import {
   Sidebar,
   SidebarContent,
@@ -104,7 +107,8 @@ import { setActive } from '#/lib/store/session'
 import { downloadBlob } from '#/lib/file-io'
 import { lazyPart } from '#/lib/lazy'
 import { isHiddenType } from '#/lib/file-types'
-import { shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import { shortcuts } from '#/lib/shortcuts'
+import { ShortcutKeys } from './ShortcutKeys'
 import { cn } from '#/lib/utils'
 import { appVersion } from '#/lib/version'
 import { m } from '#/paraglide/messages'
@@ -567,7 +571,7 @@ function ExplorerHeader({
                 title={m.palette_placeholder()}
                 onClick={() => setPalette('commands')}
               >
-                <Kbd>{shortcutLabel(shortcuts.palette)}</Kbd>
+                <ShortcutKeys shortcut={shortcuts.palette} />
               </InputGroupButton>
             </InputGroupAddon>
           ) : null}
@@ -914,6 +918,7 @@ function ExplorerFooter() {
   return (
     <SidebarFooter className="flex-row items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
       <ArchiveButton />
+      <ShortcutsButton />
       <SettingsButton />
       <Link
         to="/changelog"

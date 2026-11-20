@@ -107,7 +107,8 @@ import { useCanOpenFolders } from '#/hooks/use-can-open-folders'
 import { useCanWriteDisk } from '#/hooks/use-can-write-disk'
 import type { WorkspaceFile } from '#/hooks/use-files'
 import { useActiveProfile, useProfiles } from '#/hooks/use-profiles'
-import { profileShortcuts, shortcutLabel, shortcuts } from '#/lib/shortcuts'
+import { profileShortcuts, shortcuts } from '#/lib/shortcuts'
+import { ShortcutKeys } from './ShortcutKeys'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { joinPanes, setZoomed } from './panes'
 import { toggleTheme } from '#/lib/theme'
@@ -429,7 +430,7 @@ function OpenFiles({
         <IconListSearch />
         {m.find_in_files()}
         <CommandShortcut>
-          {shortcutLabel(shortcuts.findInFiles)}
+          <ShortcutKeys shortcut={shortcuts.findInFiles} />
         </CommandShortcut>
       </CommandItem>
     </CommandGroup>
@@ -462,7 +463,9 @@ function CurrentFile({
         <CommandItem onSelect={() => run(() => askRename(activeId))}>
           <IconPencil />
           {m.file_rename()}
-          <CommandShortcut>{shortcutLabel(shortcuts.rename)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.rename} />
+          </CommandShortcut>
         </CommandItem>
         {activeFile && type && (
           <CommandItem onSelect={onChangeType}>
@@ -488,7 +491,9 @@ function CurrentFile({
           <CommandItem onSelect={() => run(() => void saveAs(activeId))}>
             <IconDeviceFloppy />
             {m.file_save_disk()}
-            <CommandShortcut>{shortcutLabel(shortcuts.saveAs)}</CommandShortcut>
+            <CommandShortcut>
+              <ShortcutKeys shortcut={shortcuts.saveAs} />
+            </CommandShortcut>
           </CommandItem>
         )}
         <CommandItem onSelect={() => run(() => void copyActive())}>
@@ -517,7 +522,9 @@ function CurrentFile({
           <CommandItem onSelect={() => run(endCompare)}>
             <IconGitCompare />
             {m.compare_close()}
-            <CommandShortcut>Esc</CommandShortcut>
+            <CommandShortcut>
+              <Kbd>Esc</Kbd>
+            </CommandShortcut>
           </CommandItem>
         )}
       </CommandGroup>
@@ -540,7 +547,9 @@ function Edit({ run }: { run: Run }) {
         >
           <IconArrowBackUp />
           {m.edit_undo()}
-          <CommandShortcut>{shortcutLabel(shortcuts.undo)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.undo} />
+          </CommandShortcut>
         </CommandItem>
         <CommandItem
           disabled={depth.redo === 0}
@@ -548,7 +557,9 @@ function Edit({ run }: { run: Run }) {
         >
           <IconArrowForwardUp />
           {m.edit_redo()}
-          <CommandShortcut>{shortcutLabel(shortcuts.redo)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.redo} />
+          </CommandShortcut>
         </CommandItem>
         {!formatOnly && (
           <>
@@ -556,21 +567,21 @@ function Edit({ run }: { run: Run }) {
               <IconHighlight />
               {m.highlight_at_cursor()}
               <CommandShortcut>
-                {shortcutLabel(shortcuts.highlight)}
+                <ShortcutKeys shortcut={shortcuts.highlight} />
               </CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => run(() => void applyDefaultsActive())}>
               <IconReplace />
               {m.defaults_apply()}
               <CommandShortcut>
-                {shortcutLabel(shortcuts.applyDefaults)}
+                <ShortcutKeys shortcut={shortcuts.applyDefaults} />
               </CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => run(resolveVarsActive)}>
               <IconVariable />
               {m.vars_resolve()}
               <CommandShortcut>
-                {shortcutLabel(shortcuts.resolveVars)}
+                <ShortcutKeys shortcut={shortcuts.resolveVars} />
               </CommandShortcut>
             </CommandItem>
           </>
@@ -601,7 +612,7 @@ function Profiles({ run }: { run: Run }) {
             )}
             {profileShortcuts[index] && (
               <CommandShortcut>
-                {shortcutLabel(profileShortcuts[index])}
+                <ShortcutKeys shortcut={profileShortcuts[index]} />
               </CommandShortcut>
             )}
           </CommandItem>
@@ -611,7 +622,7 @@ function Profiles({ run }: { run: Run }) {
             <IconUserCircle />
             {m.profile_next()}
             <CommandShortcut>
-              {shortcutLabel(shortcuts.nextProfile)}
+              <ShortcutKeys shortcut={shortcuts.nextProfile} />
             </CommandShortcut>
           </CommandItem>
         )}
@@ -700,7 +711,9 @@ function Workspace({
         <CommandItem onSelect={() => run(newFile)}>
           <IconFilePlus />
           {m.file_new()}
-          <CommandShortcut>{shortcutLabel(shortcuts.newFile)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.newFile} />
+          </CommandShortcut>
         </CommandItem>
         <CommandItem onSelect={() => run(newZplFile)}>
           {m.file_new_zpl()}
@@ -709,7 +722,7 @@ function Workspace({
           <IconFilePlus />
           {m.file_new_json()}
           <CommandShortcut>
-            {shortcutLabel(shortcuts.newJsonFile)}
+            <ShortcutKeys shortcut={shortcuts.newJsonFile} />
           </CommandShortcut>
         </CommandItem>
         <CommandItem onSelect={() => run(newMarkdownFile)}>
@@ -723,7 +736,9 @@ function Workspace({
         <CommandItem onSelect={() => run(onOpenFromDisk)}>
           <IconFolderOpen />
           {m.file_open_disk()}
-          <CommandShortcut>{shortcutLabel(shortcuts.openFile)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.openFile} />
+          </CommandShortcut>
         </CommandItem>
         {canOpenFolders && (
           <CommandItem onSelect={() => run(() => void openFolder())}>
@@ -760,7 +775,9 @@ function Workspace({
         <CommandItem onSelect={() => run(toggleWordWrap)}>
           <IconTextWrap />
           {m.word_wrap_toggle()}
-          <CommandShortcut>{shortcutLabel(shortcuts.wordWrap)}</CommandShortcut>
+          <CommandShortcut>
+            <ShortcutKeys shortcut={shortcuts.wordWrap} />
+          </CommandShortcut>
         </CommandItem>
         <CommandItem onSelect={() => run(toggleSidebarSide)}>
           {sidebarRight ? <IconLayoutSidebar /> : <IconLayoutSidebarRight />}
