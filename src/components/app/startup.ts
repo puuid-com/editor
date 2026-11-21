@@ -1,5 +1,6 @@
 import { loadLanguages } from '#/components/editor/language'
 import { languageOf } from '#/lib/document'
+import { logEvent } from '#/lib/rescue/client'
 import { filesCollection, isOpen, openFileIds } from '#/lib/store/files'
 import { sessionStore } from '#/lib/store/session'
 import { workspaceReady } from '#/lib/store/workspace'
@@ -26,6 +27,10 @@ function shownLanguages() {
  */
 export async function editorReady() {
   await workspaceReady()
+  logEvent('info', 'Loading support for the files on screen')
   // A type that can't be fetched reads as plain text; the editor still opens.
-  await loadLanguages(shownLanguages()).catch(() => undefined)
+  await loadLanguages(shownLanguages()).catch((error: unknown) => {
+    logEvent('warn', 'Support for a file type could not be loaded', error)
+  })
+  logEvent('info', 'Showing the editor')
 }

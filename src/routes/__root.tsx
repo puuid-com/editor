@@ -13,6 +13,7 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { codeFontScript } from '#/lib/code-font'
 import { centerScript } from '#/lib/md-center'
+import { rescueScript } from '#/lib/rescue/script'
 import { seo } from '#/lib/seo'
 import { themeScript } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
@@ -71,6 +72,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     // The theme, font and centering scripts change <html> before hydration.
     <html lang={getLocale()} dir={getTextDirection()} suppressHydrationWarning>
       <head>
+        {/* First, so it hears of everything that goes wrong after it. */}
+        <ScriptOnce>{rescueScript()}</ScriptOnce>
         <ScriptOnce>{themeScript}</ScriptOnce>
         <ScriptOnce>{codeFontScript}</ScriptOnce>
         <ScriptOnce>{centerScript}</ScriptOnce>

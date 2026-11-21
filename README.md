@@ -44,6 +44,17 @@ The editor's first load holds what its first screen shows. Dialogs, the command 
 
 The runtime that stands in for React (TanStack Redact) copies every fiber under a component before rendering it again, so a render near the top of the tree costs the whole editor. Keep subscriptions to stores low in the tree, read the store's current state in effects that write to it, and keep repeated rows light: one menu for a list rather than one per row.
 
+## When something breaks
+
+The page never goes blank without a word. `src/lib/rescue/rescue.ts` is an inline script, first in every page's `<head>` (built on the server by `script.ts`, never shipped in the app's bundles), that works without any of the app's code:
+
+- It logs `console.warn`/`console.error`, uncaught errors, unhandled rejections and scripts or stylesheets that fail to download, plus the steps the app reports through `logEvent` in `src/lib/rescue/client.ts`. The last 300 entries stay in `localStorage` (`editor-log`) across reloads.
+- The app is "on screen" while an element with `data-app-ready` exists (the editor, the site layout, the error and not-found pages). When an error leaves nothing on screen, such as a render error the runtime answers by clearing the page, or when nothing shows for 15 seconds (60 in development), it shows the recovery screen. Errors while the app is up go to the status bar through `onUncaughtError`, or to a small notice of its own if nothing listens.
+- The recovery screen reads IndexedDB itself and downloads a backup in the editor's format (Restore accepts it) or a zip of the files, opens Claude or ChatGPT with a report (settings and log, no file contents), copies the report, reloads, resets layout keys, or erases everything after a backup.
+- `/?rescue` opens it on purpose. `window.__editorRescue` is its API.
+
+`installRescue` is serialized with `toString()`, so it must stay self-contained: no imports, nothing from outside its body. `rescue.test.ts` runs it from its text alone.
+
 ## Project layout
 
 ```text
@@ -71,6 +82,7 @@ src/
     sql/                  SQL formatting and token roles
     flat/                 Fixed-width record parsing
     zpl/                  ZPL rendering, explanations, sharing, export
+    rescue/               Recovery screen, error log and crash detection
     document.ts           One entry point per language: detect, parse, format
   routes/                 Editor and public routes
   site.ts                 Site identity and SEO configuration

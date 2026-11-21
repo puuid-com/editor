@@ -7,6 +7,7 @@ import {
 import { Store } from '@tanstack/store'
 
 import { setHistorySettle, watchCollection, watchStore } from './history'
+import { logEvent, openRescue } from '#/lib/rescue/client'
 import { singleton } from './singleton'
 import type { z } from 'zod'
 
@@ -31,9 +32,35 @@ type StoreName = (typeof STORES)[number]
 const database =
   typeof indexedDB === 'undefined'
     ? null
-    : await singleton('database', () =>
-        createIndexedDB({ name: DATABASE_NAME, version: 2, stores: STORES }),
-      )
+    : await singleton('database', openDatabase)
+
+/** Opens the workspace database, logging each step for the recovery screen. */
+async function openDatabase() {
+  logEvent('info', 'Opening the workspace database')
+  try {
+    const db = await createIndexedDB({
+      name: DATABASE_NAME,
+      version: 2,
+      stores: STORES,
+      // Another tab holds an older version open; nothing loads until it lets go.
+      onBlocked: () => {
+        logEvent('warn', 'Another tab blocks the workspace database upgrade')
+        openRescue({ kind: 'blocked', auto: true })
+      },
+    })
+    db.db.addEventListener('versionchange', () =>
+      logEvent('warn', 'Another tab upgraded the workspace database'),
+    )
+    db.db.addEventListener('close', () =>
+      logEvent('error', 'The browser closed the workspace database'),
+    )
+    logEvent('info', 'Workspace database open')
+    return db
+  } catch (error) {
+    logEvent('error', 'Could not open the workspace database', error)
+    throw error
+  }
+}
 
 export function newId() {
   return crypto.randomUUID()
@@ -86,6 +113,7 @@ async function inOrder<T>(write: () => Promise<T>) {
   } catch (error) {
     if (!failing) {
       failing = true
+      logEvent('error', 'A workspace write failed', error)
       for (const listener of saveFailedListeners) listener(error)
     }
     throw error
@@ -180,13 +208,23 @@ export function localCollection<
  */
 export function workspaceReady() {
   return singleton('workspaceReady', async () => {
-    await Promise.all(registered.map(({ collection }) => collection.preload()))
+    logEvent('info', 'Loading the stored files and settings')
+    await Promise.all(
+      registered.map(({ name, collection }) =>
+        collection.preload().catch((error: unknown) => {
+          logEvent('error', `Could not load the stored ${name}`, error)
+          throw error
+        }),
+      ),
+    )
     if (!database) return
+    logEvent('info', 'Waiting for other tabs to finish upgrading the workspace')
     // Two tabs opening at once would both move the same rows.
     await withLock(`${STORAGE_PREFIX}upgrade`, async () => {
       // react-doctor-disable-next-line react-doctor/async-await-in-loop
       for (const entry of registered) await upgrade(entry)
     })
+    logEvent('info', 'Stored files and settings loaded')
   })
 }
 

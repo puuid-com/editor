@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_site')({
 
 function SiteLayout() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div data-app-ready className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main id="main" className="flex-1">
         <Outlet />

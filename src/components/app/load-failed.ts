@@ -1,5 +1,6 @@
 import { notify } from './notice-store'
 import { settleContentSave } from '#/lib/store/files'
+import { logEvent } from '#/lib/rescue/client'
 import { m } from '#/paraglide/messages'
 
 /**
@@ -8,6 +9,7 @@ import { m } from '#/paraglide/messages'
  * second time otherwise. What was just typed is saved first.
  */
 export function reportLoadFailed() {
+  logEvent('error', 'Part of the editor could not be downloaded')
   notify.error(m.part_load_failed(), {
     action: {
       label: m.reload_page(),

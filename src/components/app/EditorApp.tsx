@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { FileExplorer } from './FileExplorer'
 import { keepWorkspaceSafe, reportSaveFailed } from './backup'
+import { notify } from './notice-store'
 import { reportLoadFailed } from './load-failed'
 import { Dialogs } from './Dialogs'
 import { startDiskSync } from './disk-workspace'
@@ -30,6 +31,7 @@ import { useEditorTitle } from '#/hooks/use-editor-title'
 import { openFiles, useWorkspaceFiles } from '#/hooks/use-files'
 import { useMediaQuery } from '#/hooks/use-media-query'
 import { lazyPart, onLoadFailed, startPreloading } from '#/lib/lazy'
+import { onUncaughtError, openRescue } from '#/lib/rescue/client'
 import { onSaveFailed } from '#/lib/store/persist'
 import { sessionStore, setActive } from '#/lib/store/session'
 import { cn } from '#/lib/utils'
@@ -92,6 +94,8 @@ export function EditorApp() {
 
   return (
     <SidebarProvider
+      // Tells the recovery screen the editor is up; see `rescue.ts`.
+      data-app-ready
       defaultOpen={sidebarDefaultOpen()}
       // The sidebar stays first in the DOM so the sheet's peer styles see it.
       className={cn(
@@ -168,6 +172,7 @@ function NoFile({ settings }: { settings: boolean }) {
 function useWorkspaceServices(inUse: boolean) {
   useEffect(() => onSaveFailed(reportSaveFailed), [])
   useEffect(() => onLoadFailed(reportLoadFailed), [])
+  useEffect(() => onUncaughtError(reportUncaught), [])
   // What was left out of the first load is fetched now that it has rendered.
   useEffect(() => startPreloading(), [])
   // Tabs of folders opened from disk save there as they're edited.
@@ -175,6 +180,14 @@ function useWorkspaceServices(inUse: boolean) {
   useEffect(() => {
     if (inUse) keepWorkspaceSafe()
   }, [inUse])
+}
+
+/** An error nothing caught: said in the status bar, with the way to recover. */
+function reportUncaught(message: string) {
+  notify.error(m.rescue_unexpected(), {
+    detail: message,
+    action: { label: m.rescue_details(), run: () => openRescue() },
+  })
 }
 
 /**

@@ -5621,7 +5621,62 @@ function RemovePrefix() {
   )
 }
 
+function RecoveryScreen() {
+  return (
+    <BeforeAfter
+      className="h-64"
+      // What a crash used to leave: nothing at all.
+      before={<div className="size-full bg-background" />}
+      after={
+        <div className="grid gap-2.5 p-3 text-[10px]">
+          <div className="grid gap-1">
+            <div className="text-sm font-semibold tracking-tight">
+              {m.rescue_title_fatal()}
+            </div>
+            <div className="line-clamp-2 text-muted-foreground">
+              {m.rescue_body_fatal()}
+            </div>
+          </div>
+          <div className="truncate rounded-md border bg-muted px-2 py-1.5 font-mono">
+            TypeError: Cannot read properties of undefined
+          </div>
+          {[
+            [
+              m.rescue_keep_data(),
+              m.rescue_download_backup(),
+              m.rescue_download_files(),
+            ],
+            [
+              m.rescue_get_help(),
+              m.rescue_ask_claude(),
+              m.rescue_ask_chatgpt(),
+            ],
+          ].map(([heading, first, second]) => (
+            <div key={heading} className="grid gap-1">
+              <div className="font-medium">{heading}</div>
+              <div className="flex flex-wrap gap-1">
+                <Button
+                  size="xs"
+                  variant={
+                    first === m.rescue_download_backup() ? 'default' : 'outline'
+                  }
+                >
+                  {first}
+                </Button>
+                <Button size="xs" variant="outline">
+                  {second}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      }
+    />
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '1.74.0': figure(RecoveryScreen),
   '1.73.0': figure(RemovePrefix),
   '1.72.0': figure(KeyCaps, ShortcutList),
   '1.71.0': figure(PlainTextNote),

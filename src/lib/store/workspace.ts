@@ -2,6 +2,7 @@ import { loadDiskLinks, loadDiskRoots } from './disk'
 import { filesCollection } from './files'
 import { workspaceReady as collectionsReady } from './persist'
 import { singleton } from './singleton'
+import { logEvent } from '#/lib/rescue/client'
 // Each collection registers itself when its module loads, so load them all
 // before waiting on them.
 import './folders'
@@ -20,6 +21,7 @@ import './variables'
 export function workspaceReady() {
   return singleton('workspaceLoaded', async () => {
     await collectionsReady()
+    logEvent('info', 'Reconnecting files and folders opened from disk')
     await Promise.all([
       loadDiskLinks(new Set(filesCollection.keys())),
       loadDiskRoots(),

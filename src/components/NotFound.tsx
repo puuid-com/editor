@@ -5,7 +5,7 @@ import { m } from '#/paraglide/messages'
 
 export function NotFound() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-24">
+    <section data-app-ready className="mx-auto max-w-5xl px-4 py-24">
       <h1 className="text-3xl font-semibold tracking-tight">
         {m.not_found_title()}
       </h1>

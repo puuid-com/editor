@@ -8,6 +8,21 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [1.74.0] - 2026-11-21
+
+### Added
+
+- The editor never goes blank when something breaks. A recovery screen says what happened and lets you download a backup of every file and setting, or all your files as a zip, even when the editor itself won't open.
+- From the recovery screen, Ask Claude or Ask ChatGPT opens a chat that already describes the problem, with your settings and the log but never the contents of your files. Copy details copies the same report.
+- The recovery screen can also reload, reset the layout while keeping files and profiles, or erase everything once a backup has downloaded. Open it any time at `/?rescue`.
+- Errors that don't stop the editor show in the status bar, with Details to open the recovery screen.
+
+### Changed
+
+- Every error, failed save and loading step is logged, and the log survives reloads, so the recovery screen can show what happened before a crash.
+- If the editor takes more than 15 seconds to open, the recovery screen shows the last loading step reached, and closes by itself if the editor finishes.
+- The error page always shows the error and offers Recovery options.
+
 ## [1.73.0] - 2026-11-20
 
 ### Added
