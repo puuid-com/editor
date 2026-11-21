@@ -262,6 +262,19 @@ export function installRescue(text: RescueText, info: RescueInfo) {
         if (tag !== 'script' && tag !== 'link') return
         const url =
           (target as HTMLScriptElement).src || (target as HTMLLinkElement).href
+        // Only the editor's own files matter. A third-party script, like the
+        // analytics beacon, is often blocked by the browser or an extension
+        // for privacy, and the editor works fine without it.
+        let ours = false
+        try {
+          ours = new URL(url, location.href).origin === location.origin
+        } catch {
+          // Not a URL; treat it as someone else's.
+        }
+        if (!ours) {
+          record('info', `Could not load ${url} (not part of the editor)`)
+          return
+        }
         log('error', `Could not load ${url}`)
         problem(new Error(`Could not load ${url}`))
         return

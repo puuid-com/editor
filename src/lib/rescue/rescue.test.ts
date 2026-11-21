@@ -125,6 +125,26 @@ describe('the recovery screen', () => {
     expect(screen()).toBeNull()
   })
 
+  it('ignores third-party scripts that fail to load, but not its own', () => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    teardown = install()
+    showApp()
+    vi.advanceTimersByTime(1000)
+    const failLoad = (src: string) => {
+      const script = document.createElement('script')
+      script.src = src
+      document.body.appendChild(script)
+      script.dispatchEvent(new Event('error'))
+    }
+    failLoad('https://static.cloudflareinsights.com/beacon.min.js/v1')
+    vi.advanceTimersByTime(1000)
+    expect(document.body).not.toHaveTextContent(m.rescue_details())
+    failLoad('/assets/main-abc123.js')
+    vi.advanceTimersByTime(1000)
+    expect(document.body).toHaveTextContent(m.rescue_details())
+  })
+
   it('takes over when an error wipes the editor off the page', () => {
     vi.useFakeTimers()
     teardown = install()
