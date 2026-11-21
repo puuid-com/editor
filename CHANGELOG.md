@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [2.0.0] - 2026-11-21
+
+### Changed
+
+- The editor is now version 2. Your files, settings and share links keep working as before.
+
 ## [1.74.1] - 2026-11-21
 
 ### Fixed
