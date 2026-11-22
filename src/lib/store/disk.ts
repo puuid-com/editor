@@ -30,6 +30,19 @@ export const diskStore = singleton(
   () => new Store<Readonly<Partial<Record<string, DiskLink>>>>({}),
 )
 
+/**
+ * Links this page set or forgot before the stored ones first loaded. That
+ * load can finish after the editor opened without it, and must not undo them.
+ */
+const linksBeforeLoad = singleton('linksBeforeLoad', () => ({
+  loaded: false,
+  changed: new Set<string>(),
+}))
+
+function linkChanged(id: string) {
+  if (!linksBeforeLoad.loaded) linksBeforeLoad.changed.add(id)
+}
+
 /** Whether this browser can write to a file the person picks. */
 export function canWriteDisk() {
   return typeof window !== 'undefined' && 'showSaveFilePicker' in window
@@ -78,13 +91,22 @@ export async function loadDiskLinks(fileIds: ReadonlySet<string>) {
   if (typeof indexedDB === 'undefined') return
   try {
     const { db, rows } = await storedLinks()
+    const { loaded, changed } = linksBeforeLoad
     const links: Record<string, DiskLink> = {}
     const stale: Array<string> = []
     for (const { id, ...link } of rows) {
       if (fileIds.has(id)) links[id] = link
-      else stale.push(id)
+      else if (!changed.has(id)) stale.push(id)
     }
-    diskStore.setState(() => links)
+    diskStore.setState((current) => {
+      if (loaded) return links
+      // What this page holds is at least as recent as what was read.
+      const next = { ...links, ...current }
+      for (const id of changed) if (!current[id]) delete next[id]
+      return next
+    })
+    linksBeforeLoad.loaded = true
+    changed.clear()
     if (stale.length) {
       await executeTransaction(db, STORE, 'readwrite', (_, stores) => {
         for (const id of stale) stores[STORE].delete(id)
@@ -98,6 +120,7 @@ export async function loadDiskLinks(fileIds: ReadonlySet<string>) {
 
 /** Links a tab to a file on disk, or updates what was last saved. */
 export async function setDiskLink(id: string, link: DiskLink) {
+  linkChanged(id)
   diskStore.setState((links) => ({ ...links, [id]: link }))
   try {
     const db = await database()
@@ -112,6 +135,7 @@ export async function setDiskLink(id: string, link: DiskLink) {
 
 /** Forgets a tab's file on disk, such as when the tab closes. */
 export async function deleteDiskLink(id: string) {
+  linkChanged(id)
   diskStore.setState((links) => {
     const next = { ...links }
     delete next[id]
@@ -154,6 +178,21 @@ export const rootsStore = singleton(
   () => new Store<ReadonlyArray<DiskRoot>>([]),
 )
 
+/**
+ * Folders this page opened or closed before the stored ones first loaded,
+ * which that load must not undo, and the latest load started, since only
+ * its result counts.
+ */
+const rootsLoads = singleton('rootsLoads', () => ({
+  loaded: false,
+  changed: new Set<string>(),
+  latest: 0,
+}))
+
+function rootChanged(id: string) {
+  if (!rootsLoads.loaded) rootsLoads.changed.add(id)
+}
+
 /** Whether this browser can open a folder to read and write its files. */
 export function canOpenFolders() {
   return typeof window !== 'undefined' && 'showDirectoryPicker' in window
@@ -185,6 +224,7 @@ async function accessOf(handle: FileSystemDirectoryHandle) {
 /** Loads the open folders and whether this page may still use them. */
 export async function loadDiskRoots() {
   if (typeof indexedDB === 'undefined') return
+  const load = ++rootsLoads.latest
   try {
     const db = await rootsDatabase()
     const rows = await executeTransaction(db, ROOTS, 'readonly', (_, stores) =>
@@ -199,7 +239,18 @@ export async function loadDiskRoots() {
         access: await accessOf(handle),
       })),
     )
-    rootsStore.setState(() => roots)
+    if (load !== rootsLoads.latest) return
+    const { loaded, changed } = rootsLoads
+    rootsStore.setState((current) =>
+      loaded
+        ? roots
+        : [
+            ...roots.filter((root) => !changed.has(root.id)),
+            ...current.filter((root) => changed.has(root.id)),
+          ],
+    )
+    rootsLoads.loaded = true
+    changed.clear()
   } catch (error) {
     console.error('Could not load the folders opened from disk', error)
   }
@@ -225,6 +276,7 @@ export async function addDiskRoot(handle: FileSystemDirectoryHandle) {
     handle,
     access: 'granted',
   }
+  rootChanged(root.id)
   rootsStore.setState((roots) => [...roots, root])
   const db = await rootsDatabase()
   await executeTransaction(db, ROOTS, 'readwrite', (_, stores) => {
@@ -239,6 +291,7 @@ export async function addDiskRoot(handle: FileSystemDirectoryHandle) {
 
 /** Closes a folder in the editor. Nothing on disk changes. */
 export async function removeDiskRoot(id: string) {
+  rootChanged(id)
   rootsStore.setState((roots) => roots.filter((root) => root.id !== id))
   const db = await rootsDatabase()
   await executeTransaction(db, ROOTS, 'readwrite', (_, stores) => {

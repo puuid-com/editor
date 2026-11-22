@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [2.0.1] - 2026-11-22
+
+### Fixed
+
+- The editor no longer stays stuck loading when another tab, even one the browser put to sleep, holds on to your files and folders opened from disk. It opens within a few seconds and reconnects them as soon as they're free.
+
 ## [2.0.0] - 2026-11-21
 
 ### Changed
