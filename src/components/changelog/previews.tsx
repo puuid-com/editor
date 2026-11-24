@@ -5675,7 +5675,28 @@ function RecoveryScreen() {
   )
 }
 
+function RestoreAfterErase() {
+  return (
+    <Shot className="flex h-40 flex-col">
+      <div className="grid flex-1 content-start gap-2 p-3">
+        <Bar className="w-1/3" />
+        <Bar className="w-1/2" />
+      </div>
+      <StatusBar className="justify-end">
+        <span className="truncate px-1.5 text-foreground">
+          {m.restore_erased()}
+        </span>
+        <span className="shrink-0 px-1 text-foreground underline">
+          {m.restore_erased_action()}
+        </span>
+        <IconX className="size-3.5 shrink-0" />
+      </StatusBar>
+    </Shot>
+  )
+}
+
 export const previews: Record<string, ComponentType> = {
+  '2.1.0': figure(RestoreAfterErase),
   '1.74.0': figure(RecoveryScreen),
   '1.73.0': figure(RemovePrefix),
   '1.72.0': figure(KeyCaps, ShortcutList),

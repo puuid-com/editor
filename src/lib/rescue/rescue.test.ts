@@ -10,6 +10,7 @@ import {
 } from 'vitest'
 
 import { onUncaughtError } from './client'
+import { erasedBackup, forgetErasedBackup } from './erased'
 import { rescueScript } from './script'
 import { parseBackup } from '#/lib/store/backup'
 import { archiveFile, createFile, filesCollection } from '#/lib/store/files'
@@ -297,6 +298,28 @@ describe('what the recovery screen hands back', () => {
     )
     const contents = Object.values(files).map((data) => strFromU8(data))
     expect(contents).toContain(secret)
+  })
+
+  it('a backup the editor offers back after erasing everything', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    // The editor's own database stays: the tests after this one use it.
+    vi.spyOn(indexedDB, 'deleteDatabase').mockReturnValue(
+      {} as IDBOpenDBRequest,
+    )
+    buttonNamed(m.rescue_erase())?.click()
+    let kept = await erasedBackup()
+    for (let i = 0; !kept && i < 100; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      kept = await erasedBackup()
+    }
+    if (!kept) throw new Error('Nothing kept')
+    const parsed = parseBackup(kept.text)
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok)
+      expect(parsed.backup.files.map((f) => f.content)).toContain(secret)
+    expect(await downloads.at(-1)?.blob.text()).toBe(kept.text)
+    await forgetErasedBackup()
+    expect(await erasedBackup()).toBeNull()
   })
 
   it('help links that describe the problem without the files', async () => {

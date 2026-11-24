@@ -101,6 +101,11 @@ export function installRescue(text: RescueText, info: RescueInfo) {
   const DB_NAME = 'xml-editor'
   const PREFIX = 'xml-editor:'
   const LOG_KEY = 'editor-log'
+  // Where the erase keeps its backup for the editor to offer back; the
+  // editor reads it in `erased.ts`.
+  const ERASED_DB = 'xml-editor-rescue'
+  const ERASED_STORE = 'backups'
+  const ERASED_KEY = 'erased'
   const COLLECTIONS = [
     'files',
     'folders',
@@ -454,6 +459,52 @@ export function installRescue(text: RescueText, info: RescueInfo) {
     }
     return out
   }
+
+  /**
+   * Keeps the backup the erase downloaded where the erase can't reach, so
+   * the editor offers to restore it in one click once it opens again.
+   */
+  const keepErased = (json: string) =>
+    new Promise<void>((resolve) => {
+      const done = (error?: unknown) => {
+        clearTimeout(timer)
+        if (error !== undefined)
+          log('error', 'Could not keep the backup for restoring', error)
+        resolve()
+      }
+      const timer = setTimeout(
+        () => done(new Error('IndexedDB did not answer within 5 seconds')),
+        5000,
+      )
+      try {
+        const request = indexedDB.open(ERASED_DB, 1)
+        request.onupgradeneeded = () =>
+          request.result.createObjectStore(ERASED_STORE)
+        request.onerror = () => done(request.error)
+        request.onsuccess = () => {
+          const db = request.result
+          try {
+            const transaction = db.transaction(ERASED_STORE, 'readwrite')
+            transaction
+              .objectStore(ERASED_STORE)
+              .put({ savedAt: Date.now(), text: json }, ERASED_KEY)
+            transaction.oncomplete = () => {
+              db.close()
+              done()
+            }
+            transaction.onerror = transaction.onabort = () => {
+              db.close()
+              done(transaction.error)
+            }
+          } catch (error) {
+            db.close()
+            done(error)
+          }
+        }
+      } catch (error) {
+        done(error)
+      }
+    })
 
   const crcTable = () => {
     const table = new Uint32Array(256)
@@ -828,12 +879,8 @@ export function installRescue(text: RescueText, info: RescueInfo) {
         log('error', 'Could not read IndexedDB for the backup', readError)
       }
       const name = fill(text.backupName, { date: today() })
-      save(
-        new Blob([JSON.stringify(backup(rows), null, 2)], {
-          type: 'application/json',
-        }),
-        name,
-      )
+      const json = JSON.stringify(backup(rows), null, 2)
+      save(new Blob([json], { type: 'application/json' }), name)
       log(
         'info',
         `Recovery backup downloaded (${(rows.files ?? []).length} files)`,
@@ -845,7 +892,8 @@ export function installRescue(text: RescueText, info: RescueInfo) {
               error: describe(failure).split('\n')[0] ?? '',
             }),
       )
-      return failure === undefined
+      // The backup's text when it holds everything stored, for the erase.
+      return failure === undefined ? json : ''
     }
 
     const downloadFiles = async () => {
@@ -948,6 +996,7 @@ export function installRescue(text: RescueText, info: RescueInfo) {
         node.disabled = false
         return
       }
+      if (backedUp) await keepErased(backedUp)
       log('warn', 'Everything erased from the recovery screen')
       clearStorage(() => false)
       stores = undefined

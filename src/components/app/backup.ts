@@ -3,6 +3,7 @@ import { setRestorePreview } from './ui-store'
 import { editorStore, getText } from '#/components/editor/editor-store'
 import { formatDateTime } from '#/lib/dates'
 import { downloadBlob, pickFile } from '#/lib/file-io'
+import { erasedBackup, forgetErasedBackup } from '#/lib/rescue/erased'
 import { createBackup, parseBackup, restoreBackup } from '#/lib/store/backup'
 import { isStorageFull } from '#/lib/store/files'
 import { markBackedUp, workspaceInUse } from '#/lib/store/safekeeping'
@@ -56,6 +57,11 @@ async function readBackup(file: File) {
     })
     return
   }
+  previewBackup(text, name)
+}
+
+/** Shows what the backup in `text` holds, or why it can't be restored. */
+function previewBackup(text: string, name: string) {
   const result = parseBackup(text)
   if (result.ok) {
     const date = formatDateTime(result.backup.exportedAt, getLocale())
@@ -75,11 +81,33 @@ export async function replaceWorkspace(backup: Backup) {
     downloadBackup()
     await restoreBackup(backup)
     notify.success(m.restore_done())
+    // Whatever the recovery screen kept from before an erase is replaced too.
+    void forgetErasedBackup()
   } catch (error) {
     notify.error(m.restore_failed(), {
       detail: errorDetail(error),
     })
   }
+}
+
+/**
+ * After Erase everything on the recovery screen: offers the backup it
+ * downloaded, so it comes back in one click instead of through a file picker.
+ */
+export async function offerErasedBackup() {
+  const kept = await erasedBackup()
+  if (!kept) return
+  const name = m.backup_file_name({
+    date: new Date(kept.savedAt).toISOString().slice(0, 10),
+  })
+  notify.info(m.restore_erased(), {
+    sticky: true,
+    action: {
+      label: m.restore_erased_action(),
+      run: () => previewBackup(kept.text, name),
+    },
+    onDismiss: () => void forgetErasedBackup(),
+  })
 }
 
 /** Error notice for a write the browser refused, with a way to keep the data. */

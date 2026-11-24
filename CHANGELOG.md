@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [2.1.0] - 2026-11-23
+
+### Added
+
+- After Erase everything and reload on the recovery screen, the editor offers the backup it just downloaded: Restore the backup, in the status bar, brings it back in one click, without looking for the file. The offer lasts a week, or until you close it.
+
 ## [2.0.1] - 2026-11-22
 
 ### Fixed

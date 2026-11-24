@@ -63,7 +63,10 @@ export function StatusNotice() {
             <ToolbarButton
               label={m.notice_dismiss()}
               className="shrink-0 text-muted-foreground"
-              onClick={() => dismissNotice(notice.id)}
+              onClick={() => {
+                notice.onDismiss?.()
+                dismissNotice(notice.id)
+              }}
             >
               <IconX />
             </ToolbarButton>

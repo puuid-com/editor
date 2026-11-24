@@ -3,7 +3,11 @@ import { useSelector } from '@tanstack/react-store'
 import { useEffect, useRef, useState } from 'react'
 
 import { FileExplorer } from './FileExplorer'
-import { keepWorkspaceSafe, reportSaveFailed } from './backup'
+import {
+  keepWorkspaceSafe,
+  offerErasedBackup,
+  reportSaveFailed,
+} from './backup'
 import { notify } from './notice-store'
 import { reportLoadFailed } from './load-failed'
 import { Dialogs } from './Dialogs'
@@ -180,6 +184,8 @@ function useWorkspaceServices(inUse: boolean) {
   useEffect(() => {
     if (inUse) keepWorkspaceSafe()
   }, [inUse])
+  // After the recovery screen erased everything, its backup is one click away.
+  useEffect(() => void offerErasedBackup(), [])
 }
 
 /** An error nothing caught: said in the status bar, with the way to recover. */

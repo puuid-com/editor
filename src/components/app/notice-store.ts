@@ -13,9 +13,11 @@ export interface Notice {
   action?: { label: string; run: () => void }
   /** Stays until dismissed, like an error, and comes back after short-lived ones. */
   sticky?: boolean
+  /** Runs when the person closes it, not when they take its action. */
+  onDismiss?: () => void
 }
 
-type NoticeOptions = Pick<Notice, 'detail' | 'action' | 'sticky'>
+type NoticeOptions = Pick<Notice, 'detail' | 'action' | 'sticky' | 'onDismiss'>
 
 /** What went wrong, for the detail of an error notice. */
 export function errorDetail(error: unknown) {
