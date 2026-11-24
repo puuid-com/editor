@@ -5,7 +5,6 @@ import {
   publishParse,
   setView,
 } from '#/components/editor/editor-store'
-import { downloadFile } from '#/components/editor/actions'
 import { isImageData } from '#/lib/image-file'
 import { m } from '#/paraglide/messages'
 
@@ -52,13 +51,6 @@ export function ImagePreview({
           aria-pressed={actual}
         >
           {actual ? m.image_fit() : m.image_actual()}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => downloadFile(file.id)}
-        >
-          {m.file_download()}
         </Button>
       </div>
       <div className="flex min-h-0 flex-1 overflow-auto p-4">

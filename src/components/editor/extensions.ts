@@ -61,7 +61,7 @@ import { tagHighlights } from './tag-highlights'
 import { editorHistory, historyKeys } from './undo'
 import { wordWrap } from './word-wrap'
 import { editorTheme } from './theme'
-import { isPlain } from '#/lib/document'
+import { hasVariables } from '#/lib/document'
 import { defaultMatches } from '#/lib/xml/defaults'
 import { varName, varRegExp } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
@@ -91,10 +91,9 @@ const varDecorator = new MatchDecorator({
   },
 })
 
-// SQL, ZPL and Markdown have no variables, so `<<` there is just text; so
-// is it in a file whose variables are off.
+// In a file whose variables are off, `<<` is just text.
 function noVars(state: EditorState) {
-  return isPlain(state.facet(docLanguage)) || !state.facet(docVars)
+  return !hasVariables(state.facet(docLanguage)) || !state.facet(docVars)
 }
 
 function varMarks(view: EditorView) {

@@ -4,11 +4,13 @@ import { zplHelpCompartment } from './editor-support'
 import { setDiagnostics } from '@codemirror/lint'
 import { CodeEditor } from '#/components/editor/CodeEditor'
 import { getFileView } from '#/components/editor/editor-store'
+import { PanelFrame } from '#/components/app/PanelFrame'
 import { PanelSplit } from '#/components/app/PanelSplit'
 import { sessionStore } from '#/lib/store/session'
 import type { PaneEdge } from '#/lib/store/pane-layout'
 import { dpiFor } from '#/lib/zpl/settings'
 import { LabelPreview } from './label-preview'
+import { m } from '#/paraglide/messages'
 import { compareStore, zplStore, selectFile, zplCandidates } from './store'
 import { useLabelRender } from './use-label-render'
 import {
@@ -24,10 +26,13 @@ void loadZplExplanations().catch(() => undefined)
 export function ZplPane({
   fileId,
   edge,
+  showPanel,
 }: {
   fileId: string
   /** The edge of the code the label preview sits on. */
   edge: PaneEdge
+  /** The label preview is open, like any other side panel. */
+  showPanel: boolean
 }) {
   const { render, isRendering, error, retry } = useLabelRender(fileId)
   const file = useSelector(zplStore, (s) => selectFile(s, fileId))
@@ -76,14 +81,18 @@ export function ZplPane({
       edge={edge}
       kind="label"
       panel={
-        <LabelPreview
-          panelId={fileId}
-          render={render}
-          isRendering={isRendering}
-          error={error}
-          onRetry={retry}
-          compareTarget={compareTarget}
-        />
+        showPanel && (
+          <PanelFrame title={m.zpl_preview_label()} edge={edge}>
+            <LabelPreview
+              panelId={fileId}
+              render={render}
+              isRendering={isRendering}
+              error={error}
+              onRetry={retry}
+              compareTarget={compareTarget}
+            />
+          </PanelFrame>
+        )
       }
     >
       <CodeEditor fileId={fileId} />

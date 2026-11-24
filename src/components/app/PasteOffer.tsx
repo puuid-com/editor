@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '#/components/ui/select'
 import { useProfiles } from '#/hooks/use-profiles'
-import { isPlain } from '#/lib/document'
+import { hasVariables } from '#/lib/document'
 import { filesCollection } from '#/lib/store/files'
 import { m } from '#/paraglide/messages'
 import type { DocLanguage } from '#/lib/document'
@@ -118,7 +118,7 @@ export function PasteOffer({
         </span>
       )}
 
-      {!isPlain(choice.language) && (
+      {hasVariables(choice.language) && (
         <Select
           value={choice.profileId}
           onValueChange={(profileId) => updatePasteChoice({ profileId })}

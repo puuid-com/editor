@@ -4,6 +4,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   commitVarsPreview,
+  convertVarsActive,
+  copyFileBase64,
   formatActiveAsync,
   resolveVarsActive,
 } from './actions'
@@ -115,5 +117,45 @@ describe('asynchronous editor commands', () => {
     expect(preview).not.toBeNull()
     commitVarsPreview(preview!)
     expect(view.state.doc.toString()).toBe(preview!.text)
+  })
+})
+
+describe('variables in every text file', () => {
+  it('resolves variables in SQL, ZPL, Markdown and plain text', async () => {
+    const files = [
+      ['SELECT * FROM t WHERE ts = {{$timestamp}}', 'sql'],
+      ['^XA^FO50,50^FD<<$timestamp>>^FS^XZ', 'zpl'],
+      ['# Sent ${$timestamp}', 'md'],
+      ['sent {{$timestamp}}', 'txt'],
+    ] as const
+    for (const [text, language] of files) {
+      setVarsPreview(null)
+      editor(text, language)
+      resolveVarsActive()
+      await vi.dynamicImportSettled()
+      expect(uiStore.state.varsPreview?.count, language).toBe(1)
+    }
+  })
+
+  it('rewrites the variables of a label in another bracket style', () => {
+    const { view } = editor('^XA^FD{{name}}^FS^FD{{sku}}^FS^XZ', 'zpl')
+    convertVarsActive('angle')
+    expect(view.state.doc.toString()).toBe('^XA^FD<<name>>^FS^FD<<sku>>^FS^XZ')
+  })
+})
+
+describe('copyFileBase64', () => {
+  it('copies the file as base64', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    try {
+      const file = createFile('label.zpl', '^XA^FDé^FS^XZ')
+      await copyFileBase64(file.id)
+      expect(writeText).toHaveBeenCalledWith(
+        btoa(String.fromCharCode(...new TextEncoder().encode('^XA^FDé^FS^XZ'))),
+      )
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

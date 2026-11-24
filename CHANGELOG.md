@@ -8,6 +8,19 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [2.2.0] - 2026-11-23
+
+### Added
+
+- Variables work in every text file, not only XML and JSON: `{{name}}`, `<<name>>` and `${name}` light up in SQL, ZPL, Markdown and plain text, with the same style switch, Replace variables and profile values. Format keeps a SQL file's variables whole.
+- Every pane has the same Download button by its tabs: download the file, copy it as text or base64, or copy a share link. Notes add Download PDF, labels add PDF and PNG.
+
+### Changed
+
+- The bottom bar is laid out the same for every file type: profile, variables, Format and Replace variables, then the type's own settings. A label's size and density now sit there, and Export PDF moved from a note's bottom bar to the Download button.
+- The label preview is a side panel like the structure and the Markdown preview: it has the same title bar, moves to any side and hides from the pane's menu or with the same shortcut.
+- Format only shows for the file types it rewrites, so flat files no longer show a button that does nothing.
+
 ## [2.1.1] - 2026-11-23
 
 ### Fixed

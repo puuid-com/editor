@@ -34,6 +34,7 @@ import { endPaneDrag, paneDrag } from './pane-drag'
 import { PanelFrame } from './PanelFrame'
 import { PanelSplit } from './PanelSplit'
 import { AppHeader } from './AppHeader'
+import { DownloadMenu } from './DownloadMenu'
 import { lazyPart } from '#/lib/lazy'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
@@ -53,13 +54,8 @@ const SettingsPage = lazyPart(() =>
 const ZplPane = lazy(() =>
   import('#/components/zpl/ZplPane').then((mod) => ({ default: mod.ZplPane })),
 )
-const ZplHeaderActions = lazy(() =>
-  import('#/components/zpl/header-actions').then((mod) => ({
-    default: mod.ZplHeaderActions,
-  })),
-)
 const ZplMenuItems = lazy(() =>
-  import('#/components/zpl/header-actions').then((mod) => ({
+  import('#/components/zpl/pane-actions').then((mod) => ({
     default: mod.ZplMenuItems,
   })),
 )
@@ -229,7 +225,10 @@ function FilePane({
   const side = useSelector(editorPrefs, (s) => s.panelSide)
   const zpl = language === 'zpl'
   const hasPanel = !image && hasSidePanel(language, live)
-  const showPanel = active && panelOpen && hasPanel && !!file?.hasContent
+  // Every label on screen shows, to compare and zoom them together; other
+  // panels follow the focused file.
+  const showPanel =
+    panelOpen && hasPanel && (zpl || (active && !!file?.hasContent))
   const [sizeRef, size] = useElementSize<HTMLElement>()
   const edge = panelEdge(side, {
     roomy: isRoomy(size.width, wide, count),
@@ -259,14 +258,15 @@ function FilePane({
         zoomed={zoomed}
         wide={wide}
         hasPanel={hasPanel}
-        movablePanel={hasPanel || zpl}
         settings={settings}
         settingsActive={settingsActive}
         actions={
-          zpl ? (
-            <Suspense>
-              <ZplHeaderActions fileId={fileId} />
-            </Suspense>
+          file && !settingsActive ? (
+            <DownloadMenu
+              fileId={fileId}
+              file={file}
+              onOpen={() => setActive(fileId)}
+            />
           ) : null
         }
         menuItems={
@@ -297,13 +297,13 @@ function FilePane({
 }
 
 /**
- * Whether a file of `language` has a panel beside its code. ZPL has its own
- * label preview; SQL and plain text have nothing to show beside them, and
- * live Markdown renders in the editor itself.
+ * Whether a file of `language` has a panel beside its code: the structure,
+ * a flat file's records, a note's preview or a label's. SQL and plain text
+ * have nothing to show beside them, and live Markdown renders in the editor
+ * itself.
  */
 function hasSidePanel(language: DocLanguage, live: boolean) {
-  if (language === 'zpl' || language === 'sql' || language === 'txt')
-    return false
+  if (language === 'sql' || language === 'txt') return false
   return !(language === 'md' && live)
 }
 
@@ -377,7 +377,7 @@ function PaneBody({
   if (kind === 'zpl')
     return (
       <Comparable fileId={fileId} compareId={compareId} wide={wide}>
-        <ZplPane fileId={fileId} edge={edge} />
+        <ZplPane fileId={fileId} edge={edge} showPanel={showPanel} />
       </Comparable>
     )
   const markdown = kind === 'md'

@@ -1,3 +1,5 @@
+import { VAR_PATTERN } from '#/lib/xml/vars'
+
 // A small SQL formatter: clauses start a line, list items and conditions
 // continue on their own indented lines with the comma or AND/OR first,
 // subqueries indent one level, and keywords are upper-cased. Everything else
@@ -133,7 +135,16 @@ const OPERATORS = [
   '>>',
 ]
 
-function tokenize(sql: string): Array<Token> {
+/** A `{{name}}`, `<<name>>` or `${name}` variable starting where it is matched. */
+const VARIABLE = new RegExp(VAR_PATTERN, 'y')
+
+/** The end of the variable at `at`, if one starts there. */
+function variableEnd(sql: string, at: number) {
+  VARIABLE.lastIndex = at
+  return VARIABLE.test(sql) ? VARIABLE.lastIndex : -1
+}
+
+function tokenize(sql: string, vars: boolean): Array<Token> {
   const tokens: Array<Token> = []
   let i = 0
   let spaced = false
@@ -169,6 +180,13 @@ function tokenize(sql: string): Array<Token> {
       tokens[tokens.length - 1].text = tokens[tokens.length - 1].text.trimEnd()
     } else if (ch === '/' && next === '*') {
       push('comment', until('*/', i + 2))
+    } else if (
+      vars &&
+      (ch === '{' || ch === '<' || ch === '$') &&
+      variableEnd(sql, i) > 0
+    ) {
+      // A variable stands for a value, so it is kept whole, as a word.
+      push('word', variableEnd(sql, i))
     } else if (ch === "'" || (/[NEXB]/i.test(ch) && next === "'")) {
       push('string', quotedEnd("'", i + (ch === "'" ? 1 : 2), /e/i.test(ch)))
     } else if (ch === '"' || ch === '`') {
@@ -225,8 +243,9 @@ interface Line {
   text: string
 }
 
-export function formatSql(sql: string, indent = '\t'): string {
-  const tokens = tokenize(sql)
+/** With `vars` off, `{{name}}` is read as the brackets it is written with. */
+export function formatSql(sql: string, indent = '\t', vars = true): string {
+  const tokens = tokenize(sql, vars)
   const lines: Array<Line> = [{ indent: 0, text: '' }]
   const top = (): Frame => frames[frames.length - 1]
   let frames: Array<Frame> = []

@@ -84,9 +84,14 @@ export function typedName(name: string, language: DocLanguage) {
     : untypedName(name) + LANGUAGE_EXTENSIONS[language][0]
 }
 
+/** The name a file downloads under: its own, given its type's extension when it has none. */
+export function downloadName(name: string, language: DocLanguage) {
+  return /\.\w+$/.test(name) ? name : typedName(name, language)
+}
+
 /**
- * Languages with no elements: nothing to pin, highlight, fill in or give
- * default values, so no profile settings apply either.
+ * Languages with no elements: nothing to pin, highlight or give default
+ * values. Their variables still work, as in every other text file.
  */
 export function isPlain(language: DocLanguage) {
   return (
@@ -95,6 +100,24 @@ export function isPlain(language: DocLanguage) {
     language === 'md' ||
     language === 'txt' ||
     language === 'image'
+  )
+}
+
+/** Every text file can hold `{{name}}` variables; only images can't. */
+export function hasVariables(language: DocLanguage) {
+  return language !== 'image'
+}
+
+/**
+ * Languages the Format action rewrites. Fixed-width records are already
+ * aligned, and ZPL and plain text are kept as written.
+ */
+export function canFormat(language: DocLanguage) {
+  return (
+    language === 'xml' ||
+    language === 'json' ||
+    language === 'sql' ||
+    language === 'md'
   )
 }
 
@@ -123,10 +146,10 @@ export function formatDocument(
   language: DocLanguage,
   options: FormatOptions,
 ): FormatResult {
-  // Fixed-width fields are already aligned; Markdown and text are written
-  // as meant.
-  if (language === 'sql') return { ok: true, text: formatSql(text) }
-  if (language === 'flat' || isPlain(language)) return { ok: true, text }
+  // Markdown formats on its own, with Prettier, in the editor's actions.
+  if (language === 'sql')
+    return { ok: true, text: formatSql(text, '\t', options.vars ?? true) }
+  if (!canFormat(language)) return { ok: true, text }
   return language === 'json'
     ? formatJson(text, options)
     : formatXml(text, options)

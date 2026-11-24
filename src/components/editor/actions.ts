@@ -4,6 +4,7 @@ import {
   activeLanguage,
   activeVars,
   editorStore,
+  getFileView,
   getText,
   getView,
   parseActive,
@@ -36,12 +37,14 @@ import { variableValues } from '#/lib/store/variables'
 import {
   MIME_TYPES,
   documentDefaults,
+  downloadName,
   formatDocument,
+  hasVariables,
   isPlain,
   languageOf,
-  typedName,
 } from '#/lib/document'
 import { contentBlob } from '#/lib/image-file'
+import { encodeBase64 } from '#/lib/zpl/base64'
 import { downloadBlob } from '#/lib/file-io'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { resolveVars } from '#/lib/xml/dynamic-vars'
@@ -216,7 +219,7 @@ export function resolveVarsActive() {
   const view = getView()
   const { fileId } = editorStore.state
   const language = activeLanguage()
-  if (!view || !fileId || isPlain(language) || !activeVars()) return true
+  if (!view || !fileId || !hasVariables(language) || !activeVars()) return true
   const doc = view.state.doc
   // Faker is large and only needed here, so it loads on first use.
   void import('@faker-js/faker').then(({ faker }) => {
@@ -294,7 +297,7 @@ export function commitVarsPreview({
 /** Rewrites every variable in the active file in `style`, as one undo step. */
 export function convertVarsActive(style: VarStyle) {
   const view = getView()
-  if (!view || isPlain(activeLanguage()) || !activeVars()) return
+  if (!view || !hasVariables(activeLanguage()) || !activeVars()) return
   const text = view.state.doc.toString()
   const result = convertVars(text, style)
   if (result.count === 0) {
@@ -323,12 +326,27 @@ export function downloadFile(id: string) {
   const language = active ? activeLanguage() : languageOf(file.name, content)
   downloadBlob(
     contentBlob(content, MIME_TYPES[language]),
-    /\.\w+$/.test(file.name) ? file.name : typedName(file.name, language),
+    downloadName(file.name, language),
   )
 }
 
-export async function copyActive() {
-  if (getView()) await copyText(getText())
+/** The file's text, with the edits its editor holds that may not be saved yet. */
+function currentText(id: string) {
+  return (
+    getFileView(id)?.state.doc.toString() ?? filesCollection.get(id)?.content
+  )
+}
+
+/** Copies the file's text. */
+export async function copyFile(id: string) {
+  const text = currentText(id)
+  if (text !== undefined) await copyText(text)
+}
+
+/** Copies the file's text as base64, the way many APIs carry a payload. */
+export async function copyFileBase64(id: string) {
+  const text = currentText(id)
+  if (text !== undefined) await copyText(encodeBase64(text))
 }
 
 /** Tag name or JSON key under the cursor, else the element the cursor is in. */

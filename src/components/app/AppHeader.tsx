@@ -19,7 +19,7 @@ import { endPaneDrag, startPaneDrag } from './pane-drag'
 import { PanelSideItems } from './PanelFrame'
 import { ToolbarButton } from './ToolbarButton'
 import { newFile, newZplFile } from './files'
-import { askRename, setShareOpen } from './ui-store'
+import { askRename } from './ui-store'
 import { CommandMenuButton } from './CommandMenuButton'
 import { TabStrip } from './TabStrip'
 import { Button } from '#/components/ui/button'
@@ -73,7 +73,6 @@ export function AppHeader({
   zoomed = false,
   wide,
   hasPanel,
-  movablePanel = hasPanel,
   settings = false,
   settingsActive = false,
   actions,
@@ -90,15 +89,13 @@ export function AppHeader({
   /** This pane shows alone, maximized over the others. */
   zoomed?: boolean
   wide: boolean
-  /** Whether the file type has a side panel to toggle. */
+  /** Whether the file type has a side panel to toggle and move. */
   hasPanel: boolean
-  /** Whether the file type has a panel to put on another side of the code. */
-  movablePanel?: boolean
   /** The settings tab sits in this pane. */
   settings?: boolean
   /** The settings tab is picked, in place of `fileId`. */
   settingsActive?: boolean
-  /** The file type's own actions, before the split and ⋯ buttons. */
+  /** The file's actions, before the split and ⋯ buttons. */
   actions?: React.ReactNode
   /** The file type's own entries at the end of the ⋯ menu. */
   menuItems?: React.ReactNode
@@ -143,8 +140,7 @@ export function AppHeader({
           <FileMenuItems
             fileId={fileId}
             hasPanel={hasPanel}
-            movablePanel={wide && movablePanel}
-            onShare={focus}
+            movablePanel={wide && hasPanel}
           />
           {menuItems}
           {split ? <PaneMenuItems paneId={paneId} zoomed={zoomed} /> : null}
@@ -240,29 +236,19 @@ function SplitMenu({
   )
 }
 
-/** The ⋯ menu's entries for the file: share, rename and its panel. */
+/** The ⋯ menu's entries for the file: rename and its panel. */
 function FileMenuItems({
   fileId,
   hasPanel,
   movablePanel,
-  onShare,
 }: {
   fileId: string
   hasPanel: boolean
   movablePanel: boolean
-  onShare: () => void
 }) {
   const panelOpen = useSelector(sessionStore, (s) => s.panelOpen)
   return (
     <>
-      <DropdownMenuItem
-        onSelect={() => {
-          onShare()
-          setShareOpen(true)
-        }}
-      >
-        {m.share_button()}
-      </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => askRename(fileId)}>
         {m.file_rename()}
       </DropdownMenuItem>

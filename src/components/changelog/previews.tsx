@@ -5675,6 +5675,60 @@ function RecoveryScreen() {
   )
 }
 
+function SameControlsEverywhere() {
+  const pane = (after: boolean) => (
+    <>
+      <PillTabs
+        end={
+          after ? (
+            <>
+              <IconDownload />
+              <IconDots />
+            </>
+          ) : (
+            <>
+              <IconAdjustmentsHorizontal />
+              <span className="flex items-center gap-0.5 border px-1.5 text-foreground">
+                {m.zpl_download()}
+                <IconChevronDown className="size-3" />
+              </span>
+              <IconDots />
+            </>
+          )
+        }
+      >
+        <PillTab name="label.zpl" active />
+      </PillTabs>
+      <div className="px-3 py-2 font-mono text-[11px]">
+        {'^FO50,50^FD'}
+        <span className={cn(after && 'var-chip')}>{'{{name}}'}</span>
+        {'^FS'}
+      </div>
+      <StatusBar className="h-auto min-h-8 flex-wrap justify-end gap-y-1 py-1.5">
+        {after && (
+          <>
+            <span>{m.status_profile()}</span>
+            <span className="size-1.5 rounded-full bg-(--hl-blue)" />
+            <span className="text-foreground">{m.profile_default_name()}</span>
+            <span className="mx-1 h-3 w-px bg-border" />
+            <span className="flex items-center gap-1 text-foreground">
+              <IconVariable className="size-3.5" />
+              {m.vars_resolve_short()}
+              <span className="text-muted-foreground tabular-nums">1</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <IconAdjustmentsHorizontal className="size-3.5" />
+              {m.zpl_settings_summary({ width: 4, height: 6, dpi: 203 })}
+            </span>
+          </>
+        )}
+        <span className="px-1">{m.zpl_empty_preview_credit()}</span>
+      </StatusBar>
+    </>
+  )
+  return <BeforeAfter before={pane(false)} after={pane(true)} />
+}
+
 function RestoreAfterErase() {
   return (
     <Shot className="flex h-40 flex-col">
@@ -5696,6 +5750,7 @@ function RestoreAfterErase() {
 }
 
 export const previews: Record<string, ComponentType> = {
+  '2.2.0': figure(SameControlsEverywhere),
   '2.1.0': figure(RestoreAfterErase),
   '1.74.0': figure(RecoveryScreen),
   '1.73.0': figure(RemovePrefix),

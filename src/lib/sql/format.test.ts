@@ -97,6 +97,28 @@ describe('formatSql', () => {
     }
   })
 
+  it('keeps variables whole, as the values they stand for', () => {
+    const sql =
+      "select a, {{col}} from t where id = <<id>> and x = ${x} and y = {{$randomInt}} and s = '${s}'"
+    const expected = [
+      'SELECT a',
+      '\t, {{col}}',
+      'FROM t',
+      'WHERE id = <<id>>',
+      '\tAND x = ${x}',
+      '\tAND y = {{$randomInt}}',
+      "\tAND s = '${s}'",
+    ].join('\n')
+    expect(formatSql(sql)).toBe(expected)
+    expect(formatSql(expected)).toBe(expected)
+  })
+
+  it('reads variable brackets as written when variables are off', () => {
+    expect(formatSql('select a from t where id = <<id>>', '\t', false)).toBe(
+      'SELECT a\nFROM t\nWHERE id = << id >>',
+    )
+  })
+
   it('gives the same text when run again', () => {
     const once = formatSql(
       'insert into t (a, b) values (1, 2), (3, 4); update t set a = 1, b = 2 where c = 3',

@@ -73,7 +73,7 @@ import {
 import {
   activeTagPrefixes,
   applyDefaultsActive,
-  copyActive,
+  copyFile,
   downloadFile,
   highlightAtCursor,
   historyDepth,
@@ -125,7 +125,7 @@ import {
 } from '#/components/editor/word-wrap'
 import { codeFonts, codeSizes } from '#/lib/code-font'
 import { m } from '#/paraglide/messages'
-import { isPlain } from '#/lib/document'
+import { hasVariables, isPlain } from '#/lib/document'
 import type { DocLanguage } from '#/lib/document'
 
 /** Centered palette of files and actions, opened with ⌘K or the logo. */
@@ -554,7 +554,7 @@ function CurrentFile({
             </CommandShortcut>
           </CommandItem>
         )}
-        <CommandItem onSelect={() => run(() => void copyActive())}>
+        <CommandItem onSelect={() => run(() => void copyFile(activeId))}>
           <IconClipboard />
           {m.file_copy()}
         </CommandItem>
@@ -599,8 +599,10 @@ function Edit({
 }) {
   // Read as the menu opens; nothing edits the file while it is open.
   const [depth] = useState(historyDepth)
-  // SQL, ZPL, Markdown and text files have no tags, defaults or variables to act on.
-  const formatOnly = useSelector(editorStore, (s) => isPlain(s.doc.language))
+  // SQL, ZPL, Markdown and text files have no tags to highlight or fill in;
+  // every text file has variables.
+  const plain = useSelector(editorStore, (s) => isPlain(s.doc.language))
+  const vars = useSelector(editorStore, (s) => hasVariables(s.doc.language))
   const xml = useSelector(editorStore, (s) => s.doc.language === 'xml')
   return (
     <>
@@ -626,7 +628,7 @@ function Edit({
             <ShortcutKeys shortcut={shortcuts.redo} />
           </CommandShortcut>
         </CommandItem>
-        {!formatOnly && (
+        {!plain && (
           <>
             <CommandItem onSelect={() => run(() => void highlightAtCursor())}>
               <IconHighlight />
@@ -642,14 +644,16 @@ function Edit({
                 <ShortcutKeys shortcut={shortcuts.applyDefaults} />
               </CommandShortcut>
             </CommandItem>
-            <CommandItem onSelect={() => run(resolveVarsActive)}>
-              <IconVariable />
-              {m.vars_resolve()}
-              <CommandShortcut>
-                <ShortcutKeys shortcut={shortcuts.resolveVars} />
-              </CommandShortcut>
-            </CommandItem>
           </>
+        )}
+        {vars && (
+          <CommandItem onSelect={() => run(resolveVarsActive)}>
+            <IconVariable />
+            {m.vars_resolve()}
+            <CommandShortcut>
+              <ShortcutKeys shortcut={shortcuts.resolveVars} />
+            </CommandShortcut>
+          </CommandItem>
         )}
         {xml && (
           <CommandItem

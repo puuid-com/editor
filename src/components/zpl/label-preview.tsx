@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { IconX } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
@@ -53,7 +53,6 @@ export function LabelPreview({
   onRetry,
   compareTarget: target,
 }: LabelPreviewProps) {
-  const headingId = useId()
   const zoom = useSelector(zoomStore, (zooms) => zooms[panelId] ?? 'fit')
   const syncZoom = useSelector(zplStore, (state) => state.syncZoom)
   const [viewportRef, viewport, viewportElement] =
@@ -128,14 +127,7 @@ export function LabelPreview({
   })
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="flex h-full min-w-0 flex-col"
-    >
-      <h3 id={headingId} className="sr-only">
-        {m.zpl_preview_label()}
-      </h3>
-
+    <div className="flex h-full min-w-0 flex-col">
       {compared && (
         <CompareBar
           mode={compareMode}
@@ -226,7 +218,7 @@ export function LabelPreview({
           />
         </StatusLine>
       </div>
-    </section>
+    </div>
   )
 }
 

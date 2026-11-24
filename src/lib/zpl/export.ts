@@ -2,7 +2,6 @@ import { zipSync } from 'fflate'
 
 import { downloadBlob } from '#/lib/file-io'
 
-import { encodeBase64 } from './base64'
 import { dotsToInches } from './settings'
 import type { LabelaryLabel } from './labelary'
 
@@ -86,38 +85,6 @@ function exportZpl(source: string, baseName: string) {
     new Blob([source], { type: 'application/octet-stream' }),
     `${baseName}.zpl`,
   )
-}
-
-export function copyZpl(source: string) {
-  return writeClipboard(source)
-}
-
-export function copyBase64(source: string) {
-  return writeClipboard(encodeBase64(source))
-}
-
-export async function writeClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text)
-  } catch (error) {
-    // Some embedded browsers deny the async clipboard API outright.
-    if (!legacyCopy(text)) throw error
-  }
-}
-
-function legacyCopy(text: string): boolean {
-  const textarea = document.createElement('textarea')
-  textarea.value = text
-  textarea.readOnly = true
-  textarea.style.position = 'fixed'
-  textarea.style.opacity = '0'
-  document.body.appendChild(textarea)
-  textarea.select()
-  try {
-    return document.execCommand('copy')
-  } finally {
-    textarea.remove()
-  }
 }
 
 function toPngBytes(label: LabelaryLabel): Promise<Uint8Array<ArrayBuffer>> {

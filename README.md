@@ -16,6 +16,8 @@ Open http://localhost:3000. Installation compiles the English and French message
 - Edit XML and JSON in CodeMirror, or edit values in the searchable structure tree.
 - Open multiple files, retain undo history across tabs, and compare two tabs in a git-style diff: split or unified, hunks with expandable context, word-level changes, and jumps between changes.
 - Keep formatting settings, tag highlights, pinned fields, defaults, and variables in profiles.
+- Use `{{name}}`, `<<name>>` and `${name}` variables in every text file type, filled in from the profile's values.
+- Download, copy (as text or base64) and share any file from the same menu on every pane, plus PDF for notes and PDF/PNG for labels.
 - Open files from disk and save back where the browser supports file handles.
 - Archive closed files, export workspace backups, and restore them later.
 - Share a document and optional profile settings through a link.

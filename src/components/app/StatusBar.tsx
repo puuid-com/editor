@@ -1,19 +1,15 @@
-import { exportMarkdownPdf } from '#/components/markdown/pdf/export-store'
 import { Suspense, lazy } from 'react'
-import { IconFileTypePdf } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
-import { ActionBar, FormatButton } from './ActionBar'
+import { ActionBar } from './ActionBar'
 import { CenterMenu } from './CenterMenu'
 import { MarkdownLiveToggle } from './MarkdownLiveToggle'
 import { StatusNotice } from './StatusNotice'
 import { editorStore } from '#/components/editor/editor-store'
 import { HighlightsBar } from '#/components/highlights/HighlightsBar'
-import { Button } from '#/components/ui/button'
 import { Separator } from '#/components/ui/separator'
 import { useFileEmpty } from '#/hooks/use-files'
-import { isPlain } from '#/lib/document'
-import { m } from '#/paraglide/messages'
+import { hasVariables, isPlain } from '#/lib/document'
 
 const ZplStatusControls = lazy(() =>
   import('#/components/zpl/status-controls').then((mod) => ({
@@ -21,7 +17,12 @@ const ZplStatusControls = lazy(() =>
   })),
 )
 
-/** Bottom bar of the workspace: the draft's controls or highlights on the left, then the latest notice in the free space; the file's setup and actions (for ZPL, who renders labels and zoom sync) on the right. */
+/**
+ * Bottom bar of the workspace, laid out the same for every file type: the
+ * draft's controls or highlights on the left, then the latest notice in the
+ * free space; on the right the file's profile, variables and actions, then
+ * the settings of its type, like a note's live preview or a label's size.
+ */
 export function StatusBar({
   leading,
   settings = false,
@@ -35,13 +36,9 @@ export function StatusBar({
   // An empty file has no type yet, so nothing to highlight, format or set up.
   const empty = useFileEmpty(activeId)
   const typed = !!activeId && !empty
-  // SQL, ZPL, Markdown and text have no highlights, defaults or variables;
-  // SQL and Markdown's fenced code can still be formatted.
   const language = useSelector(editorStore, (s) => s.doc.language)
+  // Only XML, JSON and flat files have tags to highlight.
   const plain = isPlain(language)
-  const zpl = language === 'zpl'
-  const markdown = language === 'md'
-  const sql = language === 'sql'
 
   const footer =
     'flex h-12 shrink-0 items-center gap-1 overflow-x-auto border-t px-1.5 text-[11px] whitespace-nowrap text-muted-foreground [scrollbar-width:none] md:h-9'
@@ -57,13 +54,8 @@ export function StatusBar({
       {leading}
       {typed && !plain && <HighlightsBar />}
       <StatusNotice />
-      {typed && (sql || markdown) && (
-        <div className="flex items-center text-foreground">
-          <FormatButton />
-        </div>
-      )}
-      {typed && !plain && <ActionBar />}
-      {typed && zpl && (
+      {typed && hasVariables(language) && <ActionBar />}
+      {typed && language === 'zpl' && (
         <>
           <Divider />
           <Suspense>
@@ -71,20 +63,11 @@ export function StatusBar({
           </Suspense>
         </>
       )}
-      {activeId && markdown && (
+      {activeId && language === 'md' && (
         <>
           {typed && <Divider />}
           <MarkdownLiveToggle />
           <CenterMenu />
-          <Button
-            variant="ghost"
-            size="xs"
-            className="max-md:h-11"
-            onClick={() => exportMarkdownPdf({ kind: 'file', id: activeId })}
-          >
-            <IconFileTypePdf />
-            {m.md_pdf_export()}
-          </Button>
         </>
       )}
     </footer>

@@ -47,6 +47,7 @@ import {
 import { profileShortcuts, shortcuts } from '#/lib/shortcuts'
 import { setFileVars } from '#/lib/store/files'
 import { profileCss } from '#/lib/store/profiles'
+import { canFormat, isPlain } from '#/lib/document'
 import { defaultSummary } from '#/lib/xml/defaults'
 import { varStyles, writeVar } from '#/lib/xml/vars'
 import { m } from '#/paraglide/messages'
@@ -67,11 +68,15 @@ function varsAt(revision: number) {
 }
 
 /**
- * Bottom bar controls for the active file: a labelled switch for its profile
- * and one for its variable style, then the actions that use them.
+ * Bottom bar controls for the active file, the same for every text file: a
+ * labelled switch for its profile and one for its variable style, then the
+ * actions that use them. Format shows for the types it rewrites, default
+ * values for those with elements to fill.
  */
 export function ActionBar() {
   const doc = useSelector(editorStore, (s) => s.doc)
+  const formats = canFormat(doc.language)
+  const fills = !isPlain(doc.language)
   const fileId = useSelector(editorStore, (s) => s.fileId)
   const vars = useSelector(editorStore, (s) => varsAt(s.revision))
   const varsOn = useFileVars(fileId)
@@ -95,24 +100,26 @@ export function ActionBar() {
       )}
       <Divider />
       <div className="flex items-center text-foreground">
-        <FormatButton />
-        <ActionButton
-          label={m.defaults_apply()}
-          detail={
-            defaults > 0
-              ? m.status_defaults_count({ count: defaults })
-              : rules.length === 0
-                ? m.defaults_none()
-                : m.defaults_unchanged()
-          }
-          shortcut={shortcuts.applyDefaults}
-          disabled={defaults === 0}
-          onClick={applyDefaultsActive}
-        >
-          <IconReplace />
-          <span className="max-xl:hidden">{m.defaults_apply()}</span>
-          <Count value={defaults} />
-        </ActionButton>
+        {formats && <FormatButton />}
+        {fills && (
+          <ActionButton
+            label={m.defaults_apply()}
+            detail={
+              defaults > 0
+                ? m.status_defaults_count({ count: defaults })
+                : rules.length === 0
+                  ? m.defaults_none()
+                  : m.defaults_unchanged()
+            }
+            shortcut={shortcuts.applyDefaults}
+            disabled={defaults === 0}
+            onClick={applyDefaultsActive}
+          >
+            <IconReplace />
+            <span className="max-xl:hidden">{m.defaults_apply()}</span>
+            <Count value={defaults} />
+          </ActionButton>
+        )}
         <ActionButton
           label={m.vars_resolve()}
           detail={
@@ -136,7 +143,7 @@ export function ActionBar() {
 }
 
 /** Formats the active file; disabled while it has errors. */
-export function FormatButton() {
+function FormatButton() {
   const formatError = useSelector(editorStore, (s) => s.doc.errors.at(0))
   return (
     <ActionButton

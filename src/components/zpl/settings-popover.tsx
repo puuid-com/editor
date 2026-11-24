@@ -34,7 +34,7 @@ import type { PrintDensity } from '#/lib/zpl/settings'
 import { m } from '#/paraglide/messages'
 import { zplStore, selectFile, setSettings } from './store'
 
-/** Opens the panel's label settings from `children`, the trigger button. */
+/** Opens the label settings of a file from `children`, the trigger button. */
 export function SettingsPopover({
   panelId,
   children,
@@ -50,7 +50,7 @@ export function SettingsPopover({
         </TooltipTrigger>
         <TooltipContent>{m.zpl_settings()}</TooltipContent>
       </Tooltip>
-      <PopoverContent align="start" className="w-72">
+      <PopoverContent side="top" align="end" className="w-72">
         <PopoverHeader>
           <PopoverTitle>{m.zpl_settings()}</PopoverTitle>
           <PopoverDescription>{m.zpl_settings_hint()}</PopoverDescription>

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  canFormat,
   detectLanguage,
+  downloadName,
+  formatDocument,
+  hasVariables,
   isPlain,
   languageOf,
   typedName,
@@ -99,5 +103,50 @@ describe('isPlain', () => {
     expect(isPlain('xml')).toBe(false)
     expect(isPlain('json')).toBe(false)
     expect(isPlain('flat')).toBe(false)
+  })
+})
+
+describe('hasVariables', () => {
+  it('gives every text file variables, and images none', () => {
+    for (const language of [
+      'xml',
+      'json',
+      'flat',
+      'sql',
+      'zpl',
+      'md',
+      'txt',
+    ] as const)
+      expect(hasVariables(language)).toBe(true)
+    expect(hasVariables('image')).toBe(false)
+  })
+})
+
+describe('canFormat', () => {
+  it('offers Format only where it rewrites the text', () => {
+    expect(canFormat('xml')).toBe(true)
+    expect(canFormat('json')).toBe(true)
+    expect(canFormat('sql')).toBe(true)
+    expect(canFormat('md')).toBe(true)
+    expect(canFormat('flat')).toBe(false)
+    expect(canFormat('zpl')).toBe(false)
+    expect(canFormat('txt')).toBe(false)
+  })
+})
+
+describe('formatDocument', () => {
+  it('keeps the variables of a SQL file whole', () => {
+    expect(formatDocument('select {{col}} from t', 'sql', {})).toEqual({
+      ok: true,
+      text: 'SELECT {{col}}\nFROM t',
+    })
+  })
+})
+
+describe('downloadName', () => {
+  it('keeps a name with an extension and gives one to a name without', () => {
+    expect(downloadName('label.zpl', 'zpl')).toBe('label.zpl')
+    expect(downloadName('notes.txt', 'md')).toBe('notes.txt')
+    expect(downloadName('order', 'json')).toBe('order.json')
   })
 })

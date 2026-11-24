@@ -1,24 +1,45 @@
-import { IconLink } from '@tabler/icons-react'
+import { IconAdjustmentsHorizontal, IconLink } from '@tabler/icons-react'
 import { useSelector } from '@tanstack/react-store'
 
+import { SettingsPopover } from './settings-popover'
 import { Button } from '#/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '#/components/ui/tooltip'
+import { DEFAULT_SETTINGS, dpiFor } from '#/lib/zpl/settings'
 import { m } from '#/paraglide/messages'
-import { zplStore, setSyncZoom, zplCandidates } from './store'
+import { selectFile, zplStore, setSyncZoom, zplCandidates } from './store'
 
-/** The bottom bar's ZPL entries: who renders the labels, and zoom sync across panes. */
+/** The bottom bar's ZPL entries: the label's size and density, who renders the labels, and zoom sync across panes. */
 export function ZplStatusControls({ fileId }: { fileId: string }) {
   const syncZoom = useSelector(zplStore, (s) => s.syncZoom)
   const files = useSelector(zplStore, (s) => s.files)
+  const settings = useSelector(
+    zplStore,
+    (s) => selectFile(s, fileId)?.settings ?? DEFAULT_SETTINGS,
+  )
   // Syncing zoom needs a second ZPL file.
   const alone = zplCandidates({ files }, fileId).length === 0
 
   return (
     <>
+      <SettingsPopover panelId={fileId}>
+        <Button
+          variant="ghost"
+          size="xs"
+          aria-label={m.zpl_settings()}
+          className="gap-1 px-1.5 text-[11px] font-normal tabular-nums max-md:h-11"
+        >
+          <IconAdjustmentsHorizontal />
+          {m.zpl_settings_summary({
+            width: settings.widthIn,
+            height: settings.heightIn,
+            dpi: dpiFor(settings.dpmm),
+          })}
+        </Button>
+      </SettingsPopover>
       <Tooltip>
         <TooltipTrigger asChild>
           <a
