@@ -1,3 +1,5 @@
+import { base64ToBytes, bytesToBase64 } from './base64'
+
 /** Browser-native image formats; SVG stays text for lossless export. */
 export const IMAGE_TYPES: Record<string, Array<`.${string}`>> = {
   'image/png': ['.png'],
@@ -29,20 +31,12 @@ export async function readFileContent(file: File): Promise<string> {
   const mime = imageMime(file.name)
   if (!mime || mime === 'image/svg+xml') return file.text()
   const bytes = new Uint8Array(await file.arrayBuffer())
-  let binary = ''
-  for (let i = 0; i < bytes.length; i += 8192)
-    binary += String.fromCharCode(...bytes.subarray(i, i + 8192))
-  return `data:${mime};base64,${btoa(binary)}`
+  return `data:${mime};base64,${bytesToBase64(bytes)}`
 }
 
 /** Decode image storage before any download or write to disk. */
 export function contentBlob(content: string, mime = 'text/plain') {
   if (!isImageData(content)) return new Blob([content], { type: mime })
-  const comma = content.indexOf(',')
-  const binary = atob(content.slice(comma + 1))
-  // A plain loop: `Uint8Array.from` with a mapper calls it per byte through
-  // the string's iterator, many times slower on a large image.
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  const bytes = base64ToBytes(content.slice(content.indexOf(',') + 1))
   return new Blob([bytes], { type: content.slice(5, content.indexOf(';')) })
 }

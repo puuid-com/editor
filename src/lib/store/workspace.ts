@@ -1,6 +1,6 @@
 import { loadDiskLinks, loadDiskRoots } from './disk'
 import { filesCollection } from './files'
-import { workspaceReady as collectionsReady } from './persist'
+import { collectionsReady } from './persist'
 import { singleton } from './singleton'
 import { logEvent } from '#/lib/rescue/client'
 // Each collection registers itself when its module loads, so load them all

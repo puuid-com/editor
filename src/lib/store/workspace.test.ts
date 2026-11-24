@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import { deleteDiskLink, diskStore, rootsStore, setDiskLink } from './disk'
 import { createFile } from './files'
-import { workspaceReady as collectionsReady } from './persist'
+import { collectionsReady } from './persist'
 import { DISK_WAIT_MS, workspaceReady } from './workspace'
 
 afterEach(() => {

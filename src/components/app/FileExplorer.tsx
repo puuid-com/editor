@@ -46,6 +46,7 @@ import {
   SettingsButton,
   ShortcutsButton,
 } from './SidebarButtons'
+import { downloadFile } from '#/components/editor/actions'
 import { editorPrefs } from '#/components/editor/word-wrap'
 import { notify } from './notice-store'
 import { UnsavedMark } from './UnsavedMark'
@@ -104,7 +105,6 @@ import {
 import { rootsStore } from '#/lib/store/disk'
 import { activeProfileId } from '#/lib/store/profiles'
 import { setActive } from '#/lib/store/session'
-import { downloadBlob } from '#/lib/file-io'
 import { lazyPart } from '#/lib/lazy'
 import { isHiddenType } from '#/lib/file-types'
 import { shortcuts } from '#/lib/shortcuts'
@@ -252,12 +252,6 @@ async function duplicateFile(id: string, parentId: string | null) {
     }).isPersisted.promise
   await moveFile(copy.id, parentId)
   setActive(copy.id)
-}
-
-function downloadFile(id: string) {
-  const file = filesCollection.get(id)
-  if (file)
-    downloadBlob(new Blob([file.content], { type: 'text/plain' }), file.name)
 }
 
 export function FileExplorer({

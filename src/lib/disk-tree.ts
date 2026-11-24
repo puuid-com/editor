@@ -45,7 +45,8 @@ export function parentPath(path: string) {
   return slash < 0 ? '' : path.slice(0, slash)
 }
 
-function baseName(path: string) {
+/** The last name of a path whose names `/` separates. */
+export function baseName(path: string) {
   return path.slice(path.lastIndexOf('/') + 1)
 }
 

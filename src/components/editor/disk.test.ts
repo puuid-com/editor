@@ -134,6 +134,28 @@ describe('saving to disk', () => {
     expect(text).toBe(file.content)
   })
 
+  it('downloads an image as its bytes, under its own name', async () => {
+    // A PNG's signature, stored the way the workspace keeps images.
+    const file = createFile('dot.png', 'data:image/png;base64,iVBORw0KGgo=')
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:test')
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() })
+    const names: Array<string> = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      names.push(this.download)
+    })
+
+    downloadFile(file.id)
+
+    expect(names).toEqual(['dot.png'])
+    const blob = createObjectURL.mock.calls[0][0]
+    expect(blob.type).toBe('image/png')
+    expect(new Uint8Array(await blob.arrayBuffer())).toEqual(
+      new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    )
+  })
+
   it('does not overwrite disk when the file disappears during permission approval', async () => {
     const file = createFile('removed.xml', '<keep/>')
     const { handle } = fakeHandle('removed.xml', 1)

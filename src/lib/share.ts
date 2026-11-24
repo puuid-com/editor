@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { labelSettingsSchema } from './zpl/schema'
 
+import { fromBase64Url, toBase64Url } from './base64'
 import { isPreset } from './store/colors'
 import { formatSettingsSchema } from './store/format-settings'
 
@@ -55,18 +56,6 @@ export class ShareError extends Error {
   constructor(readonly reason: 'too-long' | 'invalid') {
     super(`Share link ${reason}`)
   }
-}
-
-function toBase64Url(bytes: Uint8Array) {
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function fromBase64Url(text: string) {
-  if (!/^[\w-]*$/.test(text)) throw new ShareError('invalid')
-  const binary = atob(text.replace(/-/g, '+').replace(/_/g, '/'))
-  return Uint8Array.from(binary, (c) => c.charCodeAt(0))
 }
 
 async function readAll(stream: ReadableStream<Uint8Array>, limit: number) {
@@ -132,13 +121,13 @@ export function isShareHash(hash: string) {
 export async function decodeShare(hash: string): Promise<SharedFile> {
   if (!isShareHash(hash)) throw new ShareError('invalid')
   if (hash.length > MAX_LINK_LENGTH) throw new ShareError('too-long')
+  const data = hash.slice(PREFIX.length)
+  // Only base64url: `atob` would also take `+`, `/`, `=` and spaces.
+  if (!/^[\w-]*$/.test(data)) throw new ShareError('invalid')
   let json: unknown
   try {
     const bytes = await readAll(
-      pipe(
-        fromBase64Url(hash.slice(PREFIX.length)),
-        new DecompressionStream('deflate-raw'),
-      ),
+      pipe(fromBase64Url(data), new DecompressionStream('deflate-raw')),
       MAX_DECODED_BYTES,
     )
     json = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))

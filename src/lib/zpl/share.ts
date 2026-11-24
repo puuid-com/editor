@@ -2,6 +2,7 @@ import { Inflate, deflateSync, strFromU8, strToU8 } from 'fflate'
 
 import { decodeBase64Zpl } from './base64'
 import type { LabelSettings } from './settings'
+import { fromBase64Url, toBase64Url } from '#/lib/base64'
 
 /** The fragment parameter that holds the compressed ZPL. */
 const SOURCE_PARAM = 'zpl'
@@ -99,16 +100,4 @@ function inflateCapped(data: Uint8Array): Uint8Array {
     offset += chunk.length
   }
   return bytes
-}
-
-function toBase64Url(bytes: Uint8Array): string {
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function fromBase64Url(text: string): Uint8Array {
-  // atob accepts base64 without its padding.
-  const binary = atob(text.replace(/-/g, '+').replace(/_/g, '/'))
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0))
 }

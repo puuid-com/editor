@@ -206,8 +206,8 @@ export function localCollection<
  * also moves what older versions kept in localStorage into IndexedDB, and
  * fills an empty workspace with its starting rows.
  */
-export function workspaceReady() {
-  return singleton('workspaceReady', async () => {
+export function collectionsReady() {
+  return singleton('collectionsReady', async () => {
     logEvent('info', 'Loading the stored files and settings')
     await Promise.all(
       registered.map(({ name, collection }) =>

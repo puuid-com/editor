@@ -1,3 +1,5 @@
+import { bytesToBase64 } from '#/lib/base64'
+
 const DATA_URI_PREFIX = /^data:[^,]*;base64,/i
 const BASE64_ALPHABET = /^[A-Za-z0-9+/_-]+={0,2}$/
 const NOT_BASE64 = /[^A-Za-z0-9+/_=\s-]/
@@ -25,10 +27,7 @@ export function decodeBase64Zpl(text: string): string | null {
 }
 
 export function encodeBase64(text: string): string {
-  const bytes = new TextEncoder().encode(text)
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary)
+  return bytesToBase64(new TextEncoder().encode(text))
 }
 
 function decodeOnce(text: string): string | null {

@@ -13,6 +13,7 @@ import {
 } from './persist'
 import { withoutHistory } from './history'
 import { writerId } from './session'
+import { baseName } from '#/lib/disk-tree'
 import type { LabelSettings } from '#/lib/zpl/settings'
 import { labelSettingsSchema } from '#/lib/zpl/schema'
 
@@ -141,11 +142,6 @@ export function createFile(
   profileId = DEFAULT_PROFILE_ID,
 ) {
   return openFile({ name: uniqueName(name), content, profileId })
-}
-
-/** The last name of a path whose names `/` separates. */
-function baseName(path: string) {
-  return path.slice(path.lastIndexOf('/') + 1)
 }
 
 /** Opens a file of a folder on disk in a tab, under its name there. */

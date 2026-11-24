@@ -8,6 +8,12 @@ Every change bumps `version` in `package.json` and adds an entry here, newest fi
 
 Visible changes also get a picture on the changelog page: add the version to `previews` in `src/components/changelog/previews.tsx`.
 
+## [2.1.1] - 2026-11-23
+
+### Fixed
+
+- Download in the file explorer saves images as images instead of unreadable text files, and gives a file without an extension the right one, like Download in the command menu.
+
 ## [2.1.0] - 2026-11-23
 
 ### Added

@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from 'react'
 import { useSelector } from '@tanstack/react-store'
 
 import { SettingSwitch } from './FormatControls'
@@ -20,17 +19,18 @@ import {
 } from '#/components/ui/select'
 import { Separator } from '#/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import { useDarkMode } from '#/hooks/use-dark-mode'
 import { codeFonts, codeSizes, fontFace } from '#/lib/code-font'
 import type { CodeFontId, CodeSize } from '#/lib/code-font'
 import { PANEL_SIDES } from '#/lib/panel-side'
 import type { PanelSide } from '#/lib/panel-side'
 import { shortcuts } from '#/lib/shortcuts'
-import { isDark, subscribeTheme, toggleTheme } from '#/lib/theme'
+import { isDark, toggleTheme } from '#/lib/theme'
 import { m } from '#/paraglide/messages'
 
 /** Settings for every file and profile: theme, wrap, sidebar side, side panel position, font, text size. */
 export function GeneralSettings() {
-  const dark = useSyncExternalStore(subscribeTheme, isDark, () => false)
+  const dark = useDarkMode()
   const prefs = useSelector(editorPrefs, (s) => s)
 
   return (

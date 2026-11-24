@@ -3,7 +3,7 @@ import {
   IconChevronDown,
   IconFileCode,
 } from '@tabler/icons-react'
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { Icon } from './kit/parts/Icon'
@@ -12,6 +12,7 @@ import { States } from './kit/motion/States'
 import { Stage } from './kit/stage'
 import { Bar, Window } from './kit/window'
 import type { Act } from './kit/act'
+import { useDarkMode } from '#/hooks/use-dark-mode'
 import { cn } from '#/lib/utils'
 import { m } from '#/paraglide/messages'
 import './feature-bento.css'
@@ -41,23 +42,6 @@ const beat = (i: number) => async (a: Act<Beat>) => {
   await a.set({ on: true })
 }
 
-// The page's own theme: `.dark` on <html>, toggled by the header switch.
-function subscribeTheme(onChange: () => void) {
-  const observer = new MutationObserver(onChange)
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class'],
-  })
-  return () => observer.disconnect()
-}
-function useDark() {
-  return useSyncExternalStore(
-    subscribeTheme,
-    () => document.documentElement.classList.contains('dark'),
-    () => false,
-  )
-}
-
 // The cell owns the crop: the Stage takes the slot's measured size, so a
 // picture is never cut short of the cell edge or scaled.
 function useSlotSize() {
@@ -84,7 +68,7 @@ function Picture({
   children: (on: boolean, width: number) => ReactNode
 }) {
   const [ref, { width, height }] = useSlotSize()
-  const dark = useDark()
+  const dark = useDarkMode()
   return (
     <div ref={ref} className="relative min-h-0 flex-1" aria-hidden>
       {width > 0 && height > 0 && (

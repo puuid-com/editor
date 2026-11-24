@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { isEditableName, parentPath } from './disk-tree'
+import { baseName, isEditableName, parentPath } from './disk-tree'
 
 // Obsidian vaults: folders of Markdown notes with their settings in an
 // `.obsidian` folder at the root. The explorer already hides dot folders;
@@ -293,7 +293,7 @@ function sharedFolders(a: string, b: string) {
 
 /** A file's name in lowercase, and without `.md` for a note. */
 function namesOf(path: string) {
-  const name = path.slice(path.lastIndexOf('/') + 1)
+  const name = baseName(path)
   return new Set([name, name.replace(/\.md$/, '')])
 }
 
@@ -331,7 +331,7 @@ export function linkResolver(paths: ReadonlyArray<string>) {
     if (found) return found
     const path = joinRelative('', link)?.toLowerCase()
     if (!path) return undefined
-    const name = path.slice(path.lastIndexOf('/') + 1)
+    const name = baseName(path)
     const ends = (candidate: string) => {
       const lower = `/${candidate.toLowerCase()}`
       return lower.endsWith(`/${path}`) || lower.endsWith(`/${path}.md`)
